@@ -80,7 +80,7 @@
                     Vector direction = (Mouse.WorldPosition - Position).Normalized;
 
                     if (Game.NetworkMode != NetworkMode.Offline)
-                    { Game.Connection?.Send(MessageRpc.Make(this, 1, direction)); }
+                    { Game.Connection?.SendImmediate(MessageRpc.Make(this, 1, direction, Vector.SerializeAsDirection)); }
 
                     Game.Instance.Scene.AddObject(new Projectile(Position, direction * ProjectileSpeed));
                     Reload = ReloadTime;
@@ -99,7 +99,7 @@
                     {
                         if (!IsOwned)
                         {
-                            Vector direction = message.GetObjectData<Vector>();
+                            Vector direction = message.GetObjectData(Vector.DeserializeAsDirection);
                             Game.Instance.Scene.AddObject(new Projectile(NetPosition, direction * ProjectileSpeed));
                         }
                         break;

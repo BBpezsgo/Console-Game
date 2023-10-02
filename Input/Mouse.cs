@@ -8,13 +8,13 @@ namespace ConsoleGame
         {
             uint states;
 
-            public bool this[MouseButtonState button]
+            public bool this[uint button]
             {
-                readonly get => (states & (uint)button) != 0;
+                readonly get => (states & button) != 0;
                 set
                 {
-                    states ^= states & (uint)button;
-                    states |= (uint)button;
+                    states ^= states & button;
+                    states |= button;
                 }
             }
 
@@ -33,9 +33,9 @@ namespace ConsoleGame
 
         public static Vector WorldPosition => Game.ConsoleToWorld(new Vector(mousePosition.X, mousePosition.Y));
 
-        public static bool IsLeftDown => pressed[MouseButtonState.Left];
-        public static bool IsMiddleDown => pressed[MouseButtonState.Middle];
-        public static bool IsRightDown => pressed[MouseButtonState.Right];
+        public static bool IsLeftDown => pressed[MouseButton.Left];
+        public static bool IsMiddleDown => pressed[MouseButton.Middle];
+        public static bool IsRightDown => pressed[MouseButton.Right];
 
         public static void Feed(MouseEvent e)
         {

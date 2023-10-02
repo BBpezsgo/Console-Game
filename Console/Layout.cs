@@ -56,6 +56,13 @@
             };
         }
 
+        public static VectorInt MakeCenteredLabel(RectInt menu, string text)
+        {
+            int x = menu.X + (menu.Width / 2) - (text.Length / 2);
+            int y = menu.Y + (menu.Height / 2);
+            return new VectorInt(x, y);
+        }
+
         public enum Align
         {
             Left,

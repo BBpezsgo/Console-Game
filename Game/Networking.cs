@@ -85,7 +85,7 @@ namespace ConsoleGame
 
             if (message is NetControlMessage netControlMessage)
             {
-                connection?.FeedControlMessage(netControlMessage);
+                connection?.FeedControlMessage(sender, netControlMessage);
                 return;
             }
 

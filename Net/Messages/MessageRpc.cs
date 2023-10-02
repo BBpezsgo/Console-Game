@@ -32,6 +32,12 @@ namespace ConsoleGame
             return deserializer.DeserializeObject<T>();
         }
 
+        public T GetObjectData<T>(Func<Deserializer, T> deserializer)
+        {
+            Deserializer _deserializer = new(Data);
+            return deserializer.Invoke(_deserializer);
+        }
+
         public T GetData<T>()
         {
             Deserializer deserializer = new(Data);
@@ -48,6 +54,19 @@ namespace ConsoleGame
                 NetworkId = sender.NetworkId,
                 RpcKind = kind,
                 Data = serializer.Result,
+            };
+        }
+
+        public static MessageRpc Make<T>(NetworkedGameObject sender, int kind, T data, Action<T, Serializer> serializer)
+        {
+            Serializer _serializer = new();
+            serializer.Invoke(data, _serializer);
+            return new MessageRpc()
+            {
+                Type = MessageType.OBJ_RPC,
+                NetworkId = sender.NetworkId,
+                RpcKind = kind,
+                Data = _serializer.Result,
             };
         }
     }

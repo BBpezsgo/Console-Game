@@ -4,10 +4,11 @@ namespace ConsoleGame
 {
     public partial class ConsoleRenderer
     {
-        public void DrawLabel(VectorInt pos, string text)
+        public int DrawLabel(VectorInt pos, string text)
             => DrawLabel(pos.X, pos.Y, text);
-        public void DrawLabel(int x, int y, string text)
+        public int DrawLabel(int x, int y, string text)
         {
+            int w = 0;
             for (int i = 0; i < text.Length; i++)
             {
                 int _x = x + i;
@@ -16,13 +17,16 @@ namespace ConsoleGame
                 if (y >= height) break;
 
                 this[_x, y].Char = text[i];
+                w++;
             }
+            return w;
         }
 
-        public void DrawLabel(VectorInt pos, string text, ushort attributes)
+        public int DrawLabel(VectorInt pos, string text, ushort attributes)
             => DrawLabel(pos.X, pos.Y, text, attributes);
-        public void DrawLabel(int x, int y, string text, ushort attributes)
+        public int DrawLabel(int x, int y, string text, ushort attributes)
         {
+            int w = 0;
             for (int i = 0; i < text.Length; i++)
             {
                 int _x = x + i;
@@ -32,10 +36,12 @@ namespace ConsoleGame
 
                 this[_x, y].Char = text[i];
                 this[_x, y].Attributes = attributes;
+                w++;
             }
+            return w;
         }
 
-        public void DrawLabel(int x, int y, string text, byte background, byte foreground)
+        public int DrawLabel(int x, int y, string text, byte background, byte foreground)
             => DrawLabel(x, y, text, unchecked((ushort)((background << 4) | foreground)));
 
         public void DrawBox(RectInt box)
@@ -118,6 +124,13 @@ namespace ConsoleGame
                 return ButtonState.None;
             }
         }
+
+        public RectInt MakeMenu(int width, int height) => new(
+                (Width / 2) - (width / 2),
+                (Height / 2) - (height / 2),
+                width,
+                height
+            );
     }
 
     public enum ButtonState : byte

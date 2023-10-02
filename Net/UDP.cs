@@ -62,6 +62,8 @@ namespace ConsoleGame.Net
 
         readonly ConcurrentDictionary<string, UdpClient> Connections = new();
 
+        bool connectedToServer = false;
+
         public override Socket[] Clients
         {
             get
@@ -78,6 +80,57 @@ namespace ConsoleGame.Net
 
         public override Socket ServerEndPoint => (Socket)UdpSocket.Client.RemoteEndPoint;
 
+        public override string StatusText
+        {
+            get
+            {
+                if (UdpSocket == null || UdpSocket.Client == null)
+                { return "None"; }
+
+                if (connectedToServer)
+                { return "Connected"; }
+
+                if (UdpSocket.Client.IsBound)
+                {
+                    if (isServer)
+                    {
+                        return "Listening";
+                    }
+                    else
+                    {
+                        return "Connecting ...";
+                    }
+                }
+
+                return "Starting ...";
+            }
+        }
+        public override bool IsDone
+        {
+            get
+            {
+                if (UdpSocket == null || UdpSocket.Client == null)
+                { return false; }
+
+                if (connectedToServer)
+                { return true; }
+
+                if (UdpSocket.Client.IsBound)
+                {
+                    if (isServer)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                return false;
+            }
+        }
+
         public UDP(bool debugLog = false) : base(debugLog)
         {
             ListeningThread = new Thread(Listen);
@@ -91,7 +144,7 @@ namespace ConsoleGame.Net
             localEndPoint = (IPEndPoint?)UdpSocket.Client.LocalEndPoint;
             ShouldListen = true;
             ListeningThread.Start();
-            Send(new NetControlMessage(NetControlMessageKind.HEY_IM_CLIENT));
+            Send(new NetControlMessage(NetControlMessageKind.HEY_IM_CLIENT_PLS_REPLY));
         }
 
         public override void Server(IPAddress address, int port)
@@ -137,6 +190,7 @@ namespace ConsoleGame.Net
                     else
                     {
                         IncomingQueue.Enqueue(result);
+                        connectedToServer = true;
                     }
                 }
                 catch (SocketException)
@@ -186,7 +240,7 @@ namespace ConsoleGame.Net
             }
         }
 
-        public override void Send(byte[] data)
+        protected override void Send(byte[] data)
         {
             if (UdpSocket == null) return;
 
@@ -205,17 +259,47 @@ namespace ConsoleGame.Net
             }
         }
 
-        public override void FeedControlMessage(NetControlMessage netControlMessage)
+        protected override void SendTo(byte[] data, Socket destination)
+        {
+            if (UdpSocket == null) return;
+            if (!isServer) return;
+
+            if (DebugLog) Debug.WriteLine($"[Net]: Sending {data.Length} bytes to {destination} ...");
+
+            foreach (KeyValuePair<string, UdpClient> client in Connections)
+            {
+                if (!client.Value.RemoteEndPoint.Equals((IPEndPoint)destination)) continue;
+
+                int sent = UdpSocket.Send(data, data.Length, client.Value.RemoteEndPoint);
+
+                if (DebugLog) Debug.WriteLine($"[Net]: Sent {sent} bytes to {client.Value.RemoteEndPoint}");
+
+                break;
+            }
+        }
+
+        public override void FeedControlMessage(Socket sender, NetControlMessage netControlMessage)
         {
             if (UdpSocket == null) return;
 
             if (netControlMessage.Type == MessageType.CONTROL)
             {
-                if (!isServer) return;
-
-                Debug.WriteLine($"[Net]: Someone connected");
-
-                return;
+                switch (netControlMessage.Kind)
+                {
+                    case NetControlMessageKind.HEY_IM_CLIENT_PLS_REPLY:
+                        {
+                            Debug.WriteLine($"[Net]: Someone connected");
+                            SendTo<NetControlMessage>(new NetControlMessage(NetControlMessageKind.HEY_CLIENT_IM_SERVER), sender);
+                            return;
+                        }
+                    case NetControlMessageKind.HEY_CLIENT_IM_SERVER:
+                        {
+                            Debug.WriteLine($"[Net]: Connected to server");
+                            connectedToServer = true;
+                            return;
+                        }
+                    default: return;
+                }
             }
         }
     }

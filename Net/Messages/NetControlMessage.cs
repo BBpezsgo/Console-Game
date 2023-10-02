@@ -4,7 +4,8 @@ namespace ConsoleGame
 {
     public enum NetControlMessageKind : byte
     {
-        HEY_IM_CLIENT,
+        HEY_IM_CLIENT_PLS_REPLY,
+        HEY_CLIENT_IM_SERVER,
     }
 
     public class NetControlMessage : Message, ISerializable<NetControlMessage>

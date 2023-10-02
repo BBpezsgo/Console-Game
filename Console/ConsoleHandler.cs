@@ -4,20 +4,44 @@ namespace ConsoleGame
 {
     public static class ConsoleHandler
     {
-        public static void SetupConsole()
-        {
-            IntPtr inputHandle = Kernel32.GetStdHandle(Kernel32.STD_INPUT_HANDLE);
-            uint mode = 0;
+        static uint SavedMode;
+        static IntPtr StdinHandle = Kernel32.INVALID_HANDLE_VALUE;
 
-            if (Kernel32.GetConsoleMode(inputHandle, ref mode) == 0)
+        /// <exception cref="WindowsException"/>
+        public static void Setup()
+        {
+            StdinHandle = Kernel32.GetStdHandle(StdHandle.STD_INPUT_HANDLE);
+
+            if (StdinHandle == Kernel32.INVALID_HANDLE_VALUE)
             { throw WindowsException.Get(); }
 
-            InputMode.Default(ref mode);
+            uint mode = 0;
+            if (Kernel32.GetConsoleMode(StdinHandle, ref mode) == 0)
+            { throw WindowsException.Get(); }
 
-            if (Kernel32.SetConsoleMode(inputHandle, mode) == 0)
+            SavedMode = mode;
+
+            mode &= ~InputMode.ENABLE_QUICK_EDIT_MODE;
+            mode |= InputMode.ENABLE_WINDOW_INPUT;
+            mode |= InputMode.ENABLE_MOUSE_INPUT;
+
+            if (Kernel32.SetConsoleMode(StdinHandle, mode) == 0)
             { throw WindowsException.Get(); }
 
             Console.CursorVisible = false;
+        }
+
+        /// <exception cref="WindowsException"/>
+        /// <exception cref="Exception"/>
+        public static void Restore()
+        {
+            Console.CursorVisible = true;
+
+            if (StdinHandle == Kernel32.INVALID_HANDLE_VALUE)
+            { throw new Exception($"Invalid handle"); }
+
+            if (Kernel32.SetConsoleMode(StdinHandle, SavedMode) == 0)
+            { throw WindowsException.Get(); }
         }
     }
 }

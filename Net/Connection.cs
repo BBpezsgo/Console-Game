@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using DataUtilities.Serializer;
 
 namespace ConsoleGame.Net
@@ -24,6 +23,9 @@ namespace ConsoleGame.Net
         public abstract Socket LocalEndPoint { get; }
         public abstract Socket ServerEndPoint { get; }
 
+        public abstract string StatusText { get; }
+        public abstract bool IsDone { get; }
+
         public Connection(bool debugLog = false)
         {
             OutgoingQueue = new Queue<Message>();
@@ -38,13 +40,22 @@ namespace ConsoleGame.Net
         public void Client(string address, int port)
             => Client(IPAddress.Parse(address), port);
 
-        public void Send(string text) => Send(Encoding.ASCII.GetBytes(text));
-        public void Send<T>(ISerializable<T> data) where T : ISerializable<T> => Send(SerializerStatic.Serialize(data));
-        public abstract void Send(byte[] data);
+        protected void Send<T>(ISerializable<T> data) where T : ISerializable<T>
+            => Send(SerializerStatic.Serialize(data));
+        protected abstract void Send(byte[] data);
+
+        protected void SendTo<T>(ISerializable<T> data, Socket destination) where T : ISerializable<T>
+            => SendTo(SerializerStatic.Serialize(data), destination);
+        protected abstract void SendTo(byte[] data, Socket destination);
 
         public void Send(Message message)
         {
             OutgoingQueue.Enqueue(message);
+        }
+
+        public void SendImmediate(Message message)
+        {
+            Send<Message>(message);
         }
 
         uint GuidCounter;
@@ -69,6 +80,6 @@ namespace ConsoleGame.Net
         protected void OnClientConnectedInternal(Socket client) => OnClientConnected?.Invoke(client);
         protected void OnClientDisconnectedInternal(Socket client) => OnClientDisconnected?.Invoke(client);
 
-        public virtual void FeedControlMessage(NetControlMessage netControlMessage) { }
+        public virtual void FeedControlMessage(Socket sender, NetControlMessage netControlMessage) { }
     }
 }

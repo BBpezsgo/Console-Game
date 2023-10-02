@@ -12,6 +12,22 @@ namespace ConsoleGame
             renderer.Clear();
             renderer.Resize();
 
+            TickWrapped();
+
+            renderer.Render();
+        }
+
+        void TickWrapped()
+        {
+            int stateBarX = 1;
+
+            stateBarX += renderer.DrawLabel(
+                stateBarX, 0,
+                $"FPS: {(int)MathF.Round(1f / deltaTime),4}",
+                ByteColor.Black, ByteColor.Gray);
+
+            stateBarX += renderer.DrawLabel(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+
             /*
             int width = renderer.Width;
             int height = renderer.Height;
@@ -36,7 +52,6 @@ namespace ConsoleGame
 
             if (Scene != null)
             {
-
                 bool shouldSync = false;
                 synchronizeCooldown -= deltaTime;
                 if (synchronizeCooldown <= 0f)
@@ -54,74 +69,45 @@ namespace ConsoleGame
             else
             {
                 MainMenu.Tick();
-
-                /*
-                Layout menu = new(new RectInt((renderer.Width / 2) - 15, (renderer.Height / 2) - 10, 30, 20));
-
-                renderer.DrawBox(menu.TotalSize.X, menu.TotalSize.Y, menu.TotalSize.Width, menu.TotalSize.Height, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
-
-                renderer.DrawLabel(menu.AlignBlock("Menu".Length, 1, Layout.Align.Center).Position, "Menu");
-
-                Layout menuContent = new(menu.TotalSize.Expand(-1));
-
-                menuContent.ForceBreakLine();
-
-                renderer.DrawLabel(menuContent.AlignBlock($"  Offline".Length, 1, Layout.Align.Center).Position, $"  Offline");
-
-                menuContent.ForceBreakLine();
-
-                renderer.DrawLabel(menuContent.AlignBlock($"  Server".Length, 1, Layout.Align.Center).Position, $"  Server");
-
-                menuContent.ForceBreakLine();
-
-                renderer.DrawLabel(menuContent.AlignBlock($"  Client".Length, 1, Layout.Align.Center).Position, $"  Client");
-                */
-
-                /*
-                Scene = new Scene(this);
-                this.networkMode = networkMode;
-                
-                if (networkMode == NetworkMode.Server ||
-                    networkMode == NetworkMode.Offline)
-                {
-                    Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new NetworkPlayer(connection?.LocalEndPoint ?? throw new NullReferenceException())));
-                }
-
-                switch (networkMode)
-                {
-                    case NetworkMode.Server:
-                        connection = new Net.UDP(false);
-                        connection.Server("127.0.0.1", 7777);
-                        connection.OnReceive += OnDataReceive;
-                        connection.OnClientConnected += OnClientConnected;
-                        connection.OnClientDisconnected += OnClientDisconnected;
-                        break;
-                    case NetworkMode.Client:
-                        connection = new Net.UDP(false);
-                        connection.Client("127.0.0.1", 7777);
-                        connection.OnReceive += OnDataReceive;
-                        connection.OnClientConnected += OnClientConnected;
-                        connection.OnClientDisconnected += OnClientDisconnected;
-                        break;
-                    case NetworkMode.Offline:
-                    default:
-                        connection = null;
-                        break;
-                }
-                */
             }
 
-            renderer.DrawLabel(1, 0, $"FPS: {(int)MathF.Round(1f / deltaTime)}", ByteColor.Black, ByteColor.Gray);
+            if (connection != null)
+            {
+                if (!connection.IsDone)
+                {
+                    RectInt menu = renderer.MakeMenu(30, 3);
+                    renderer.DrawBox(menu, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    menu.Expand(-1);
+
+                    string text = connection.StatusText;
+
+                    VectorInt labelPos = Layout.MakeCenteredLabel(menu, text);
+
+                    renderer.DrawLabel(labelPos.X, labelPos.Y, text, ByteColor.Black, ByteColor.White);
+                }
+
+                string statusText = connection.StatusText;
+                stateBarX += renderer.DrawLabel(stateBarX, 0, statusText, ByteColor.Black, ByteColor.Gray);
+
+                stateBarX += renderer.DrawLabel(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+
+                string modeText = networkMode switch
+                {
+                    NetworkMode.Offline => $"Offline",
+                    NetworkMode.Server => $"Hosting on {connection?.LocalEndPoint.Simplify()}",
+                    NetworkMode.Client => $"Client on {connection?.ServerEndPoint.Simplify()}",
+                    _ => $"Unknown",
+                };
+                stateBarX += renderer.DrawLabel(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
+            }
 
             if (connection != null && Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
             {
-                int width = 40, height = 10;
-                int x = (renderer.Width - width) / 2;
-                int y = (renderer.Height - height) / 2;
-
-                RectInt menuBox = new(x, y, width, height);
+                RectInt menuBox = renderer.MakeMenu(40, 10);
 
                 renderer.DrawBox(menuBox, ByteColor.Black, ByteColor.White);
+
+                menuBox.Expand(-1);
 
                 if (networkMode == NetworkMode.Client)
                 {
@@ -135,30 +121,30 @@ namespace ConsoleGame
 
                     int clientCount = Clients.Length;
                     Socket server = connection.ServerEndPoint;
-                    renderer.DrawLabel(x + 1, y + 1, $"{server} (server)", ByteColor.Black, ByteColor.White);
+                    renderer.DrawLabel(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
 
                     for (int i = 0; i < clientCount; i++)
                     {
                         Socket client = Clients[i];
                         if (client == connection.LocalEndPoint)
                         {
-                            renderer.DrawLabel(x + 1, y + 2 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
+                            renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
                         }
                         else
                         {
-                            renderer.DrawLabel(x + 2, y + 2 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                            renderer.DrawLabel(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
                         }
                     }
                 }
                 else if (networkMode == NetworkMode.Server)
                 {
-                    renderer.DrawLabel(x + 1, y + 1, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
+                    renderer.DrawLabel(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
 
                     int clientCount = connection.Clients.Length;
                     for (int i = 0; i < clientCount; i++)
                     {
                         Socket client = connection.Clients[i];
-                        renderer.DrawLabel(x + 1, y + 2 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                        renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
                     }
                 }
             }
@@ -177,8 +163,6 @@ namespace ConsoleGame
                 };
             }
             */
-
-            renderer.Render();
         }
     }
 }

@@ -37,7 +37,9 @@ namespace ConsoleGame
 
         unsafe public void Start()
         {
-            ConsoleHandler.SetupConsole();
+            Console.Title = $"Game";
+
+            ConsoleHandler.Setup();
 
             ConsoleListener.KeyEvent += OnKey;
             ConsoleListener.MouseEvent += OnMouse;
@@ -79,6 +81,7 @@ namespace ConsoleGame
             ConsoleListener.Stop();
             ConsoleHandle.Close();
             ConsoleHandle.Dispose();
+            ConsoleHandler.Restore();
         }
 
         void MainMenuHandler_Offline()

@@ -85,6 +85,39 @@ namespace ConsoleGame.Net
 
         public override Socket LocalEndPoint => (Socket)Socket.LocalEndPoint;
 
+        public override string StatusText
+        {
+            get
+            {
+                if (Socket == null)
+                { return "None"; }
+
+                if (Socket.Connected)
+                { return "Connected"; }
+
+                if (Socket.IsBound)
+                { return "Bounded"; }
+
+                return "None";
+            }
+        }
+        public override bool IsDone
+        {
+            get
+            {
+                if (Socket == null)
+                { return false; }
+
+                if (Socket.Connected)
+                { return true; }
+
+                if (Socket.IsBound)
+                { return false; }
+
+                return false;
+            }
+        }
+
         public TCP(bool debugLog = false) : base(debugLog)
         {
             Socket = new System.Net.Sockets.Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -139,7 +172,7 @@ namespace ConsoleGame.Net
             ListeningThread.Start();
         }
 
-        public override void Send(byte[] data)
+        protected override void Send(byte[] data)
         {
             if (DebugLog) Debug.WriteLine($"[Net]: Sending {data.Length} bytes ...");
             for (int i = clients.Count - 1; i >= 0; i--)
@@ -152,7 +185,7 @@ namespace ConsoleGame.Net
                 {
                     Debug.WriteLine($"[Net]: Client {client.Socket.RemoteEndPoint} disconnected");
                     OnClientDisconnectedInternal((Socket)(client.Socket.RemoteEndPoint ?? throw new NullReferenceException()));
-                    
+
                     client.Socket.Dispose();
                     client.IsAlive = false;
 
@@ -172,6 +205,39 @@ namespace ConsoleGame.Net
             {
                 int bytes = Socket.Send(data, 0, data.Length, SocketFlags.None);
                 if (DebugLog) Debug.WriteLine($"[Net]: Sent {bytes} bytes to {Socket.RemoteEndPoint}");
+            }
+        }
+
+        protected override void SendTo(byte[] data, Socket destination)
+        {
+            for (int i = clients.Count - 1; i >= 0; i--)
+            {
+                TcpClient? client = clients[i];
+                if (client == null) continue;
+                if (!client.IsAlive) continue;
+                if (client.Socket.RemoteEndPoint == null ||
+                    client.Socket.RemoteEndPoint is not IPEndPoint _ipEp ||
+                    !_ipEp.Equals((IPEndPoint)destination)) continue;
+
+                if (!client.Socket.Connected)
+                {
+                    Debug.WriteLine($"[Net]: Client {client.Socket.RemoteEndPoint} disconnected");
+                    OnClientDisconnectedInternal((Socket)(client.Socket.RemoteEndPoint ?? throw new NullReferenceException()));
+
+                    client.Socket.Dispose();
+                    client.IsAlive = false;
+
+                    continue;
+                }
+
+                try
+                {
+                    int bytes = client.Socket.Send(data, 0, data.Length, SocketFlags.None);
+                    if (DebugLog) Debug.WriteLine($"[Net]: Sent {bytes} bytes to {client.Socket.RemoteEndPoint}");
+                }
+                catch (SocketException)
+                { continue; }
+                break;
             }
         }
 

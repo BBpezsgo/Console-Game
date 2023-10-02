@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Text;
 using DataUtilities.Serializer;
 
 namespace ConsoleGame.Net
@@ -62,5 +63,17 @@ namespace ConsoleGame.Net
         public static explicit operator IPEndPoint(Socket socket) => new(socket.Address, socket.Port);
         public static explicit operator Socket(IPEndPoint? socket) => new(socket);
         public static explicit operator Socket(EndPoint? socket) => new(socket);
+
+        public readonly string Simplify()
+        {
+            StringBuilder result = new();
+            if (Address.Equals(IPAddress.Any))
+            { result.Append('*'); }
+            else
+            { result.Append(Address.ToString()); }
+            result.Append(':');
+            result.Append(Port);
+            return result.ToString();
+        }
     }
 }

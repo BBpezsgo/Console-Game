@@ -82,6 +82,44 @@ namespace ConsoleGame
             Y = deserializer.DeserializeFloat();
         }
 
+        const float Deg2Byte = (float)byte.MaxValue / 360f;
+        const float Byte2Deg = 360f / (float)byte.MaxValue;
+        const float Rad2Deg = 180f / MathF.PI;
+        const float Deg2Rad = MathF.PI / 180f;
+
+        public static void ClampAngle(ref float deg)
+        {
+            while (deg < 0)
+            { deg += 360f; }
+            while (deg >= 360f)
+            { deg -= 360f; }
+        }
+
+        public static float ClampAngle(float deg)
+        {
+            while (deg < 0)
+            { deg += 360f; }
+            while (deg >= 360f)
+            { deg -= 360f; }
+            return deg;
+        }
+
+        public static Vector FromDeg(float deg) => Vector.FromRad((float)(deg * Deg2Rad));
+        public static Vector FromRad(float rad) => new(MathF.Cos(rad), MathF.Sin(rad));
+
+        public static float ToDeg(Vector unitVector) => Vector.ToRad(unitVector) * Rad2Deg;
+        public static float ToRad(Vector unitVector) => MathF.Atan2(unitVector.Y, unitVector.X);
+
+        public static void SerializeAsDirection(Vector vec, Serializer serializer)
+        {
+            serializer.Serialize((byte)MathF.Round(ClampAngle(Vector.ToDeg(vec)) * Deg2Byte));
+        }
+
+        public static Vector DeserializeAsDirection(Deserializer deserializer)
+        {
+            return Vector.FromDeg((float)deserializer.DeserializeByte() * Byte2Deg);
+        }
+
         internal static Vector MoveTowards(Vector a, Vector b, float maxDelta)
         {
             Vector diff = b - a;
