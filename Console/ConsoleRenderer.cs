@@ -25,6 +25,7 @@ namespace ConsoleGame
 
         public ref CharInfo this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
         public ref CharInfo this[Vector position] => ref this[position.X, position.Y];
+        public ref CharInfo this[VectorInt position] => ref this[position.X, position.Y];
 
         public ConsoleRenderer(SafeFileHandle handle, short width, short height)
         {

@@ -37,7 +37,7 @@ namespace ConsoleGame
 
         void OnClientConnected(Socket client)
         {
-            Scene.AddObject(new Player(new Vector(3, 6), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new NetworkPlayer(client)));
+            Scene.AddObject(new Player(new Vector(3, 6), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new ObjectOwner(client)));
         }
 
         void OnDataReceive(Socket sender, byte[] data)

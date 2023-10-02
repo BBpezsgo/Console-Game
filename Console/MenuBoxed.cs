@@ -2,7 +2,7 @@
 
 namespace ConsoleGame
 {
-    public class Menu
+    public class MenuBoxed
     {
         readonly struct MenuOption
         {
@@ -18,13 +18,14 @@ namespace ConsoleGame
 
         readonly ConsoleRenderer Renderer;
         readonly MenuOption[] Options;
-        public RectInt ContentRect;
+        readonly string Title;
 
         int Selected;
 
-        public Menu(ConsoleRenderer renderer, params (string, Action)[] options)
+        public MenuBoxed(ConsoleRenderer renderer, string title, params (string, Action)[] options)
         {
             Renderer = renderer;
+            Title = title;
 
             Options = new MenuOption[options.Length];
             for (int i = 0; i < options.Length; i++)
@@ -32,8 +33,24 @@ namespace ConsoleGame
             Selected = 0;
         }
 
-        public void Tick(RectInt contentRect)
+        public void Tick()
         {
+            int width = 40;
+            int height = 2 + 2 + 1 + Options.Length;
+            RectInt rect = new((Renderer.Width / 2) - (width / 2), (Renderer.Height / 2) - (height / 2), width, height);
+
+            Renderer.DrawBox(rect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+
+            if (!string.IsNullOrEmpty(Title))
+            {
+                int titleLabelX = rect.X + ((rect.Width / 2) - (Title.Length / 2));
+                Renderer.DrawLabel(titleLabelX, rect.Y, Title);
+                Renderer[titleLabelX - 1, rect.Y].Char = ' ';
+                Renderer[titleLabelX - 2, rect.Y].Char = '┤';
+                Renderer[titleLabelX + Title.Length + 0, rect.Y].Char = ' ';
+                Renderer[titleLabelX + Title.Length + 1, rect.Y].Char = '├';
+            }
+
             if (Keyboard.IsKeyDown('W') || Keyboard.IsKeyDown(VirtualKeyCodes.UP))
             {
                 Selected--;
@@ -52,10 +69,10 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Mouse.IsLeftDown && contentRect.Contains(Mouse.X, Mouse.Y))
+            if (Mouse.IsLeftDown && rect.Contains(Mouse.X, Mouse.Y))
             {
                 int i = Mouse.Y;
-                i -= contentRect.Y;
+                i -= rect.Y + 3;
 
                 if (i >= 0 && i < Options.Length)
                 { Selected = i; }
@@ -87,7 +104,7 @@ namespace ConsoleGame
                     color = ByteColor.White;
                 }
 
-                Renderer.DrawLabel(contentRect.X, contentRect.Y + i, label, ByteColor.Black, color);
+                Renderer.DrawLabel(rect.X + 2, rect.Y + 3 + i, label, ByteColor.Black, color);
             }
 
             if (clicked != -1)

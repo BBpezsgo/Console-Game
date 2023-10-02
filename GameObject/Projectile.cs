@@ -2,14 +2,12 @@
 {
     public class Projectile : GameObject
     {
-        public Projectile(Vector position) : base(position)
+        public GameObject? Owner;
+        public Vector Speed;
+
+        public Projectile() : base()
         {
-
-        }
-
-        public Projectile(Vector position, Vector speed) : base(position, speed)
-        {
-
+            Tag |= Tags.Projectile;
         }
 
         public override void Render()
@@ -20,38 +18,38 @@
 
         public override void Tick()
         {
+            Vector lastPosition = Position;
             Position += Speed * Game.DeltaTime;
 
             bool bounced = WorldBorders.Bounce(Game.Instance.Scene.Size, ref Position, ref Speed);
             if (bounced)
+            { IsDestroyed = true; }
+
+            if (IsDestroyed) return;
+
+            Vector positionDiff = Position - lastPosition;
+            Vector direction = positionDiff.Normalized;
+            float distanceTravelled = positionDiff.Magnitude;
+
+            Vector currentPoint = lastPosition;
+            for (float i = 0f; i <= distanceTravelled; i++)
             {
-                IsDestroyed = true;
-                Speed = Vector.Zero;
+                currentPoint += direction;
 
-                Game.Instance.Scene.AddObject(new Particles(Position, new ParticlesConfig()
+                GameObject? hit = Game.Instance.Scene.FirstObjectAt(Position, Tags.Enemy);
+
+                if (hit != null)
                 {
-                    Gradients = new Gradient[]
-                    {
-                        Gradients.Fire,
-                    },
-                    ParticleCount = 70,
-                    ParticleLifetime = (2f, 3f),
-                    ParticleSpeed = (0f, 10f),
-                }));
-
-                Game.Instance.Scene.AddObject(new Particles(Position, new ParticlesConfig()
-                {
-                    Gradients = new Gradient[]
-                    {
-                        new Gradient(new Color(1f, 1f, 1f), new Color(1f, .8f, 0f)),
-                    },
-                    ParticleCount = 5,
-                    ParticleLifetime = (.5f, 1f),
-                    ParticleSpeed = (20, 30),
-                }));
-
-                // Game.Instance.Scene.AddObject(new ShockwaveEffect(Position, .5f, 15f));
+                    Position = hit.Position;
+                    IsDestroyed = true;
+                    ((IDamageable)hit).Damage(1f, Owner);
+                }
             }
+        }
+
+        public override void OnDestroy()
+        {
+            Game.Instance.Scene.AddObject(new Particles(Position, PredefinedEffects.MetalSparks));
         }
     }
 }

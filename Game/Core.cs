@@ -7,6 +7,7 @@ namespace ConsoleGame
     public readonly struct GameObjectPrototype
     {
         public const int PLAYER = 1;
+        public const int ENEMY = 2;
     }
 
     public partial class Game
@@ -21,10 +22,23 @@ namespace ConsoleGame
         [NotNull]
         public static Game? Instance = null;
 
-        Menu MainMenu;
+        MenuBoxed MainMenu;
+        Menu Menu_YouDied;
 
         public static float DeltaTime => Instance.deltaTime;
         public static ConsoleRenderer Renderer => Instance.renderer ?? throw new NullReferenceException();
+        public static ObjectOwner LocalOwner
+        {
+            get
+            {
+                Game instance = Instance;
+
+                if (instance == null || instance.networkMode == NetworkMode.Offline || instance.connection == null)
+                { return new ObjectOwner(); }
+
+                return new ObjectOwner(instance.connection.LocalEndPoint);
+            }
+        }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Game()
@@ -55,12 +69,15 @@ namespace ConsoleGame
             double now;
             isRunning = true;
 
-            MainMenu = new Menu(renderer, "Main Menu",
+            MainMenu = new MenuBoxed(renderer, "Main Menu",
                 ("Offline", MainMenuHandler_Offline),
                 ("Connect", MainMenuHandler_Connect),
                 ("Host", MainMenuHandler_Host),
                 ("Exit", Exit)
                 );
+            Menu_YouDied = new Menu(renderer,
+                ("Exit", Exit),
+                ("Respawn", Menu_YouDied_Respawn));
 
             while (isRunning)
             {
@@ -88,10 +105,11 @@ namespace ConsoleGame
         {
             Scene = new Scene(this);
             networkMode = NetworkMode.Offline;
-
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new NetworkPlayer()));
-
+            
             connection = null;
+
+            Scene.Load();
+            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
         }
 
         void MainMenuHandler_Connect()
@@ -117,7 +135,29 @@ namespace ConsoleGame
             connection.OnClientConnected += OnClientConnected;
             connection.OnClientDisconnected += OnClientDisconnected;
 
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new NetworkPlayer(connection?.LocalEndPoint ?? throw new NullReferenceException())));
+            Scene.Load();
+            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+        }
+
+        void Menu_YouDied_Respawn()
+        {
+            if (networkMode == NetworkMode.Client) throw new NotImplementedException();
+
+            bool hasPlayer = false;
+            GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (((NetworkedGameObject)players[i]).IsOwned)
+                {
+                    hasPlayer = true;
+                    break;
+                }
+            }
+
+            if (!hasPlayer)
+            {
+                Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+            }
         }
 
         public void Exit()
@@ -125,9 +165,9 @@ namespace ConsoleGame
             isRunning = false;
         }
 
-        public static Vector ConsoleToWorld(Vector consolePosition)
+        public static Vector ConsoleToWorld(VectorInt consolePosition)
             => consolePosition * new Vector(0.5f, 1f);
-        public static Vector WorldToConsole(Vector consolePosition)
-            => consolePosition * new Vector(2f, 1f);
+        public static VectorInt WorldToConsole(Vector worldPosition)
+            => (worldPosition * new Vector(2f, 1f)).Round();
     }
 }

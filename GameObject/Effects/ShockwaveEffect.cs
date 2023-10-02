@@ -1,12 +1,12 @@
 ﻿namespace ConsoleGame
 {
-    internal class ShockwaveEffect : GameObject
+    public class ShockwaveEffect : GameObject
     {
         readonly float Lifetime;
         readonly float MaxRadius;
         float Age;
 
-        public ShockwaveEffect(Vector position, float lifetime, float maxRadius) : base(position)
+        public ShockwaveEffect(float lifetime, float maxRadius) : base()
         {
             Lifetime = lifetime;
             MaxRadius = maxRadius;

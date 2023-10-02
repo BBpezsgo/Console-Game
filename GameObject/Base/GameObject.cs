@@ -3,21 +3,14 @@
     public class GameObject
     {
         public Vector Position;
-        public Vector Speed;
         public bool IsDestroyed;
+        public int Tag;
 
-        public GameObject(Vector position)
+        public GameObject()
         {
-            Position = position;
-            Speed = Vector.Zero;
+            Position = Vector.Zero;
             IsDestroyed = false;
-        }
-
-        public GameObject(Vector position, Vector speed)
-        {
-            Position = position;
-            Speed = speed;
-            IsDestroyed = false;
+            Tag |= Tags.Effect;
         }
 
         public virtual void Render()
@@ -28,5 +21,8 @@
         }
 
         public virtual void Tick() { }
+        public virtual void OnDestroy() { }
+
+        public bool HasTag(int tag) => (Tag & tag) != 0;
     }
 }

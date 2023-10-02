@@ -20,5 +20,12 @@
 
             return new Vector(x, y);
         }
+
+        public static Vector Point(Rect limits)
+        {
+            float x = Random.Float() * limits.Width;
+            float y = Random.Float() * limits.Height;
+            return new Vector(x + limits.X, y + limits.Y);
+        }
     }
 }

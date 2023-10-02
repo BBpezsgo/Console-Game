@@ -31,7 +31,7 @@ namespace ConsoleGame
         public static int X => mousePosition.X;
         public static int Y => mousePosition.Y;
 
-        public static Vector WorldPosition => Game.ConsoleToWorld(new Vector(mousePosition.X, mousePosition.Y));
+        public static Vector WorldPosition => Game.ConsoleToWorld(new VectorInt(mousePosition.X, mousePosition.Y));
 
         public static bool IsLeftDown => pressed[MouseButton.Left];
         public static bool IsMiddleDown => pressed[MouseButton.Middle];

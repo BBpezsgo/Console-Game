@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using ConsoleGame.Net;
 using Win32;
 
 namespace ConsoleGame
@@ -6,6 +7,8 @@ namespace ConsoleGame
     public partial class Game
     {
         float ah = .5f;
+        float LastEnemySpawn = Time.Now;
+        int EnemyWave = 5;
 
         void Tick()
         {
@@ -62,9 +65,50 @@ namespace ConsoleGame
 
                 Scene.Tick(deltaTime, shouldSync);
 
+                bool hasPlayer = false;
+                GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+                for (int i = 0; i < players.Length; i++)
+                {
+                    if (((NetworkedGameObject)players[i]).IsOwned)
+                    {
+                        hasPlayer = true;
+                        break;
+                    }
+                }
+
+                if (!hasPlayer)
+                {
+                    RectInt box = renderer.MakeMenu(30, 8);
+                    renderer.DrawBox(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    box.Expand(-1);
+                    VectorInt labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
+                    labelPos.Y = box.Y + 1;
+                    renderer.DrawLabel(labelPos.X, labelPos.Y, "YOU DIED", ByteColor.Black, ByteColor.BrightRed);
+
+                    box.Top += 3;
+
+                    Menu_YouDied.Tick(box);
+                }
+
+                if (false && players.Length > 0 && networkMode != NetworkMode.Client)
+                {
+                    if (Time.Now - LastEnemySpawn > 10f)
+                    {
+                        for (int i = 0; i < EnemyWave; i++)
+                        {
+                            for (int @try = 0; @try < 5; @try++)
+                            {
+                                if (TrySpawnEnemy(out _)) break;
+                            }
+                        }
+                        EnemyWave++;
+                    }
+                }
+
                 if (shouldSync && connection != null)
                 { connection.Flush(); }
                 connection?.Receive();
+
             }
             else
             {
@@ -163,6 +207,23 @@ namespace ConsoleGame
                 };
             }
             */
+        }
+
+        public bool TrySpawnEnemy([NotNullWhen(true)] out Enemy? enemy)
+        {
+            enemy = null;
+
+            if (Scene == null) return false;
+
+            Vector randomPoint = Random.Point(Scene.Size);
+            if (Scene.FirstObjectAt(randomPoint, Tags.Player, 13f) == null)
+            {
+                enemy = new Enemy(randomPoint, Scene.GenerateNetworkId(), GameObjectPrototype.ENEMY, LocalOwner);
+                Scene.AddObject(enemy);
+                return true;
+            }
+
+            return false;
         }
     }
 }

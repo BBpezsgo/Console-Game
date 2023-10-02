@@ -37,6 +37,16 @@ namespace ConsoleGame
         public static Vector operator *(Vector a, Vector b) => new(a.X * b.X, a.Y * b.Y);
         public static Vector operator /(Vector a, Vector b) => new(a.X / b.X, a.Y / b.Y);
 
+        public static Vector operator +(Vector a, VectorInt b) => new(a.X + b.X, a.Y + b.Y);
+        public static Vector operator -(Vector a, VectorInt b) => new(a.X - b.X, a.Y - b.Y);
+        public static Vector operator *(Vector a, VectorInt b) => new(a.X * b.X, a.Y * b.Y);
+        public static Vector operator /(Vector a, VectorInt b) => new(a.X / b.X, a.Y / b.Y);
+
+        public static Vector operator +(VectorInt a, Vector b) => new(a.X + b.X, a.Y + b.Y);
+        public static Vector operator -(VectorInt a, Vector b) => new(a.X - b.X, a.Y - b.Y);
+        public static Vector operator *(VectorInt a, Vector b) => new(a.X * b.X, a.Y * b.Y);
+        public static Vector operator /(VectorInt a, Vector b) => new(a.X / b.X, a.Y / b.Y);
+
         public static Vector operator *(Vector a, float b) => new(a.X * b, a.Y * b);
         public static Vector operator /(Vector a, float b) => new(a.X / b, a.Y / b);
 
@@ -128,6 +138,10 @@ namespace ConsoleGame
             diff.Normalize();
             return diff * maxDelta;
         }
+
+        public readonly VectorInt Round() => new((int)MathF.Round(X), (int)MathF.Round(Y));
+        public readonly VectorInt Floor() => new((int)MathF.Floor(X), (int)MathF.Floor(Y));
+        public readonly VectorInt Ceil() => new((int)MathF.Ceiling(X), (int)MathF.Ceiling(Y));
 
         public static Vector Zero => new(0f, 0f);
         public static Vector One => new(1f, 1f);

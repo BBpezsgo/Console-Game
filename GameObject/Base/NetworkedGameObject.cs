@@ -6,26 +6,19 @@
     {
         public readonly int NetworkId;
         public readonly int ObjectId;
-        public readonly NetworkPlayer Owner;
+        public readonly ObjectOwner Owner;
 
         protected Vector NetPosition;
 
-        public bool IsOwned => Game.NetworkMode == NetworkMode.Offline || Owner == new NetworkPlayer(Game.Connection?.LocalEndPoint ?? throw new NullReferenceException());
+        public bool IsOwned => Game.NetworkMode == NetworkMode.Offline || Owner == new ObjectOwner(Game.Connection?.LocalEndPoint ?? throw new NullReferenceException());
 
-        public NetworkedGameObject(Vector position, int networkId, int objectId, NetworkPlayer owner) : base(position)
+        public NetworkedGameObject(Vector position, int networkId, int objectId, ObjectOwner owner) : base()
         {
             NetworkId = networkId;
             ObjectId = objectId;
-            NetPosition = position;
             Owner = owner;
-        }
-
-        public NetworkedGameObject(Vector position, Vector speed, int networkId, int objectId, NetworkPlayer owner) : base(position, speed)
-        {
-            NetworkId = networkId;
-            ObjectId = objectId;
+            Position = position;
             NetPosition = position;
-            Owner = owner;
         }
 
         public virtual void Synchronize(NetworkMode mode, Connection socket)
@@ -43,11 +36,8 @@
 
         public override void Tick()
         {
-            base.Tick();
-
-            if (Game.NetworkMode != NetworkMode.Client) return;
-
-            Position += Vector.MoveTowards(Position, NetPosition, Game.DeltaTime);
+            if (Game.NetworkMode == NetworkMode.Client)
+            { Position += Vector.MoveTowards(Position, NetPosition, Game.DeltaTime); }
         }
 
         public void OnMessageReceived(ObjectMessage message)

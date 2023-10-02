@@ -4,11 +4,11 @@ using System.Net;
 namespace ConsoleGame
 {
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-    public readonly struct NetworkPlayer : IEquatable<NetworkPlayer>
+    public readonly struct ObjectOwner : IEquatable<ObjectOwner>
     {
         readonly ulong Id;
 
-        public NetworkPlayer(IPEndPoint? endPoint)
+        public ObjectOwner(IPEndPoint? endPoint)
         {
             if (endPoint == null)
             {
@@ -27,7 +27,7 @@ namespace ConsoleGame
             Id = BitConverter.ToUInt64(result, 0);
         }
 
-        public NetworkPlayer(Net.Socket endPoint)
+        public ObjectOwner(Net.Socket endPoint)
         {
             IPAddress address = endPoint.Address;
             byte[] addressBytes = address.GetAddressBytes();
@@ -41,24 +41,24 @@ namespace ConsoleGame
             Id = BitConverter.ToUInt64(result, 0);
         }
 
-        NetworkPlayer(ulong v)
+        ObjectOwner(ulong v)
         {
             Id = v;
         }
 
         public override bool Equals(object? obj) =>
-            obj is NetworkPlayer player &&
+            obj is ObjectOwner player &&
             Equals(player);
-        public bool Equals(NetworkPlayer other) => Id == other.Id;
+        public bool Equals(ObjectOwner other) => Id == other.Id;
         public override int GetHashCode() => HashCode.Combine(Id);
 
-        public static bool operator ==(NetworkPlayer left, NetworkPlayer right) => left.Equals(right);
-        public static bool operator !=(NetworkPlayer left, NetworkPlayer right) => !left.Equals(right);
+        public static bool operator ==(ObjectOwner left, ObjectOwner right) => left.Equals(right);
+        public static bool operator !=(ObjectOwner left, ObjectOwner right) => !left.Equals(right);
 
         public override string ToString() => Id.ToString();
         private string GetDebuggerDisplay() => ToString();
 
-        public static explicit operator ulong(NetworkPlayer v) => v.Id;
-        public static explicit operator NetworkPlayer(ulong v) => new(v);
+        public static explicit operator ulong(ObjectOwner v) => v.Id;
+        public static explicit operator ObjectOwner(ulong v) => new(v);
     }
 }
