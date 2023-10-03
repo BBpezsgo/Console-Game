@@ -125,5 +125,25 @@ namespace ConsoleGame
 
             return this;
         }
+
+        public RectInt Expand(VectorInt v)
+        {
+            X -= v.X;
+            Y -= v.Y;
+            Width += v.X * 2;
+            Height += v.Y * 2;
+
+            return this;
+        }
+
+        public RectInt Expand(int top, int right, int bottom, int left)
+        {
+            X -= left;
+            Y -= top;
+            Width += left + right;
+            Height += top + bottom;
+
+            return this;
+        }
     }
 }

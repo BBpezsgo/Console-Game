@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using ConsoleGame.Net;
 using Microsoft.Win32.SafeHandles;
 using Win32;
 
@@ -105,7 +106,7 @@ namespace ConsoleGame
         {
             Scene = new Scene(this);
             networkMode = NetworkMode.Offline;
-            
+
             connection = null;
 
             Scene.Load();
@@ -141,8 +142,6 @@ namespace ConsoleGame
 
         void Menu_YouDied_Respawn()
         {
-            if (networkMode == NetworkMode.Client) throw new NotImplementedException();
-
             bool hasPlayer = false;
             GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
@@ -154,10 +153,41 @@ namespace ConsoleGame
                 }
             }
 
-            if (!hasPlayer)
+            if (hasPlayer)
+            { return; }
+
+            if (networkMode == NetworkMode.Client)
             {
-                Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+                connection?.SendImmediate(new RespawnRequestMessage()
+                {
+                    Type = MessageType.REQ_RESPAWN,
+                });
+                return;
             }
+
+            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+        }
+
+        void OnRespawnRequest(Socket sender)
+        {
+            bool hasPlayer = false;
+            GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+            for (int i = 0; i < players.Length; i++)
+            {
+                if (((NetworkedGameObject)players[i]).Owner == new ObjectOwner(sender))
+                {
+                    hasPlayer = true;
+                    break;
+                }
+            }
+
+            if (hasPlayer)
+            { return; }
+
+            if (networkMode == NetworkMode.Client)
+            { return; }
+
+            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new ObjectOwner(sender)));
         }
 
         public void Exit()

@@ -120,7 +120,7 @@ namespace ConsoleGame
         public static float ToDeg(Vector unitVector) => Vector.ToRad(unitVector) * Rad2Deg;
         public static float ToRad(Vector unitVector) => MathF.Atan2(unitVector.Y, unitVector.X);
 
-        public static void SerializeAsDirection(Vector vec, Serializer serializer)
+        public static void SerializeAsDirection(Serializer serializer, Vector vec)
         {
             serializer.Serialize((byte)MathF.Round(ClampAngle(Vector.ToDeg(vec)) * Deg2Byte));
         }

@@ -7,7 +7,7 @@ namespace ConsoleGame
     public partial class Game
     {
         float ah = .5f;
-        float LastEnemySpawn = Time.Now;
+        float LastEnemySpawn = Time.UtcNow;
         int EnemyWave = 5;
 
         void Tick()
@@ -92,7 +92,7 @@ namespace ConsoleGame
 
                 if (false && players.Length > 0 && networkMode != NetworkMode.Client)
                 {
-                    if (Time.Now - LastEnemySpawn > 10f)
+                    if (Time.UtcNow - LastEnemySpawn > 10f)
                     {
                         for (int i = 0; i < EnemyWave; i++)
                         {
@@ -108,11 +108,10 @@ namespace ConsoleGame
                 if (shouldSync && connection != null)
                 { connection.Flush(); }
                 connection?.Receive();
-
             }
             else
             {
-                MainMenu.Tick();
+                MainMenu.Tick(40);
             }
 
             if (connection != null)

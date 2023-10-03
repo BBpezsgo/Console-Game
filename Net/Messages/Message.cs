@@ -1,5 +1,4 @@
-﻿using ConsoleGame.Net;
-using DataUtilities.Serializer;
+﻿using DataUtilities.Serializer;
 
 namespace ConsoleGame
 {
@@ -38,6 +37,8 @@ namespace ConsoleGame
                 MessageType.OBJ_SPAWN => deserializer.DeserializeObject<ObjectSpawnMessage>(),
                 MessageType.CLIENT_LIST_REQUEST => deserializer.DeserializeObject<ClientListRequestMessage>(),
                 MessageType.CLIENT_LIST => deserializer.DeserializeObject<ClientListMessage>(),
+                MessageType.OBJ_DESTROY => deserializer.DeserializeObject<ObjectDestroyMessage>(),
+                MessageType.REQ_RESPAWN => deserializer.DeserializeObject<RespawnRequestMessage>(),
                 _ => throw new NotImplementedException(),
             };
         }

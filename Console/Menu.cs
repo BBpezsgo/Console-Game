@@ -4,7 +4,7 @@ namespace ConsoleGame
 {
     public class Menu
     {
-        readonly struct MenuOption
+        protected readonly struct MenuOption
         {
             public readonly string Label;
             public readonly Action Callback;
@@ -16,11 +16,11 @@ namespace ConsoleGame
             }
         }
 
-        readonly ConsoleRenderer Renderer;
-        readonly MenuOption[] Options;
+        protected readonly ConsoleRenderer Renderer;
+        protected readonly MenuOption[] Options;
         public RectInt ContentRect;
 
-        int Selected;
+        protected int Selected;
 
         public Menu(ConsoleRenderer renderer, params (string, Action)[] options)
         {
@@ -91,9 +91,24 @@ namespace ConsoleGame
             }
 
             if (clicked != -1)
+            { Select(clicked); }
+        }
+
+        public void Select(int optionIndex)
+        {
+            Options[optionIndex].Callback?.Invoke();
+            Selected = 0;
+        }
+
+        public void Select(string option)
+        {
+            for (int i = 0; i < Options.Length; i++)
             {
-                Options[clicked].Callback?.Invoke();
-                Selected = 0;
+                if (string.Equals(Options[i].Label, option))
+                {
+                    Select(i);
+                    break;
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Net;
+﻿using System.Reflection;
+using ConsoleGame.Net;
 
 namespace ConsoleGame
 {
@@ -9,16 +10,19 @@ namespace ConsoleGame
 
         const float MaxSpeed = 1f;
 
-        float lastDamaged = 0f;
-        const float blinkPerSec = 3f * 2;
-        const float blinkingDuration = 1f;
+        float LastDamaged = 0f;
+        const float DamageIndicatorBlinkPerSec = 3f * 2;
+        const float DamageIndicatorDuration = 1f;
+
         const float visionRange = 10f;
+
         const float MeleeAttackCooldown = 1f;
         float MeleeAttackTimer = 0f;
         const float MeleeAttackRange = 2f;
         const float MeleeAttackDamage = 1f;
 
-        GameObject? priorityTarget;
+        GameObject? PriorityTarget;
+        GameObject? Target;
 
         public Enemy(Vector position, int networkId, int objectId, ObjectOwner owner) : base(position, networkId, objectId, owner)
         {
@@ -33,8 +37,8 @@ namespace ConsoleGame
             p.Foreground = ByteColor.BrightRed;
             p.Char = '@';
 
-            float damageEffect = Time.Now - lastDamaged;
-            if (damageEffect < blinkingDuration && (int)(damageEffect * blinkPerSec) % 2 == 0)
+            float damageEffect = Time.UtcNow - LastDamaged;
+            if (damageEffect < DamageIndicatorDuration && (int)(damageEffect * DamageIndicatorBlinkPerSec) % 2 == 0)
             {
                 p.Foreground = ByteColor.White;
             }
@@ -72,17 +76,19 @@ namespace ConsoleGame
                 MeleeAttackTimer -= Time.DeltaTime;
             }
 
-            GameObject? target;
-
-            if (priorityTarget == null)
-            { target = Game.Instance.Scene.ClosestObject(Position, Tags.Player, visionRange); }
+            if (PriorityTarget != null)
+            { Target = PriorityTarget; }
+            else if (Target != null && (Target.Position - Position).SqrMagnitude >= visionRange * visionRange)
+            { Target = null; }
             else
-            { target = priorityTarget; }
-
-            if (target != null && target is IDamageable damageable)
             {
-                Position += Vector.MoveTowards(Position, target.Position, MaxSpeed * Time.DeltaTime);
-                if ((target.Position - Position).SqrMagnitude < (MeleeAttackRange * 2f))
+                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player, visionRange);
+            }
+
+            if (Target != null && Target is IDamageable damageable)
+            {
+                Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                if ((Target.Position - Position).SqrMagnitude < (MeleeAttackRange * MeleeAttackRange))
                 {
                     if (MeleeAttackTimer <= 0f)
                     {
@@ -95,19 +101,27 @@ namespace ConsoleGame
 
         public override void OnRpc(MessageRpc message)
         {
-
+            switch (message.RpcKind)
+            {
+                case 1:
+                    {
+                        RpcData_Damage data = message.GetObjectData<RpcData_Damage>();
+                        Damage(data.Amount, data.By);
+                        break;
+                    }
+                default:
+                    break;
+            }
         }
 
         public void Damage(float amount, GameObject? by)
         {
-            lastDamaged = Time.Now;
-
-            if (by != null)
-            {
-                priorityTarget = by;
-            }
+            LastDamaged = Time.UtcNow;
 
             if (Game.NetworkMode == NetworkMode.Client) return;
+
+            if (by != null)
+            { PriorityTarget = by; }
 
             Health -= amount;
 
@@ -116,10 +130,13 @@ namespace ConsoleGame
                 IsDestroyed = true;
                 return;
             }
+
+            SendRpc(1, new RpcData_Damage(amount, by));
         }
 
         public override void OnDestroy()
         {
+            base.OnDestroy();
             Game.Instance.Scene.AddObject(new Particles(Position, PredefinedEffects.Death));
         }
     }

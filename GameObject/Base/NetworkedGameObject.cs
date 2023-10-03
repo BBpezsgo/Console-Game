@@ -1,5 +1,6 @@
 ﻿namespace ConsoleGame
 {
+    using DataUtilities.Serializer;
     using Net;
 
     public class NetworkedGameObject : GameObject
@@ -49,5 +50,73 @@
         }
 
         public virtual void OnRpc(MessageRpc message) { }
+
+        public override void OnDestroy()
+        {
+            if (Game.NetworkMode == NetworkMode.Client) return;
+            Game.Connection?.Send(new ObjectDestroyMessage()
+            {
+                Type = MessageType.OBJ_DESTROY,
+                NetworkId = NetworkId,
+            });
+        }
+
+        protected void SendRpc<T>(int rpcKind, T data, Action<T, Serializer> serializer)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Serializer _serializer = new();
+            serializer.Invoke(data, _serializer);
+            SendRpc(rpcKind, _serializer.Result);
+        }
+        protected void SendRpc<T>(int rpcKind, ISerializable<T> data)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Serializer serializer = new();
+            data.Serialize(serializer);
+            SendRpc(rpcKind, serializer.Result);
+        }
+        protected void SendRpc(int rpcKind, params byte[] data)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Game.Connection?.Send(new MessageRpc()
+            {
+                Type = MessageType.OBJ_RPC,
+                NetworkId = NetworkId,
+                RpcKind = rpcKind,
+                Data = data,
+            });
+        }
+
+        protected void SendRpcImmediate<T>(int rpcKind, T data, Action<Serializer, T> serializer)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Serializer _serializer = new();
+            serializer.Invoke(_serializer, data);
+            SendRpcImmediate(rpcKind, _serializer.Result);
+        }
+        protected void SendRpcImmediate<T>(int rpcKind, ISerializable<T> data)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Serializer serializer = new();
+            data.Serialize(serializer);
+            SendRpcImmediate(rpcKind, serializer.Result);
+        }
+        protected void SendRpcImmediate(int rpcKind, params byte[] data)
+        {
+            if (Game.NetworkMode == NetworkMode.Offline) return;
+
+            Game.Connection?.SendImmediate(new MessageRpc()
+            {
+                Type = MessageType.OBJ_RPC,
+                NetworkId = NetworkId,
+                RpcKind = rpcKind,
+                Data = data,
+            });
+        }
     }
 }

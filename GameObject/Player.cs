@@ -1,9 +1,40 @@
 ﻿namespace ConsoleGame
 {
+    using DataUtilities.Serializer;
     using Net;
 
     public class Player : NetworkedGameObject, IDamageable
     {
+        struct RpcData_Shoot : ISerializable<RpcData_Shoot>
+        {
+            public Vector Origin;
+            public Vector Direction;
+
+            public RpcData_Shoot()
+            {
+                Origin = Vector.Zero;
+                Direction = Vector.Zero;
+            }
+
+            public RpcData_Shoot(Vector origin, Vector direction)
+            {
+                Origin = origin;
+                Direction = direction;
+            }
+
+            public void Deserialize(Deserializer deserializer)
+            {
+                Origin = deserializer.DeserializeObject<Vector>();
+                Direction = deserializer.DeserializeObject(Vector.DeserializeAsDirection);
+            }
+
+            public readonly void Serialize(Serializer serializer)
+            {
+                serializer.Serialize(Origin);
+                serializer.Serialize(Direction, Vector.SerializeAsDirection);
+            }
+        }
+
         float Reload = 0f;
 
         const float MaxSpeed = 3f;
@@ -41,7 +72,7 @@
                 const float blinkPerSec = 2f * 2;
                 const float blinkingDuration = 1f;
 
-                float damageIndicatorEffect = Time.Now - DamageIndicator;
+                float damageIndicatorEffect = Time.UtcNow - DamageIndicator;
                 if (damageIndicatorEffect < blinkingDuration && (int)(damageIndicatorEffect * blinkPerSec) % 2 == 0)
                 {
                     for (int y = 4; y < Game.Renderer.Height; y++)
@@ -99,8 +130,7 @@
                 {
                     Vector direction = (Mouse.WorldPosition - Position).Normalized;
 
-                    if (Game.NetworkMode != NetworkMode.Offline)
-                    { Game.Connection?.SendImmediate(MessageRpc.Make(this, 1, direction, Vector.SerializeAsDirection)); }
+                    SendRpcImmediate(1, new RpcData_Shoot(Position, direction));
 
                     Game.Instance.Scene.AddObject(new Projectile()
                     {
@@ -124,28 +154,33 @@
                     {
                         if (!IsOwned)
                         {
-                            Vector direction = message.GetObjectData(Vector.DeserializeAsDirection);
+                            RpcData_Shoot data = message.GetObjectData< RpcData_Shoot>();
                             Game.Instance.Scene.AddObject(new Projectile()
                             {
-                                Position = NetPosition,
-                                Speed = direction * ProjectileSpeed,
+                                Position = data.Origin,
+                                Speed = data.Direction * ProjectileSpeed,
                                 Owner = this,
                             });
                         }
                         break;
                     }
-                default:
-
-                    break;
+                case 2:
+                    {
+                        RpcData_Damage data = message.GetObjectData<RpcData_Damage>();
+                        Damage(data.Amount, data.By);
+                        break;
+                    }
+                default: break;
             }
         }
 
         public void Damage(float amount, GameObject? by)
         {
-            DamageIndicator = Time.Now;
+            DamageIndicator = Time.UtcNow;
 
             if (Game.NetworkMode == NetworkMode.Client) return;
-            return;
+
+            SendRpc(2, new RpcData_Damage(amount, by));
 
             Health -= amount;
             if (Health <= 0f)
@@ -156,6 +191,7 @@
 
         public override void OnDestroy()
         {
+            base.OnDestroy();
             Game.Instance.Scene.AddObject(new Particles(Position, PredefinedEffects.Death));
         }
     }

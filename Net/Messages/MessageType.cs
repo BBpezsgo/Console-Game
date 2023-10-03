@@ -10,5 +10,7 @@
         CONTROL,
         CLIENT_LIST_REQUEST,
         CLIENT_LIST,
+        OBJ_DESTROY,
+        REQ_RESPAWN,
     }
 }

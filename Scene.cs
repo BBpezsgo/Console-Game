@@ -164,16 +164,18 @@ namespace ConsoleGame
         {
             objects.Clear();
 
+            for (int i = 0; i < 30; i++)
+            {
+                AddObject(new Enemy(new Vector(2 + i, 20), GenerateNetworkId(), GameObjectPrototype.ENEMY, Game.LocalOwner));
+            }
+            return;
+
             for (int i = 0; i < 500; i++)
             {
                 Game.TrySpawnEnemy(out _);
             }
             return;
 
-            for (int i = 0; i < 30; i++)
-            {
-                AddObject(new Enemy(new Vector(2 + i, 2), GenerateNetworkId(), GameObjectPrototype.ENEMY, Game.LocalOwner));
-            }
         }
 
         public T[] ObjectsOfType<T>()
@@ -275,33 +277,38 @@ namespace ConsoleGame
         }
         public GameObject? FirstObjectAt(Vector position, int tags, float distanceThreshold = 1f)
         {
+            float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
+
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if (!obj.HasTag(tags)) continue;
-                Vector diff = obj.Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    return obj;
-                }
+                if ((obj.Tag & tags) != tags) continue;
+
+                float diffSqrMag = (obj.Position - position).SqrMagnitude;
+
+                if (diffSqrMag < sqrDistanceThreshold)
+                { return obj; }
             }
             return null;
         }
 
         public T? ClosestObject<T>(Vector position, float distanceThreshold) where T : GameObject
         {
+            float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
+
             T? result = null;
             float closestSqrDistance = float.PositiveInfinity;
+
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
                 if (obj is not T obj2) continue;
+
                 Vector diff = obj.Position - position;
                 float sqrDistance = diff.SqrMagnitude;
-                if (sqrDistance >= distanceThreshold * distanceThreshold) continue;
+                if (sqrDistance >= sqrDistanceThreshold) continue;
 
                 if (sqrDistance < closestSqrDistance)
                 {
@@ -311,18 +318,21 @@ namespace ConsoleGame
             }
             return result;
         }
-        public GameObject? ClosestObject(Vector position, int tags, float distanceThreshold)
+        public GameObject? ClosestObject(Vector position, int tags, float radius)
         {
+            float sqrRadius = radius * radius;
+
             GameObject? result = null;
             float closestSqrDistance = float.PositiveInfinity;
+
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if (!obj.HasTag(tags)) continue;
-                Vector diff = obj.Position - position;
-                float sqrDistance = diff.SqrMagnitude;
-                if (sqrDistance >= distanceThreshold * distanceThreshold) continue;
+                if ((obj.Tag & tags) != tags) continue;
+
+                float sqrDistance = (obj.Position - position).SqrMagnitude;
+                if (sqrDistance >= sqrRadius) continue;
 
                 if (sqrDistance < closestSqrDistance)
                 {
@@ -337,11 +347,13 @@ namespace ConsoleGame
         {
             T? result = null;
             float closestSqrDistance = float.PositiveInfinity;
+
             for (int i = objects.Count - 1; i >= 0; i--)
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
                 if (obj is not T obj2) continue;
+
                 float sqrDistance = (obj.Position - position).SqrMagnitude;
                 if (sqrDistance < closestSqrDistance)
                 {
@@ -359,7 +371,8 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if (!obj.HasTag(tags)) continue;
+                if ((obj.Tag & tags) != tags) continue;
+
                 float sqrDistance = (obj.Position - position).SqrMagnitude;
                 if (sqrDistance < closestSqrDistance)
                 {

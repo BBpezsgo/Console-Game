@@ -64,6 +64,13 @@ namespace ConsoleGame
             LastMessageGUID = message.GUID;
             */
 
+            if (message is RespawnRequestMessage)
+            {
+                if (networkMode == NetworkMode.Client) return;
+                OnRespawnRequest(sender);
+                return;
+            }
+
             if (message is ClientListMessage clientListMessage)
             {
                 if (networkMode != NetworkMode.Client) return;
@@ -130,6 +137,18 @@ namespace ConsoleGame
             {
                 if (networkMode != NetworkMode.Client) return;
                 Scene.AddObject(objectSpawnMessage);
+                return;
+            }
+
+            if (message is ObjectDestroyMessage objectDestroyMessage)
+            {
+                if (networkMode != NetworkMode.Client) return;
+                if (!Scene.TryGetNetworkObject(objectDestroyMessage.NetworkId, out var @object))
+                {
+                    Debug.WriteLine($"Network object {objectDestroyMessage.NetworkId} not found; can not destroy");
+                    return;
+                }
+                @object.IsDestroyed = true;
                 return;
             }
 

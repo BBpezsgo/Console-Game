@@ -30,7 +30,7 @@
             public Vector LocalPosition;
             public bool IsAlive;
 
-            public readonly float Age => Time.Now - BornAt;
+            public readonly float Age => Time.UtcNow - BornAt;
             public readonly float AgePercent => Age / Lifetime;
 
             public Particle(byte kind, Vector localPosition, Vector localSpeed, float lifetime)
@@ -40,7 +40,7 @@
                 LocalSpeed = localSpeed;
                 IsAlive = true;
                 Lifetime = lifetime;
-                BornAt = Time.Now;
+                BornAt = Time.UtcNow;
             }
 
             public void Tick()
@@ -97,7 +97,7 @@
                 int charIndex = CharacterMode switch
                 {
                     ParticleCharacterMode.LifetimeRelative => (int)MathF.Round((1f - v) * (Characters.Length - 1)),
-                    ParticleCharacterMode.TimeRelative => (int)MathF.Round(Time.Now * CharacterModeParam) % Characters.Length,
+                    ParticleCharacterMode.TimeRelative => (int)MathF.Round(Time.UtcNow * CharacterModeParam) % Characters.Length,
                     ParticleCharacterMode.Random => Random.Integer(0, Characters.Length),
                     _ => throw new NotImplementedException(),
                 };
