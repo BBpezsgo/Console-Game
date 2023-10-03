@@ -4,83 +4,6 @@ namespace ConsoleGame
 {
     public static class Keyboard
     {
-        enum State : byte
-        {
-            None = 0b_00,
-            Pressing = 0b_11,
-            Pressed = 0b_10,
-            Releasing = 0b_01,
-        }
-
-        readonly struct CompactKeyboard
-        {
-            readonly int[] states1;
-            readonly int[] states2;
-
-            public CompactKeyboard()
-            {
-                states1 = new int[8];
-                states2 = new int[8];
-            }
-
-            public State this[char key]
-            {
-                get => this[AsciiToKey[key]];
-                set => this[AsciiToKey[key]] = value;
-            }
-
-            public State this[ushort key]
-            {
-                get
-                {
-                    unchecked
-                    {
-                        int i = key / 32;
-                        int bit = key % 32;
-
-                        int segment1 = (int)states1[i];
-                        segment1 >>= bit;
-                        segment1 &= 1;
-
-                        int segment2 = (int)states2[i];
-                        segment2 >>= bit;
-                        segment2 &= 1;
-
-                        return (State)(segment1 | (segment2 << 1));
-                    }
-                }
-                set
-                {
-                    unchecked
-                    {
-                        BitUtils.SetBit(states1, key, ((byte)value &  1) != 0);
-                        BitUtils.SetBit(states1, key, ((byte)value >> 1) != 0);
-                        /*
-                        int i = key / 32;
-                        int bit = key % 32;
-
-                        int segment1 = (int)states1[i];
-                        segment1 &= ~(1 << bit);
-                        segment1 |= ((byte)value & 1) << bit;
-
-                        int segment2 = (int)states2[i];
-                        segment2 &= ~(1 << bit);
-                        segment2 |= ((byte)value >> 1) << bit;
-
-                        states1[i] = (uint)segment1;
-                        states2[i] = (uint)segment2;
-                        */
-                    }
-                }
-            }
-
-            public void Reset()
-            {
-                Array.Clear(states1);
-                Array.Clear(states2);
-            }
-        }
-
         static readonly Dictionary<char, ushort> AsciiToKey = new()
         {
             { '0', 0x30 },
@@ -128,47 +51,54 @@ namespace ConsoleGame
             { '\t', VirtualKeyCodes.TAB },
         };
 
-        static readonly CompactKeyboard Keys = new();
+        public static int[] Accumulated = new int[8];
+
+        public static int[] Stage1 = new int[8];
+        public static int[] Stage2 = new int[8];
+        public static int[] Stage3 = new int[8];
 
         public static bool IsKeyPressed(char key) => IsKeyPressed(AsciiToKey[key]);
-        public static bool IsKeyPressed(ushort key) => ((byte)Keys[key] & 0b_10) != 0;
+        public static bool IsKeyPressed(ushort key) => BitUtils.GetBit(Accumulated, key) || BitUtils.GetBit(Stage1, key) || BitUtils.GetBit(Stage2, key);
 
         public static bool IsKeyHold(char key) => IsKeyHold(AsciiToKey[key]);
-        public static bool IsKeyHold(ushort key) => Keys[key] == State.Pressed;
-
-        public static bool IsKeyDown(char key, bool doTransition = true) => IsKeyDown(AsciiToKey[key], doTransition);
-        public static bool IsKeyDown(ushort key, bool doTransition = true)
+        public static bool IsKeyHold(ushort key)
         {
-            bool result = Keys[key] == State.Pressing;
-            if (result && doTransition)
-            { Keys[key] = State.Pressed; }
-            return result;
+            bool stage1 = BitUtils.GetBit(Stage1, key);
+            bool stage2 = BitUtils.GetBit(Stage2, key);
+            bool stage3 = BitUtils.GetBit(Stage3, key);
+            return stage2;
         }
 
-        public static bool IsKeyUp(char key, bool doTransition = true) => IsKeyUp(AsciiToKey[key], doTransition);
-        public static bool IsKeyUp(ushort key, bool doTransition = true)
+        public static bool IsKeyDown(char key) => IsKeyDown(AsciiToKey[key]);
+        public static bool IsKeyDown(ushort key)
         {
-            bool result = Keys[key] == State.Releasing;
-            if (result && doTransition)
-            { Keys[key] = State.None; }
-            return result;
+            bool stage1 = BitUtils.GetBit(Stage1, key);
+            bool stage2 = BitUtils.GetBit(Stage2, key);
+            bool stage3 = BitUtils.GetBit(Stage3, key);
+            return stage1 && !stage2 && !stage3;
+        }
+
+        public static bool IsKeyUp(char key) => IsKeyUp(AsciiToKey[key]);
+        public static bool IsKeyUp(ushort key)
+        {
+            bool stage1 = BitUtils.GetBit(Stage1, key);
+            bool stage2 = BitUtils.GetBit(Stage2, key);
+            bool stage3 = BitUtils.GetBit(Stage3, key);
+            return !stage1 && !stage2 && stage3;
         }
 
         public static void Feed(KeyEvent e)
         {
-            State state = Keys[e.VirtualKeyCode];
-            bool isDown = e.IsDown != 0;
+            BitUtils.SetBit(Accumulated, e.VirtualKeyCode, e.IsDown != 0);
+        }
 
-            State newState = state switch
-            {
-                State.None => isDown ? State.Pressing : State.None,
-                State.Pressing => isDown ? State.Pressed : State.Releasing,
-                State.Pressed => isDown ? State.Pressed : State.Releasing,
-                State.Releasing => isDown ? State.Pressing : State.None,
-                _ => state,
-            };
-
-            Keys[e.VirtualKeyCode] = newState;
+        public static void BeginTick()
+        {
+            int[] savedStage3 = Stage3;
+            Stage3 = Stage2;
+            Stage2 = Stage1;
+            Stage1 = savedStage3;
+            Buffer.BlockCopy(Accumulated, 0, Stage1, 0, 8 * sizeof(int));
         }
     }
 }

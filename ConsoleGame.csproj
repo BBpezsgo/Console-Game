@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="build.bat" />
+    <None Remove="buildnrun.bat" />
+    <None Remove="run.bat" />
+    <None Remove="yea.bat" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="icon.ico" />
   </ItemGroup>
 

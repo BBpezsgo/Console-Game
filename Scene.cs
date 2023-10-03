@@ -14,7 +14,7 @@ namespace ConsoleGame
         {
             get
             {
-                Rect result = new(0f, 0f, (Game.Renderer.Width / 2f) - 1f, (Game.Renderer.Height) - 1f);
+                Rect result = new(0f, 0f, (Game.Renderer.Width / 2f) - 1f, Game.Renderer.Height - 1f);
 
                 result.Top += 4;
 
@@ -83,7 +83,7 @@ namespace ConsoleGame
             }
         }
 
-        public void Tick(float deltaTime, bool shouldSync)
+        public void Tick(bool shouldSync)
         {
             {
                 System.Random r = new(0);
@@ -98,10 +98,7 @@ namespace ConsoleGame
                         int v = r.Next(0, 15);
                         if (v < 10) continue;
                         v -= 10;
-                        if (v < 3)
-                        { Game.Renderer[x, y].Foreground = 0b_1000; }
-                        else
-                        { Game.Renderer[x, y].Foreground = 0b_0111; }
+                        Game.Renderer[x, y].Foreground = v < 3 ? ByteColor.Gray : ByteColor.Silver;
                         Game.Renderer[x, y].Char = '░';
                     }
                 }
@@ -197,7 +194,7 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if (!obj.HasTag(tags)) continue;
+                if ((obj.Tag & tags) == 0) continue;
                 result.Add(obj);
             }
             return result.ToArray();
@@ -283,7 +280,7 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) != tags) continue;
+                if ((obj.Tag & tags) == 0) continue;
 
                 float diffSqrMag = (obj.Position - position).SqrMagnitude;
 
@@ -329,7 +326,7 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) != tags) continue;
+                if ((obj.Tag & tags) == 0) continue;
 
                 float sqrDistance = (obj.Position - position).SqrMagnitude;
                 if (sqrDistance >= sqrRadius) continue;
@@ -371,7 +368,7 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) != tags) continue;
+                if ((obj.Tag & tags) == 0) continue;
 
                 float sqrDistance = (obj.Position - position).SqrMagnitude;
                 if (sqrDistance < closestSqrDistance)
@@ -423,7 +420,7 @@ namespace ConsoleGame
             {
                 GameObject obj = objects[i];
                 if (obj.IsDestroyed) continue;
-                if (!obj.HasTag(tags)) continue;
+                if ((obj.Tag & tags) == 0) continue;
                 Vector diff = obj.Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)

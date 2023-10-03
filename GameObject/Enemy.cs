@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using ConsoleGame.Net;
+﻿using ConsoleGame.Net;
 
 namespace ConsoleGame
 {
@@ -8,16 +7,16 @@ namespace ConsoleGame
         public float Health;
         public const float MaxHealth = 5f;
 
-        const float MaxSpeed = 1f;
+        const float MaxSpeed = 2.5f;
 
-        float LastDamaged = 0f;
+        float LastDamaged;
         const float DamageIndicatorBlinkPerSec = 3f * 2;
         const float DamageIndicatorDuration = 1f;
 
         const float visionRange = 10f;
 
         const float MeleeAttackCooldown = 1f;
-        float MeleeAttackTimer = 0f;
+        float MeleeAttackTimer;
         const float MeleeAttackRange = 2f;
         const float MeleeAttackDamage = 1f;
 
@@ -82,7 +81,7 @@ namespace ConsoleGame
             { Target = null; }
             else
             {
-                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player, visionRange);
+                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player | Tags.Helper, visionRange);
             }
 
             if (Target != null && Target is IDamageable damageable)

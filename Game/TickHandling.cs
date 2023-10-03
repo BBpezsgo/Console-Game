@@ -12,6 +12,8 @@ namespace ConsoleGame
 
         void Tick()
         {
+            Keyboard.BeginTick();
+
             renderer.Clear();
             renderer.Resize();
 
@@ -23,16 +25,48 @@ namespace ConsoleGame
         void TickWrapped()
         {
             /*
+            BitUtils.RenderBits(renderer, new VectorInt(0, 0), Keyboard.Accumulated);
+            BitUtils.RenderBits(renderer, new VectorInt(0, 7), Keyboard.Stage1);
+            BitUtils.RenderBits(renderer, new VectorInt(0, 14), Keyboard.Stage2);
+            BitUtils.RenderBits(renderer, new VectorInt(0, 21), Keyboard.Stage3);
+            Thread.Sleep(100);
+            return;
+            */
+
+            /*
             for (ushort i = 0; i < 255; i++)
             {
-                bool key = Keyboard.IsKeyPressed(i);
-                if (key) {
-                    renderer[i].Background = ByteColor.White;
-                    renderer.DrawLabel(0, 0, i.ToString(), ByteColor.Black, ByteColor.White);
-                } else {
-                    renderer[i].Background = ByteColor.Black;
+                bool isPressed = Keyboard.IsKeyPressed(i);
+                bool isDown = Keyboard.IsKeyDown(i);
+                bool isHold = Keyboard.IsKeyHold(i);
+                bool isUp = Keyboard.IsKeyUp(i);
+
+                byte bg = ByteColor.Black;
+
+                if (isDown)
+                {
+                    bg = ByteColor.Red;
                 }
+
+                if (isHold)
+                {
+                    bg = ByteColor.Green;
+                }
+
+                if (isUp)
+                {
+                    bg = ByteColor.Blue;
+                }
+
+                if (isPressed)
+                {
+                    renderer.DrawLabel(0, 0, i.ToString(), ByteColor.Black, ByteColor.White);
+                }
+
+                renderer[i].Background = bg;
             }
+
+            Thread.Sleep(100);
             return;
             */
 
@@ -77,7 +111,7 @@ namespace ConsoleGame
                     shouldSync = true;
                 }
 
-                Scene.Tick(deltaTime, shouldSync);
+                Scene.Tick(shouldSync);
 
                 bool hasPlayer = false;
                 GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
@@ -104,19 +138,19 @@ namespace ConsoleGame
                     Menu_YouDied.Tick(box);
                 }
 
-                if (false && players.Length > 0 && networkMode != NetworkMode.Client)
+                if (players.Length > 0 &&
+                    networkMode != NetworkMode.Client &&
+                    Time.UtcNow - LastEnemySpawn > 10f)
                 {
-                    if (Time.UtcNow - LastEnemySpawn > 10f)
+                    for (int i = 0; i < EnemyWave; i++)
                     {
-                        for (int i = 0; i < EnemyWave; i++)
+                        for (int @try = 0; @try < 5; @try++)
                         {
-                            for (int @try = 0; @try < 5; @try++)
-                            {
-                                if (TrySpawnEnemy(out _)) break;
-                            }
+                            if (TrySpawnEnemy(out _)) break;
                         }
-                        EnemyWave++;
                     }
+                    EnemyWave++;
+                    LastEnemySpawn = Time.UtcNow;
                 }
 
                 if (shouldSync && connection != null)
@@ -127,16 +161,24 @@ namespace ConsoleGame
             {
                 switch (CurrentMenu)
                 {
-                    case 1: {
-                        MainMenu.Tick(40);
-                        break;
-                    }
-                    
-                    case 2: {
-                        InputBox_Address.Tick(30);
-                        break;
-                    }
-                    
+                    case 1:
+                        {
+                            MainMenu.Tick(40);
+                            break;
+                        }
+
+                    case 2:
+                        {
+                            InputBox_ConnectAddress.Tick(30);
+                            break;
+                        }
+
+                    case 3:
+                        {
+                            InputBox_HostAddress.Tick(30);
+                            break;
+                        }
+
                     default: break;
                 }
             }
@@ -171,12 +213,14 @@ namespace ConsoleGame
                 stateBarX += renderer.DrawLabel(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
             }
 
-            if (connection != null && Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
+            if (Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
             { DrawClientListMenu(); }
         }
 
         void DrawClientListMenu()
         {
+            if (connection == null) return;
+
             RectInt menuBox = renderer.MakeMenu(40, 10);
 
             renderer.DrawBox(menuBox, ByteColor.Black, ByteColor.White);

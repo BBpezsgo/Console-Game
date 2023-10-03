@@ -75,5 +75,31 @@ namespace ConsoleGame.Net
             result.Append(Port);
             return result.ToString();
         }
+
+        public static bool TryParse(string text, out Socket socket)
+        {
+            socket = default;
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            if (!text.Contains(':')) return false;
+            string addressString = text.Split(':')[0];
+            string portString = text.Split(':')[1];
+            IPAddress? address;
+            if (addressString == "*")
+            {
+                address = IPAddress.Any;
+            }
+            else if (!IPAddress.TryParse(addressString, out address))
+            {
+                return false;
+            }
+
+            if (!ushort.TryParse(portString, out ushort port))
+            {
+                return false;
+            }
+
+            socket = new Socket(address, port);
+            return true;
+        }
     }
 }

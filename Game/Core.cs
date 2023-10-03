@@ -9,6 +9,7 @@ namespace ConsoleGame
     {
         public const int PLAYER = 1;
         public const int ENEMY = 2;
+        public const int HELPER_TURRET = 3;
     }
 
     public partial class Game
@@ -24,7 +25,8 @@ namespace ConsoleGame
         public static Game? Instance = null;
 
         MenuBoxed MainMenu;
-        InputBox InputBox_Address;
+        InputBox InputBox_HostAddress;
+        InputBox InputBox_ConnectAddress;
         Menu Menu_YouDied;
         int CurrentMenu = 1;
 
@@ -49,7 +51,6 @@ namespace ConsoleGame
             Instance = this;
             networkMode = NetworkMode.Offline;
         }
-
 #pragma warning restore CS8618
 
         unsafe public void Start()
@@ -74,14 +75,15 @@ namespace ConsoleGame
 
             MainMenu = new MenuBoxed(renderer, "Main Menu",
                 ("Offline", MainMenuHandler_Offline),
-                ("Connect", () => { CurrentMenu = 2; }),
-                ("Host", () => { CurrentMenu = 2; }),
+                ("Connect", () => CurrentMenu = 2),
+                ("Host", () => CurrentMenu = 3),
                 ("Exit", Exit)
                 );
             Menu_YouDied = new Menu(renderer,
                 ("Exit", Exit),
                 ("Respawn", Menu_YouDied_Respawn));
-            InputBox_Address = new InputBox(renderer, "Socket", "127.0.0.1:7777");
+            InputBox_ConnectAddress = new InputBox(renderer, "Connect", "127.0.0.1:7777", 21, InputBox_ConnectAddress_Ok, InputBox_ConnectAddress_Cancel);
+            InputBox_HostAddress = new InputBox(renderer, "Host", "0.0.0.0:7777", 21, InputBox_HostAddress_Ok, InputBox_HostAddress_Cancel);
 
             while (isRunning)
             {
@@ -116,33 +118,6 @@ namespace ConsoleGame
             Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
         }
 
-        void MainMenuHandler_Connect()
-        {
-            Scene = new Scene(this);
-            networkMode = NetworkMode.Client;
-
-            connection = new Net.UDP(false);
-            connection.Client("127.0.0.1", 7777);
-            connection.OnReceive += OnDataReceive;
-            connection.OnClientConnected += OnClientConnected;
-            connection.OnClientDisconnected += OnClientDisconnected;
-        }
-
-        void MainMenuHandler_Host()
-        {
-            Scene = new Scene(this);
-            networkMode = NetworkMode.Server;
-
-            connection = new Net.UDP(false);
-            connection.Server(System.Net.IPAddress.Any, 7777);
-            connection.OnReceive += OnDataReceive;
-            connection.OnClientConnected += OnClientConnected;
-            connection.OnClientDisconnected += OnClientDisconnected;
-
-            Scene.Load();
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
-        }
-
         void Menu_YouDied_Respawn()
         {
             bool hasPlayer = false;
@@ -169,6 +144,57 @@ namespace ConsoleGame
             }
 
             Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+        }
+
+        void InputBox_ConnectAddress_Ok()
+        {
+            string value = InputBox_HostAddress.Value.ToString();
+            if (!Socket.TryParse(value, out Socket socket))
+            { return; }
+
+            Scene = new Scene(this);
+            networkMode = NetworkMode.Client;
+
+            connection = new UDP(false);
+            connection.Client(socket.Address, socket.Port);
+            connection.OnReceive += OnDataReceive;
+            connection.OnClientConnected += OnClientConnected;
+            connection.OnClientDisconnected += OnClientDisconnected;
+
+            InputBox_ConnectAddress.Reset();
+        }
+
+        void InputBox_ConnectAddress_Cancel()
+        {
+            CurrentMenu = 1;
+            InputBox_ConnectAddress.Reset();
+        }
+
+        void InputBox_HostAddress_Ok()
+        {
+            string value = InputBox_HostAddress.Value.ToString();
+            if (!Socket.TryParse(value, out Socket socket))
+            { return; }
+
+            Scene = new Scene(this);
+            networkMode = NetworkMode.Server;
+
+            connection = new UDP(false);
+            connection.Server(socket.Address, socket.Port);
+            connection.OnReceive += OnDataReceive;
+            connection.OnClientConnected += OnClientConnected;
+            connection.OnClientDisconnected += OnClientDisconnected;
+
+            Scene.Load();
+            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+
+            InputBox_HostAddress.Reset();
+        }
+
+        void InputBox_HostAddress_Cancel()
+        {
+            CurrentMenu = 1;
+            InputBox_HostAddress.Reset();
         }
 
         void OnRespawnRequest(Socket sender)

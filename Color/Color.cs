@@ -73,7 +73,7 @@ namespace ConsoleGame
         /// </summary>
         public static float Distance(Color a, Color b)
         {
-            var d = a - b;
+            Color d = a - b;
             return (d.R * d.R) + (d.G * d.G) + (d.B * d.B);
         }
     }

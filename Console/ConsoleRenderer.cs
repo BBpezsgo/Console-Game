@@ -18,7 +18,7 @@ namespace ConsoleGame
         CharInfo[] ConsoleBuffer;
         SmallRect ConsoleRect;
 
-        bool shouldResize = false;
+        bool shouldResize;
 
         public ref CharInfo this[int i] => ref ConsoleBuffer[i];
         public ref CharInfo this[int x, int y] => ref ConsoleBuffer[(y * width) + x];

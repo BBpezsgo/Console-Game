@@ -1,8 +1,8 @@
-﻿namespace ConsoleGame
-{
-    using DataUtilities.Serializer;
-    using Net;
+﻿using DataUtilities.Serializer;
+using ConsoleGame.Net;
 
+namespace ConsoleGame
+{
     public class Player : NetworkedGameObject, IDamageable
     {
         struct RpcData_Shoot : ISerializable<RpcData_Shoot>
@@ -35,7 +35,7 @@
             }
         }
 
-        float Reload = 0f;
+        float Reload;
 
         const float MaxSpeed = 3f;
         const float ReloadTime = .2f;
@@ -139,6 +139,11 @@
                         Owner = this,
                     });
                     Reload = ReloadTime;
+                }
+
+                if (Keyboard.IsKeyDown('X'))
+                {
+                    Game.Instance.Scene.AddObject(new HelperTurret(Mouse.WorldPosition, Game.Instance.Scene.GenerateNetworkId(), GameObjectPrototype.HELPER_TURRET, Owner));
                 }
 
                 if (Reload > 0f)

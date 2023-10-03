@@ -2,7 +2,7 @@
 {
     public struct PredefinedEffects
     {
-        public static ParticlesConfig ExplosionFire => new()
+        public static ParticlesConfig LargeExplosion => new()
         {
             Gradients = new Gradient[]
             {
@@ -11,6 +11,17 @@
             ParticleCount = 70,
             ParticleLifetime = (2f, 3f),
             ParticleSpeed = (0f, 10f),
+        };
+
+        public static ParticlesConfig SmallExplosion => new()
+        {
+            Gradients = new Gradient[]
+            {
+                Gradients.Fire,
+            },
+            ParticleCount = 30,
+            ParticleLifetime = (.5f, 1.5f),
+            ParticleSpeed = (0f, 5f),
         };
 
         public static ParticlesConfig ExplosionTrailStuff => new()
