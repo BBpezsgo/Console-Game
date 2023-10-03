@@ -22,6 +22,20 @@ namespace ConsoleGame
 
         void TickWrapped()
         {
+            /*
+            for (ushort i = 0; i < 255; i++)
+            {
+                bool key = Keyboard.IsKeyPressed(i);
+                if (key) {
+                    renderer[i].Background = ByteColor.White;
+                    renderer.DrawLabel(0, 0, i.ToString(), ByteColor.Black, ByteColor.White);
+                } else {
+                    renderer[i].Background = ByteColor.Black;
+                }
+            }
+            return;
+            */
+
             int stateBarX = 1;
 
             stateBarX += renderer.DrawLabel(
@@ -111,7 +125,20 @@ namespace ConsoleGame
             }
             else
             {
-                MainMenu.Tick(40);
+                switch (CurrentMenu)
+                {
+                    case 1: {
+                        MainMenu.Tick(40);
+                        break;
+                    }
+                    
+                    case 2: {
+                        InputBox_Address.Tick(30);
+                        break;
+                    }
+                    
+                    default: break;
+                }
             }
 
             if (connection != null)
@@ -145,67 +172,55 @@ namespace ConsoleGame
             }
 
             if (connection != null && Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
+            { DrawClientListMenu(); }
+        }
+
+        void DrawClientListMenu()
+        {
+            RectInt menuBox = renderer.MakeMenu(40, 10);
+
+            renderer.DrawBox(menuBox, ByteColor.Black, ByteColor.White);
+
+            menuBox.Expand(-1);
+
+            if (networkMode == NetworkMode.Client)
             {
-                RectInt menuBox = renderer.MakeMenu(40, 10);
-
-                renderer.DrawBox(menuBox, ByteColor.Black, ByteColor.White);
-
-                menuBox.Expand(-1);
-
-                if (networkMode == NetworkMode.Client)
+                if (Requests.Request(new Request(RequestKinds.CLIENT_LIST, 1)))
                 {
-                    if (Requests.Request(new Request(RequestKinds.CLIENT_LIST, 1)))
+                    connection.Send(new ClientListRequestMessage()
                     {
-                        connection.Send(new ClientListRequestMessage()
-                        {
-                            Type = MessageType.CLIENT_LIST_REQUEST,
-                        });
-                    }
-
-                    int clientCount = Clients.Length;
-                    Socket server = connection.ServerEndPoint;
-                    renderer.DrawLabel(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
-
-                    for (int i = 0; i < clientCount; i++)
-                    {
-                        Socket client = Clients[i];
-                        if (client == connection.LocalEndPoint)
-                        {
-                            renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
-                        }
-                        else
-                        {
-                            renderer.DrawLabel(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
-                        }
-                    }
+                        Type = MessageType.CLIENT_LIST_REQUEST,
+                    });
                 }
-                else if (networkMode == NetworkMode.Server)
-                {
-                    renderer.DrawLabel(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
 
-                    int clientCount = connection.Clients.Length;
-                    for (int i = 0; i < clientCount; i++)
+                int clientCount = Clients.Length;
+                Socket server = connection.ServerEndPoint;
+                renderer.DrawLabel(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
+
+                for (int i = 0; i < clientCount; i++)
+                {
+                    Socket client = Clients[i];
+                    if (client == connection.LocalEndPoint)
                     {
-                        Socket client = connection.Clients[i];
-                        renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                        renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
+                    }
+                    else
+                    {
+                        renderer.DrawLabel(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
                     }
                 }
             }
-
-            /*
-            for (ushort i = 0; i < 255; i++)
+            else if (networkMode == NetworkMode.Server)
             {
-                Keyboard.State key = Keyboard.Keys[i];
-                renderer[i].Background = key switch
+                renderer.DrawLabel(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
+
+                int clientCount = connection.Clients.Length;
+                for (int i = 0; i < clientCount; i++)
                 {
-                    Keyboard.State.None => ByteColor.Black,
-                    Keyboard.State.Pressing => ByteColor.Blue,
-                    Keyboard.State.Pressed => ByteColor.Red,
-                    Keyboard.State.Releasing => ByteColor.Green,
-                    _ => ByteColor.Black,
-                };
+                    Socket client = connection.Clients[i];
+                    renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                }
             }
-            */
         }
 
         public bool TrySpawnEnemy([NotNullWhen(true)] out Enemy? enemy)

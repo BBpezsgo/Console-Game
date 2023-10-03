@@ -14,11 +14,13 @@ namespace ConsoleGame
 
         readonly struct CompactKeyboard
         {
-            readonly uint[] states;
+            readonly int[] states1;
+            readonly int[] states2;
 
             public CompactKeyboard()
             {
-                states = new uint[16];
+                states1 = new int[8];
+                states2 = new int[8];
             }
 
             public State this[char key]
@@ -31,39 +33,51 @@ namespace ConsoleGame
             {
                 get
                 {
-                    key *= 2;
                     unchecked
                     {
                         int i = key / 32;
                         int bit = key % 32;
 
-                        int segment = (int)states[i];
-                        segment >>= bit;
-                        segment &= 0b_11;
+                        int segment1 = (int)states1[i];
+                        segment1 >>= bit;
+                        segment1 &= 1;
 
-                        return (State)segment;
+                        int segment2 = (int)states2[i];
+                        segment2 >>= bit;
+                        segment2 &= 1;
+
+                        return (State)(segment1 | (segment2 << 1));
                     }
                 }
                 set
                 {
-                    key *= 2;
                     unchecked
                     {
+                        BitUtils.SetBit(states1, key, ((byte)value &  1) != 0);
+                        BitUtils.SetBit(states1, key, ((byte)value >> 1) != 0);
+                        /*
                         int i = key / 32;
                         int bit = key % 32;
 
-                        int segment = (int)states[i];
-                        segment &= ~(0b_11 << (bit));
-                        segment |= (byte)value << (bit);
+                        int segment1 = (int)states1[i];
+                        segment1 &= ~(1 << bit);
+                        segment1 |= ((byte)value & 1) << bit;
 
-                        states[i] = (uint)segment;
+                        int segment2 = (int)states2[i];
+                        segment2 &= ~(1 << bit);
+                        segment2 |= ((byte)value >> 1) << bit;
+
+                        states1[i] = (uint)segment1;
+                        states2[i] = (uint)segment2;
+                        */
                     }
                 }
             }
 
             public void Reset()
             {
-                Array.Clear(states);
+                Array.Clear(states1);
+                Array.Clear(states2);
             }
         }
 
@@ -105,6 +119,13 @@ namespace ConsoleGame
             { 'X', 0x58 },
             { 'Y', 0x59 },
             { 'Z', 0x5A },
+
+            { '.', VirtualKeyCodes.OEM_PERIOD },
+            { ',', VirtualKeyCodes.OEM_COMMA },
+            { '-', VirtualKeyCodes.OEM_MINUS },
+            { '+', VirtualKeyCodes.OEM_PLUS },
+            { '\r', VirtualKeyCodes.RETURN },
+            { '\t', VirtualKeyCodes.TAB },
         };
 
         static readonly CompactKeyboard Keys = new();

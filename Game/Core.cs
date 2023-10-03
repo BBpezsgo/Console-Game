@@ -24,7 +24,9 @@ namespace ConsoleGame
         public static Game? Instance = null;
 
         MenuBoxed MainMenu;
+        InputBox InputBox_Address;
         Menu Menu_YouDied;
+        int CurrentMenu = 1;
 
         public static float DeltaTime => Instance.deltaTime;
         public static ConsoleRenderer Renderer => Instance.renderer ?? throw new NullReferenceException();
@@ -72,13 +74,14 @@ namespace ConsoleGame
 
             MainMenu = new MenuBoxed(renderer, "Main Menu",
                 ("Offline", MainMenuHandler_Offline),
-                ("Connect", MainMenuHandler_Connect),
-                ("Host", MainMenuHandler_Host),
+                ("Connect", () => { CurrentMenu = 2; }),
+                ("Host", () => { CurrentMenu = 2; }),
                 ("Exit", Exit)
                 );
             Menu_YouDied = new Menu(renderer,
                 ("Exit", Exit),
                 ("Respawn", Menu_YouDied_Respawn));
+            InputBox_Address = new InputBox(renderer, "Socket", "127.0.0.1:7777");
 
             while (isRunning)
             {
