@@ -1,5 +1,6 @@
 ﻿namespace ConsoleGame
 {
+    /*
     public class TransformComponent : Component
     {
         public Vector Position;
@@ -20,4 +21,5 @@
             base.Update();
         }
     }
+    */
 }

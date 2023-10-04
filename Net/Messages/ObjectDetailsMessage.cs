@@ -21,9 +21,7 @@ namespace ConsoleGame
             NetworkId = networkEntity.NetworkId;
             OwnerId = (ulong)networkEntity.Owner;
             ObjectId = networkEntity.ObjectId;
-
-            if (networkEntity.Entity.TryGetComponentOfType(out TransformComponent? transform))
-            { Position = transform.Position; }
+            Position = networkEntity.Position;
         }
 
         public override void Deserialize(Deserializer deserializer)

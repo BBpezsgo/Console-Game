@@ -7,18 +7,19 @@ namespace ConsoleGame
     {
         protected NetworkEntityComponent NetworkEntity;
 
+        public bool IsOwned => NetworkEntity.IsOwned;
+
+        public int NetworkId => NetworkEntity.NetworkId;
+        public int ObjectId => NetworkEntity.ObjectId;
+        public ObjectOwner Owner => NetworkEntity.Owner;
 
         public NetworkComponent(Entity entity) : base(entity)
         {
-            NetworkEntity = entity.GetComponentOfType<NetworkEntityComponent>();
+            NetworkEntity = entity.GetComponent<NetworkEntityComponent>();
         }
 
-        public override void Destroy() => base.Destroy();
-
-        public override void Update() => base.Update();
-
         public virtual void Synchronize(NetworkMode mode, Connection socket) { }
-        public virtual void OnMessageReceived(ObjectMessage message) { }
+        public virtual void OnMessage(ObjectMessage message) { }
         public virtual void OnRpc(MessageRpc message) { }
 
 
@@ -48,6 +49,7 @@ namespace ConsoleGame
                 NetworkId = NetworkEntity.NetworkId,
                 RpcKind = rpcKind,
                 Data = data,
+                ComponentIndex = ComponentIndex,
             });
         }
 
@@ -77,6 +79,7 @@ namespace ConsoleGame
                 NetworkId = NetworkEntity.NetworkId,
                 RpcKind = rpcKind,
                 Data = data,
+                ComponentIndex = ComponentIndex,
             });
         }
     }

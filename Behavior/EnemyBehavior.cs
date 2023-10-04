@@ -2,7 +2,7 @@
 
 namespace ConsoleGame
 {
-    unsafe public class EnemyBehaviour : NetworkComponent, IDamageable
+    unsafe public class EnemyBehavior : NetworkComponent, IDamageable
     {
         public float Health;
         public const float MaxHealth = 5f;
@@ -20,28 +20,29 @@ namespace ConsoleGame
         const float MeleeAttackRange = 2f;
         const float MeleeAttackDamage = 1f;
 
-        TransformComponent? PriorityTarget;
-        TransformComponent? Target;
+        Entity? PriorityTarget;
+        Entity? Target;
 
-        readonly TransformComponent Transform;
+        DamageableRendererComponent? DamageableRenderer;
 
-        unsafe public EnemyBehaviour(Entity entity) : base(entity)
+        unsafe public EnemyBehavior(Entity entity) : base(entity)
         {
             Health = MaxHealth;
             Entity.Tags |= Tags.Enemy;
-            Transform = entity.GetComponentOfType<TransformComponent>();
+            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
         }
 
         public override void Destroy()
         {
-            // Game.Instance.Scene.AddEntity(new Particles(Transform.Position, PredefinedEffects.Death));
             base.Destroy();
+            Entity newEntity = new()
+            { Position = Position };
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death));
+            Game.Instance.Scene.AddEntity(newEntity);
         }
 
         public override void Update()
         {
-            base.Update();
-        
             if (Game.NetworkMode == NetworkMode.Client)
             { return; }
 
@@ -58,22 +59,26 @@ namespace ConsoleGame
 
             if (PriorityTarget != null)
             { Target = PriorityTarget; }
-            else if (Target != null && (Target.Position - Transform.Position).SqrMagnitude >= visionRange * visionRange)
+            else if (Target != null && (Target.Position - Position).SqrMagnitude >= visionRange * visionRange)
             { Target = null; }
             else
             {
-                Target = Game.Instance.Scene.ClosestObject(Transform.Position, Tags.Player | Tags.Helper, visionRange)?.GetComponentOfType<TransformComponent>();
+                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player | Tags.Helper, visionRange);
             }
 
-            if (Target != null && Target is IDamageable damageable)
+            if (Target != null)
             {
-                Transform.Position += Vector.MoveTowards(Transform.Position, Target.Position, MaxSpeed * Time.DeltaTime);
-                if ((Target.Position - Transform.Position).SqrMagnitude < (MeleeAttackRange * MeleeAttackRange))
+                IDamageable? damageableTarget = Target.GetComponent<IDamageable>();
+                if (damageableTarget != null)
                 {
-                    if (MeleeAttackTimer <= 0f)
+                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                    if ((Target.Position - Position).SqrMagnitude < (MeleeAttackRange * MeleeAttackRange))
                     {
-                        MeleeAttackTimer = MeleeAttackCooldown;
-                        damageable.Damage(MeleeAttackDamage, this);
+                        if (MeleeAttackTimer <= 0f)
+                        {
+                            MeleeAttackTimer = MeleeAttackCooldown;
+                            damageableTarget.Damage(MeleeAttackDamage, this);
+                        }
                     }
                 }
             }
@@ -81,12 +86,13 @@ namespace ConsoleGame
 
         public void Damage(float amount, Component? by)
         {
+            DamageableRenderer?.OnDamage();
             LastDamaged = Time.UtcNow;
 
             if (Game.NetworkMode == NetworkMode.Client) return;
 
             if (by != null)
-            { PriorityTarget = by.Entity.GetComponentOfType<TransformComponent>(); }
+            { PriorityTarget = by.Entity; }
 
             Health -= amount;
 
@@ -96,12 +102,7 @@ namespace ConsoleGame
                 return;
             }
 
-            SendRpc(1, new RpcData_Damage(amount, by.Entity.GetComponentOfType<NetworkEntityComponent>().NetworkId));
-        }
-
-        public override void OnMessageReceived(ObjectMessage message)
-        {
-            
+            SendRpc(1, new RpcMessages.Damaged(amount, by.Entity.GetComponent<NetworkEntityComponent>().NetworkId));
         }
 
         public override void OnRpc(MessageRpc message)
@@ -110,18 +111,13 @@ namespace ConsoleGame
             {
                 case 1:
                     {
-                        RpcData_Damage data = message.GetObjectData<RpcData_Damage>();
+                        RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
                         Damage(data.Amount, data.By);
                         break;
                     }
                 default:
                     break;
             }
-        }
-
-        public override void Synchronize(NetworkMode mode, Connection socket)
-        {
-            
         }
     }
 }

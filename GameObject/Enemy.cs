@@ -1,5 +1,7 @@
 ﻿using ConsoleGame.Net;
 
+#if false
+
 namespace ConsoleGame
 {
     public class Enemy : NetworkedGameObject, IDamageable
@@ -140,3 +142,4 @@ namespace ConsoleGame
         }
     }
 }
+#endif

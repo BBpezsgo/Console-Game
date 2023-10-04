@@ -38,7 +38,7 @@ namespace ConsoleGame
         void OnClientConnected(Socket client)
         {
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(client));
-            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
         }
 
@@ -111,7 +111,7 @@ namespace ConsoleGame
                     return;
                 }
 
-                @object.OnRpc(rpcMessage);
+                @object.HandleRpc(rpcMessage);
                 return;
             }
 
@@ -154,9 +154,26 @@ namespace ConsoleGame
                 return;
             }
 
+            if (message is ComponentMessage componentMessage)
+            {
+                if (!Scene.TryGetNetworkEntity(componentMessage, out NetworkEntityComponent? @object))
+                {
+                    if (networkMode != NetworkMode.Client) return;
+                    if (Requests.Request(new Request(RequestKinds.OBJ_DETAILS_REQUEST, HashCode.Combine(componentMessage.NetworkId))))
+                    {
+                        connection?.Send(new ObjectRequestMessage(componentMessage.NetworkId));
+                        Debug.WriteLine($"Network object {componentMessage.NetworkId} not found; requesting object details ...");
+                    }
+                    return;
+                }
+
+                @object.HandleMessage(componentMessage);
+                return;
+            }
+
             if (message is ObjectMessage objectMessage)
             {
-                if (!Scene.TryGetNetworkEntity(objectMessage, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectMessage, out NetworkEntityComponent? @object))
                 {
                     if (networkMode != NetworkMode.Client) return;
                     if (Requests.Request(new Request(RequestKinds.OBJ_DETAILS_REQUEST, HashCode.Combine(objectMessage.NetworkId))))
@@ -167,7 +184,7 @@ namespace ConsoleGame
                     return;
                 }
 
-                @object.OnMessageReceived(objectMessage);
+                @object.HandleMessage(objectMessage);
                 return;
             }
 

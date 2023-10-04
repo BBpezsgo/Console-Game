@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using ConsoleGame.Net;
+
+namespace ConsoleGame
 {
     public class NetworkEntityComponent : Component
     {
@@ -29,12 +31,33 @@
             Game.Instance.Scene.NetworkEntityComponents.Deregister(this);
         }
 
-        public override void Update()
+        public void HandleMessage(ObjectMessage message)
         {
-            base.Update();
+
         }
-        
-        public void OnMessageReceived(ObjectMessage message) { }
-        public void OnRpc(MessageRpc message) { }
+
+        public void HandleMessage(ComponentMessage message)
+        {
+            Component component = Entity.Components[message.ComponentIndex];
+            if (component is not NetworkComponent networkComponent) return;
+            networkComponent.OnMessage(message);
+        }
+
+        public void HandleRpc(MessageRpc message)
+        {
+            Component component = Entity.Components[message.ComponentIndex];
+            if (component is not NetworkComponent networkComponent) return;
+            networkComponent.OnRpc(message);
+        }
+
+        public void SynchronizeComponents(NetworkMode networkMode, Connection socket)
+        {
+            for (int i = 0; i < Entity.Components.Length; i++)
+            {
+                Component component = Entity.Components[i];
+                if (component is not NetworkComponent networkComponent) continue;
+                networkComponent.Synchronize(networkMode, socket);
+            }
+        }
     }
 }

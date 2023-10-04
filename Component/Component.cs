@@ -4,12 +4,11 @@
     {
         public int SystemIndex;
         public readonly Entity Entity;
+        public int ComponentIndex;
 
-        public bool IsDestroyed
-        {
-            get => Entity.IsDestroyed;
-            set => Entity.IsDestroyed = value;
-        }
+        public ref bool IsDestroyed => ref Entity.IsDestroyed;
+
+        public ref Vector Position => ref Entity.Position;
 
         public Component(Entity entity)
         {
@@ -19,10 +18,7 @@
             Game.Instance.Scene.AllComponents.Register(this);
         }
 
-        public virtual void Update()
-        {
-
-        }
+        public virtual void Update() { }
 
         public virtual void Destroy()
         {

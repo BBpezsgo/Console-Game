@@ -10,7 +10,6 @@
                 GameObjectPrototype.PLAYER, (int networkId, ObjectOwner owner) => {
                     Entity newEntity = new();
                     newEntity.Tags |= Tags.Player;
-                    newEntity.AddComponent(new TransformComponent(newEntity));
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
                         NetworkId = networkId,
@@ -18,12 +17,12 @@
                         Owner = owner,
                     });
                     newEntity.AddComponent(new NetworkTransform(newEntity));
-                    newEntity.AddComponent(new RendererComponent(newEntity)
+                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'O',
                         Color = ByteColor.Magenta,
                     });
-                    newEntity.AddComponent(new PlayerBehaviour(newEntity));
+                    newEntity.AddComponent(new PlayerBehavior(newEntity));
                     return newEntity;
                 }
             },
@@ -31,7 +30,6 @@
                 GameObjectPrototype.ENEMY, (int networkId, ObjectOwner owner) => {
                     Entity newEntity = new();
                     newEntity.Tags |= Tags.Enemy;
-                    newEntity.AddComponent(new TransformComponent(newEntity));
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
                         NetworkId = networkId,
@@ -39,11 +37,12 @@
                         Owner = owner,
                     });
                     newEntity.AddComponent(new NetworkTransform(newEntity));
-                    newEntity.AddComponent(new RendererComponent(newEntity)
+                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = '@',
                         Color = ByteColor.BrightRed,
                     });
+                    newEntity.AddComponent(new EnemyBehavior(newEntity));
                     return newEntity;
                 }
             },
@@ -51,7 +50,6 @@
                 GameObjectPrototype.HELPER_TURRET, (int networkId, ObjectOwner owner) => {
                     Entity newEntity = new();
                     newEntity.Tags |= Tags.Helper;
-                    newEntity.AddComponent(new TransformComponent(newEntity));
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
                         NetworkId = networkId,
@@ -59,7 +57,7 @@
                         Owner = owner,
                     });
                     newEntity.AddComponent(new NetworkTransform(newEntity));
-                    newEntity.AddComponent(new RendererComponent(newEntity)
+                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = '#',
                         Color = ByteColor.BrightCyan,

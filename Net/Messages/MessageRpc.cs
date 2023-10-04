@@ -2,7 +2,7 @@
 
 namespace ConsoleGame
 {
-    public class MessageRpc : ObjectMessage, ISerializable<MessageRpc>
+    public class MessageRpc : ComponentMessage, ISerializable<MessageRpc>
     {
         public int RpcKind;
         public byte[] Data = Array.Empty<byte>();
@@ -44,7 +44,7 @@ namespace ConsoleGame
             return deserializer.Deserialize<T>();
         }
 
-        public static MessageRpc Make<T>(NetworkEntityComponent sender, int kind, T data) where T : ISerializable<T>
+        public static MessageRpc Make<T>(NetworkComponent sender, int kind, T data) where T : ISerializable<T>
         {
             Serializer serializer = new();
             serializer.Serialize(data);
@@ -57,7 +57,7 @@ namespace ConsoleGame
             };
         }
 
-        public static MessageRpc Make<T>(NetworkEntityComponent sender, int kind, T data, Action<T, Serializer> serializer)
+        public static MessageRpc Make<T>(NetworkComponent sender, int kind, T data, Action<T, Serializer> serializer)
         {
             Serializer _serializer = new();
             serializer.Invoke(data, _serializer);

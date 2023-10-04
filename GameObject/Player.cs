@@ -1,6 +1,7 @@
 ﻿using DataUtilities.Serializer;
 using ConsoleGame.Net;
 
+#if false
 namespace ConsoleGame
 {
     public class Player : NetworkedGameObject, IDamageable
@@ -201,3 +202,4 @@ namespace ConsoleGame
         }
     }
 }
+#endif

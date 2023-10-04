@@ -2,7 +2,7 @@
 
 namespace ConsoleGame
 {
-    internal class ObjectPositionMessage : ObjectMessage, ISerializable<ObjectPositionMessage>
+    internal class ObjectPositionMessage : ComponentMessage, ISerializable<ObjectPositionMessage>
     {
         public Vector Position;
 

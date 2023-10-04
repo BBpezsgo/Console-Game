@@ -1,6 +1,7 @@
 ﻿using ConsoleGame.Net;
 using DataUtilities.Serializer;
 
+#if false
 namespace ConsoleGame
 {
     internal class HelperTurret : NetworkedGameObject, IDamageable
@@ -155,3 +156,4 @@ namespace ConsoleGame
         }
     }
 }
+#endif

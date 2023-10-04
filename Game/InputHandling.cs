@@ -7,7 +7,7 @@ namespace ConsoleGame
 
         void OnBufferSize(WindowBufferSizeEvent e)
         {
-            renderer.ShouldResize();
+            renderer?.ShouldResize();
         }
 
         void OnMouse(MouseEvent e)

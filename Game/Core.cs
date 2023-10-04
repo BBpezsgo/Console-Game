@@ -116,7 +116,7 @@ namespace ConsoleGame
 
             Scene.Load();
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
         }
 
@@ -126,7 +126,7 @@ namespace ConsoleGame
             Entity[] players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
-                if (players[i].GetComponentOfType<NetworkEntityComponent>().IsOwned)
+                if (players[i].GetComponent<NetworkEntityComponent>().IsOwned)
                 {
                     hasPlayer = true;
                     break;
@@ -146,13 +146,13 @@ namespace ConsoleGame
             }
 
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
         }
 
         void InputBox_ConnectAddress_Ok()
         {
-            string value = InputBox_HostAddress.Value.ToString();
+            string value = InputBox_ConnectAddress.Value.ToString();
             if (!Socket.TryParse(value, out Socket socket))
             { return; }
 
@@ -192,7 +192,7 @@ namespace ConsoleGame
             Scene.Load();
             
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
 
             InputBox_HostAddress.Reset();
@@ -210,7 +210,7 @@ namespace ConsoleGame
             Entity[] players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
-                if (players[i].GetComponentOfType<NetworkEntityComponent>().Owner == new ObjectOwner(sender))
+                if (players[i].GetComponent<NetworkEntityComponent>().Owner == new ObjectOwner(sender))
                 {
                     hasPlayer = true;
                     break;
@@ -224,7 +224,7 @@ namespace ConsoleGame
             { return; }
 
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(sender));
-            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
         }
 

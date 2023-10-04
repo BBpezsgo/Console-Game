@@ -4,22 +4,13 @@ namespace ConsoleGame
 {
     public class NetworkTransform : NetworkComponent
     {
-        TransformComponent Transform;
         Vector NetPosition;
+        const float Speed = 1.5f;
+        const float MinTeleportDistance = 5f;
 
         public NetworkTransform(Entity entity) : base(entity)
         {
-            Transform = entity.GetComponentOfType<TransformComponent>();
-        }
 
-        public override void Destroy()
-        {
-            base.Destroy();
-        }
-
-        public override void OnRpc(MessageRpc message)
-        {
-            base.OnRpc(message);
         }
 
         public override void Synchronize(NetworkMode mode, Connection socket)
@@ -29,8 +20,9 @@ namespace ConsoleGame
                 socket.Send(new ObjectPositionMessage()
                 {
                     Type = MessageType.OBJ_POSITION,
-                    Position = Transform.Position,
+                    Position = Position,
                     NetworkId = NetworkEntity.NetworkId,
+                    ComponentIndex = ComponentIndex,
                 });
             }
         }
@@ -40,12 +32,17 @@ namespace ConsoleGame
             base.Update();
 
             if (Game.NetworkMode == NetworkMode.Client)
-            { Transform.Position += Vector.MoveTowards(Transform.Position, NetPosition, Game.DeltaTime); }
+            {
+                if ((Position - NetPosition).SqrMagnitude > MinTeleportDistance * MinTeleportDistance)
+                { Position = NetPosition; }
+                else
+                { Position += Vector.MoveTowards(Position, NetPosition, Speed * Game.DeltaTime); }
+            }
         }
 
-        public override void OnMessageReceived(ObjectMessage message)
+        public override void OnMessage(ObjectMessage message)
         {
-            base.OnMessageReceived(message);
+            base.OnMessage(message);
 
             if (message is ObjectPositionMessage positionMessage)
             {

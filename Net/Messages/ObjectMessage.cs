@@ -6,7 +6,10 @@ namespace ConsoleGame
     {
         public int NetworkId;
 
-        public ObjectMessage() : base() { }
+        public ObjectMessage() : base()
+        {
+            NetworkId = -1;
+        }
 
         public ObjectMessage(NetworkEntityComponent sender) : base()
         {

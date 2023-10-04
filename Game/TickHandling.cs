@@ -117,14 +117,14 @@ namespace ConsoleGame
                 Entity[] players = Scene.ObjectsOfTag(Tags.Player);
                 for (int i = 0; i < players.Length; i++)
                 {
-                    if (players[i].GetComponentOfType<NetworkEntityComponent>().IsOwned)
+                    if (players[i].GetComponent<NetworkEntityComponent>().IsOwned)
                     {
                         hasPlayer = true;
                         break;
                     }
                 }
 
-                if (!hasPlayer)
+                if (!hasPlayer && (connection == null || connection.IsDone))
                 {
                     RectInt box = renderer.MakeMenu(30, 8);
                     renderer.DrawBox(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
@@ -277,6 +277,7 @@ namespace ConsoleGame
             if (Scene.FirstObjectAt(randomPoint, Tags.Player, 13f) == null)
             {
                 enemy = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](Scene.GenerateNetworkId(), LocalOwner);
+                enemy.Position = randomPoint;
                 Scene.AddEntity(enemy);
                 return true;
             }

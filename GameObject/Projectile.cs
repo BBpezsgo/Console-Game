@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿
+#if false
+namespace ConsoleGame
 {
     public class Projectile : GameObject
     {
@@ -53,3 +55,4 @@
         }
     }
 }
+#endif

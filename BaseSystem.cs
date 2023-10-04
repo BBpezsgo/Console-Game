@@ -3,15 +3,18 @@
     public readonly struct BaseSystem<T> where T : Component
     {
         public readonly List<T> Components;
+        public readonly bool IsBase;
 
-        public BaseSystem()
+        public BaseSystem(bool isBase)
         {
             Components = new List<T>();
+            IsBase = isBase;
         }
 
         public void Register(T component)
         {
             Components.Add(component);
+            if (!IsBase) return;
             component.SystemIndex = Components.Count - 1;
         }
 
@@ -26,6 +29,7 @@
         public void Deregister(int index)
         {
             Components.RemoveAt(index);
+            if (!IsBase) return;
             for (int i = index; i < Components.Count; i++)
             { Components[i].SystemIndex = i; }
         }

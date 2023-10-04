@@ -7,10 +7,9 @@ namespace ConsoleGame
     {
         public readonly List<Entity> Entities;
 
-        public readonly BaseSystem<Component> AllComponents = new();
-        public readonly BaseSystem<RendererComponent> RendererComponents = new();
-        public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new();
-        public readonly BaseSystem<TransformComponent> TransformComponents = new();
+        public readonly BaseSystem<Component> AllComponents = new(true);
+        public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
+        public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
         readonly Game Game;
 
@@ -41,8 +40,7 @@ namespace ConsoleGame
             }
 
             Entity newEntity = EntityPrototypes.Builders[objectSpawnMessage.ObjectId].Invoke(objectSpawnMessage.NetworkId, (ObjectOwner)objectSpawnMessage.OwnerId);
-            if (newEntity.TryGetComponentOfType(out TransformComponent? transform))
-            { transform.Position = objectSpawnMessage.Position; }
+            newEntity.Position = objectSpawnMessage.Position;
             AddEntity(newEntity);
         }
 
@@ -55,8 +53,7 @@ namespace ConsoleGame
             }
 
             Entity newEntity = EntityPrototypes.Builders[objectDetailsMessage.ObjectId].Invoke(objectDetailsMessage.NetworkId, (ObjectOwner)objectDetailsMessage.OwnerId);
-            if (newEntity.TryGetComponentOfType(out TransformComponent? transform))
-            { transform.Position = objectDetailsMessage.Position; }
+            newEntity.Position = objectDetailsMessage.Position;
             AddEntity(newEntity);
         }
 
@@ -66,7 +63,7 @@ namespace ConsoleGame
 
             if (Game.NetworkMode == NetworkMode.Server && Game.Connection != null)
             {
-                if (entity.TryGetComponentOfType(out NetworkEntityComponent? networkEntity))
+                if (entity.TryGetComponent(out NetworkEntityComponent? networkEntity))
                 { Game.Connection.Send(new ObjectSpawnMessage(networkEntity)); }
             }
         }
@@ -92,9 +89,32 @@ namespace ConsoleGame
                 }
             }
 
+            for (int i = Entities.Count - 1; i >= 0; i--)
+            {
+                if (Entities[i].IsDestroyed)
+                {
+                    Entities[i].OnDestroy();
+                    Entities.RemoveAt(i);
+                    continue;
+                }
+            }
+
             for (int i = 0; i < AllComponents.Components.Count; i++)
             {
                 AllComponents.Components[i].Update();
+            }
+
+            if (shouldSync && Game.Connection != null)
+            {
+                for (int i = 0; i < NetworkEntityComponents.Components.Count; i++)
+                {
+                    NetworkEntityComponents.Components[i].SynchronizeComponents(Game.NetworkMode, Game.Connection);
+                }
+            }
+
+            for (int i = 0; i < RendererComponents.Components.Count; i++)
+            {
+                RendererComponents.Components[i].Render();
             }
         }
 
@@ -132,7 +152,7 @@ namespace ConsoleGame
             for (int i = 0; i < 30; i++)
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](GenerateNetworkId(), Game.LocalOwner);
-                newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(2 + i, 20);
+                newEntity.Position = new Vector(2 + i, 20);
                 AddEntity(newEntity);
             }
             return;
@@ -161,11 +181,11 @@ namespace ConsoleGame
 
         public Entity? FirstObjectAt(Vector position, float distanceThreshold = 1f)
         {
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                Vector diff = TransformComponents.Components[i].Position - position;
+                Vector diff = Entities[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {
@@ -179,11 +199,11 @@ namespace ConsoleGame
         {
             Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                Vector diff = TransformComponents.Components[i].Position - position;
+                Vector diff = Entities[i].Position - position;
                 float sqrDistance = diff.SqrMagnitude;
                 if (sqrDistance >= distanceThreshold * distanceThreshold) continue;
 
@@ -200,11 +220,11 @@ namespace ConsoleGame
         {
             Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
+                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
 
                 if (sqrDistance < closestSqrDistance)
                 {
@@ -219,13 +239,13 @@ namespace ConsoleGame
         {
             float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
 
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
                 if ((obj.Tags & tags) == 0) continue;
 
-                float diffSqrMag = (TransformComponents.Components[i].Position - position).SqrMagnitude;
+                float diffSqrMag = (Entities[i].Position - position).SqrMagnitude;
 
                 if (diffSqrMag < sqrDistanceThreshold)
                 { return obj; }
@@ -240,13 +260,13 @@ namespace ConsoleGame
             Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
 
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
                 if ((obj.Tags & tags) == 0) continue;
 
-                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
+                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
                 if (sqrDistance >= sqrRadius) continue;
 
                 if (sqrDistance < closestSqrDistance)
@@ -268,7 +288,7 @@ namespace ConsoleGame
                 if (obj.IsDestroyed) continue;
                 if ((obj.Tags & tags) == 0) continue;
 
-                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
+                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
                 if (sqrDistance < closestSqrDistance)
                 {
                     result = obj;
@@ -281,11 +301,11 @@ namespace ConsoleGame
         public Entity[] ObjectsAt(Vector position, float distanceThreshold = 1f)
         {
             List<Entity> result = new();
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                Vector diff = TransformComponents.Components[i].Position - position;
+                Vector diff = Entities[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {
@@ -297,12 +317,12 @@ namespace ConsoleGame
         public Entity[] ObjectsAt(Vector position, int tags, float distanceThreshold = 1f)
         {
             List<Entity> result = new();
-            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                Entity obj = TransformComponents.Components[i].Entity;
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
                 if ((obj.Tags & tags) == 0) continue;
-                Vector diff = TransformComponents.Components[i].Position - position;
+                Vector diff = Entities[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {
