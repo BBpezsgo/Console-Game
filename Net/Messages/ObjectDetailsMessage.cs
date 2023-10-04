@@ -26,15 +26,6 @@ namespace ConsoleGame
             { Position = transform.Position; }
         }
 
-        public ObjectSpawnMessage(NetworkedGameObject @object) : base()
-        {
-            Type = MessageType.OBJ_SPAWN;
-            NetworkId = @object.NetworkId;
-            Position = @object.Position;
-            ObjectId = @object.ObjectId;
-            OwnerId = (ulong)@object.Owner;
-        }
-
         public override void Deserialize(Deserializer deserializer)
         {
             base.Deserialize(deserializer);

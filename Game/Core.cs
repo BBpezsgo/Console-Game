@@ -115,16 +115,18 @@ namespace ConsoleGame
             connection = null;
 
             Scene.Load();
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+            Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
+            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            Scene.AddEntity(newEntity);
         }
 
         void Menu_YouDied_Respawn()
         {
             bool hasPlayer = false;
-            GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+            Entity[] players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
-                if (((NetworkedGameObject)players[i]).IsOwned)
+                if (players[i].GetComponentOfType<NetworkEntityComponent>().IsOwned)
                 {
                     hasPlayer = true;
                     break;
@@ -143,7 +145,9 @@ namespace ConsoleGame
                 return;
             }
 
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+            Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
+            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            Scene.AddEntity(newEntity);
         }
 
         void InputBox_ConnectAddress_Ok()
@@ -186,7 +190,10 @@ namespace ConsoleGame
             connection.OnClientDisconnected += OnClientDisconnected;
 
             Scene.Load();
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, LocalOwner));
+            
+            Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
+            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            Scene.AddEntity(newEntity);
 
             InputBox_HostAddress.Reset();
         }
@@ -200,10 +207,10 @@ namespace ConsoleGame
         void OnRespawnRequest(Socket sender)
         {
             bool hasPlayer = false;
-            GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+            Entity[] players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
-                if (((NetworkedGameObject)players[i]).Owner == new ObjectOwner(sender))
+                if (players[i].GetComponentOfType<NetworkEntityComponent>().Owner == new ObjectOwner(sender))
                 {
                     hasPlayer = true;
                     break;
@@ -216,7 +223,9 @@ namespace ConsoleGame
             if (networkMode == NetworkMode.Client)
             { return; }
 
-            Scene.AddObject(new Player(new Vector(3, 4), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new ObjectOwner(sender)));
+            Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(sender));
+            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            Scene.AddEntity(newEntity);
         }
 
         public void Exit()

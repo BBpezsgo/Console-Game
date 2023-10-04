@@ -14,11 +14,11 @@ namespace ConsoleGame
             Type = MessageType.OBJ_DETAILS;
         }
 
-        public ObjectDetailsMessage(NetworkedGameObject @object) : base()
+        public ObjectDetailsMessage(NetworkEntityComponent @object) : base()
         {
             Type = MessageType.OBJ_DETAILS;
             NetworkId = @object.NetworkId;
-            Position = @object.Position;
+            // Position = @object.Position;
             ObjectId = @object.ObjectId;
             OwnerId = (ulong)@object.Owner;
         }

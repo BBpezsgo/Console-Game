@@ -114,10 +114,10 @@ namespace ConsoleGame
                 Scene.Update(shouldSync);
 
                 bool hasPlayer = false;
-                GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
+                Entity[] players = Scene.ObjectsOfTag(Tags.Player);
                 for (int i = 0; i < players.Length; i++)
                 {
-                    if (((NetworkedGameObject)players[i]).IsOwned)
+                    if (players[i].GetComponentOfType<NetworkEntityComponent>().IsOwned)
                     {
                         hasPlayer = true;
                         break;
@@ -267,7 +267,7 @@ namespace ConsoleGame
             }
         }
 
-        public bool TrySpawnEnemy([NotNullWhen(true)] out Enemy? enemy)
+        public bool TrySpawnEnemy([NotNullWhen(true)] out Entity? enemy)
         {
             enemy = null;
 
@@ -276,8 +276,8 @@ namespace ConsoleGame
             Vector randomPoint = Random.Point(Scene.Size);
             if (Scene.FirstObjectAt(randomPoint, Tags.Player, 13f) == null)
             {
-                enemy = new Enemy(randomPoint, Scene.GenerateNetworkId(), GameObjectPrototype.ENEMY, LocalOwner);
-                Scene.AddObject(enemy);
+                enemy = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](Scene.GenerateNetworkId(), LocalOwner);
+                Scene.AddEntity(enemy);
                 return true;
             }
 

@@ -17,7 +17,7 @@ namespace ConsoleGame
             NetworkId = networkId;
         }
 
-        public ObjectRequestMessage(NetworkedGameObject @object) : base()
+        public ObjectRequestMessage(NetworkEntityComponent @object) : base()
         {
             Type = MessageType.OBJ_REQUEST;
             NetworkId = @object.NetworkId;

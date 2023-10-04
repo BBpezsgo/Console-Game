@@ -8,7 +8,7 @@ namespace ConsoleGame
 
         public ObjectMessage() : base() { }
 
-        public ObjectMessage(NetworkedGameObject sender) : base()
+        public ObjectMessage(NetworkEntityComponent sender) : base()
         {
             NetworkId = sender.NetworkId;
         }

@@ -37,7 +37,9 @@ namespace ConsoleGame
 
         void OnClientConnected(Socket client)
         {
-            Scene.AddObject(new Player(new Vector(3, 6), Scene.GenerateNetworkId(), GameObjectPrototype.PLAYER, new ObjectOwner(client)));
+            Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(client));
+            newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(3, 4);
+            Scene.AddEntity(newEntity);
         }
 
         void OnDataReceive(Socket sender, byte[] data)
@@ -98,7 +100,7 @@ namespace ConsoleGame
 
             if (message is MessageRpc rpcMessage)
             {
-                if (!Scene.TryGetNetworkObject(rpcMessage, out var @object))
+                if (!Scene.TryGetNetworkEntity(rpcMessage, out var @object))
                 {
                     if (networkMode != NetworkMode.Client) return;
                     if (Requests.Request(new Request(RequestKinds.OBJ_DETAILS_REQUEST, HashCode.Combine(rpcMessage.NetworkId))))
@@ -115,7 +117,7 @@ namespace ConsoleGame
 
             if (message is ObjectRequestMessage objectRequestMessage)
             {
-                if (!Scene.TryGetNetworkObject(objectRequestMessage.NetworkId, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectRequestMessage.NetworkId, out var @object))
                 {
                     Debug.WriteLine($"Network object {objectRequestMessage.NetworkId} not found; can not send object details");
                     return;
@@ -129,21 +131,21 @@ namespace ConsoleGame
             if (message is ObjectDetailsMessage objectDetailsMessage)
             {
                 if (networkMode != NetworkMode.Client) return;
-                Scene.AddObject(objectDetailsMessage);
+                Scene.AddEntity(objectDetailsMessage);
                 return;
             }
 
             if (message is ObjectSpawnMessage objectSpawnMessage)
             {
                 if (networkMode != NetworkMode.Client) return;
-                Scene.AddObject(objectSpawnMessage);
+                Scene.AddEntity(objectSpawnMessage);
                 return;
             }
 
             if (message is ObjectDestroyMessage objectDestroyMessage)
             {
                 if (networkMode != NetworkMode.Client) return;
-                if (!Scene.TryGetNetworkObject(objectDestroyMessage.NetworkId, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectDestroyMessage.NetworkId, out var @object))
                 {
                     Debug.WriteLine($"Network object {objectDestroyMessage.NetworkId} not found; can not destroy");
                     return;
@@ -154,7 +156,7 @@ namespace ConsoleGame
 
             if (message is ObjectMessage objectMessage)
             {
-                if (!Scene.TryGetNetworkObject(objectMessage, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectMessage, out var @object))
                 {
                     if (networkMode != NetworkMode.Client) return;
                     if (Requests.Request(new Request(RequestKinds.OBJ_DETAILS_REQUEST, HashCode.Combine(objectMessage.NetworkId))))

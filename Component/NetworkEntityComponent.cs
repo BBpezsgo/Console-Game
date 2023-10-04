@@ -33,5 +33,8 @@
         {
             base.Update();
         }
+        
+        public void OnMessageReceived(ObjectMessage message) { }
+        public void OnRpc(MessageRpc message) { }
     }
 }
