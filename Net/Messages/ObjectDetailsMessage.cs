@@ -14,6 +14,18 @@ namespace ConsoleGame
             Type = MessageType.OBJ_SPAWN;
         }
 
+        public ObjectSpawnMessage(NetworkEntityComponent networkEntity) : base()
+        {
+            Type = MessageType.OBJ_SPAWN;
+
+            NetworkId = networkEntity.NetworkId;
+            OwnerId = (ulong)networkEntity.Owner;
+            ObjectId = networkEntity.ObjectId;
+
+            if (networkEntity.Entity.TryGetComponentOfType(out TransformComponent? transform))
+            { Position = transform.Position; }
+        }
+
         public ObjectSpawnMessage(NetworkedGameObject @object) : base()
         {
             Type = MessageType.OBJ_SPAWN;

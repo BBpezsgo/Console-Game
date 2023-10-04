@@ -11,13 +11,13 @@ namespace ConsoleGame
     {
         public float Amount;
         public int ByNetworkId;
-        public readonly NetworkedGameObject? By
+        public readonly NetworkEntityComponent? By
         {
             get
             {
                 if (Game.Instance.Scene == null)
                 { return null; }
-                if (!Game.Instance.Scene.TryGetNetworkObject(ByNetworkId, out NetworkedGameObject? @object))
+                if (!Game.Instance.Scene.TryGetNetworkEntity(ByNetworkId, out NetworkEntityComponent? @object))
                 { return null; }
                 return @object;
             }

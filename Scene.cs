@@ -5,9 +5,13 @@ namespace ConsoleGame
 {
     public class Scene
     {
-        public IReadOnlyList<GameObject> Objects => objects;
+        public readonly List<Entity> Entities;
 
-        readonly List<GameObject> objects;
+        public readonly BaseSystem<Component> AllComponents = new();
+        public readonly BaseSystem<RendererComponent> RendererComponents = new();
+        public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new();
+        public readonly BaseSystem<TransformComponent> TransformComponents = new();
+
         readonly Game Game;
 
         public Rect Size
@@ -24,66 +28,50 @@ namespace ConsoleGame
 
         public Scene(Game game)
         {
-            objects = new List<GameObject>();
+            Entities = new List<Entity>();
             Game = game;
         }
 
-        public void AddObject(ObjectSpawnMessage objectSpawnMessage)
+        public void AddEntity(ObjectSpawnMessage objectSpawnMessage)
         {
-            if (TryGetNetworkObject(objectSpawnMessage.NetworkId, out _))
+            if (TryGetNetworkEntity(objectSpawnMessage.NetworkId, out _))
             {
                 Debug.WriteLine($"Network object {objectSpawnMessage.NetworkId} already spawned");
                 return;
             }
 
-            switch (objectSpawnMessage.ObjectId)
-            {
-                case GameObjectPrototype.PLAYER:
-                    AddObject(new Player(objectSpawnMessage.Position, objectSpawnMessage.NetworkId, objectSpawnMessage.ObjectId, (ObjectOwner)objectSpawnMessage.OwnerId));
-                    break;
-                case GameObjectPrototype.ENEMY:
-                    AddObject(new Enemy(objectSpawnMessage.Position, objectSpawnMessage.NetworkId, objectSpawnMessage.ObjectId, (ObjectOwner)objectSpawnMessage.OwnerId));
-                    break;
-                default:
-                    Debug.WriteLine($"Unknown object prototype id {objectSpawnMessage.ObjectId}");
-                    break;
-            }
+            Entity newEntity = EntityPrototypes.Builders[objectSpawnMessage.ObjectId].Invoke(objectSpawnMessage.NetworkId, (ObjectOwner)objectSpawnMessage.OwnerId);
+            if (newEntity.TryGetComponentOfType(out TransformComponent? transform))
+            { transform.Position = objectSpawnMessage.Position; }
+            AddEntity(newEntity);
         }
 
-        public void AddObject(ObjectDetailsMessage objectDetailsMessage)
+        public void AddEntity(ObjectDetailsMessage objectDetailsMessage)
         {
-            if (TryGetNetworkObject(objectDetailsMessage.NetworkId, out _))
+            if (TryGetNetworkEntity(objectDetailsMessage.NetworkId, out _))
             {
                 Debug.WriteLine($"Unexpected object details message for network object {objectDetailsMessage.NetworkId}");
                 return;
             }
 
-            switch (objectDetailsMessage.ObjectId)
-            {
-                case GameObjectPrototype.PLAYER:
-                    AddObject(new Player(objectDetailsMessage.Position, objectDetailsMessage.NetworkId, objectDetailsMessage.ObjectId, (ObjectOwner)objectDetailsMessage.OwnerId));
-                    break;
-                case GameObjectPrototype.ENEMY:
-                    AddObject(new Enemy(objectDetailsMessage.Position, objectDetailsMessage.NetworkId, objectDetailsMessage.ObjectId, (ObjectOwner)objectDetailsMessage.OwnerId));
-                    break;
-                default:
-                    Debug.WriteLine($"Unknown object prototype id {objectDetailsMessage.ObjectId}");
-                    break;
-            }
+            Entity newEntity = EntityPrototypes.Builders[objectDetailsMessage.ObjectId].Invoke(objectDetailsMessage.NetworkId, (ObjectOwner)objectDetailsMessage.OwnerId);
+            if (newEntity.TryGetComponentOfType(out TransformComponent? transform))
+            { transform.Position = objectDetailsMessage.Position; }
+            AddEntity(newEntity);
         }
 
-        public void AddObject(GameObject obj)
+        public void AddEntity(Entity entity)
         {
-            objects.Add(obj);
+            Entities.Add(entity);
 
-            if (obj is NetworkedGameObject networkedGameObject &&
-                Game.NetworkMode == NetworkMode.Server)
+            if (Game.NetworkMode == NetworkMode.Server && Game.Connection != null)
             {
-                Game.Connection?.Send(new ObjectSpawnMessage(networkedGameObject));
+                if (entity.TryGetComponentOfType(out NetworkEntityComponent? networkEntity))
+                { Game.Connection.Send(new ObjectSpawnMessage(networkEntity)); }
             }
         }
 
-        public void Tick(bool shouldSync)
+        public void Update(bool shouldSync)
         {
             {
                 System.Random r = new(0);
@@ -104,47 +92,24 @@ namespace ConsoleGame
                 }
             }
 
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = 0; i < AllComponents.Components.Count; i++)
             {
-                if (objects[i].IsDestroyed)
-                {
-                    objects[i].OnDestroy();
-                    objects.RemoveAt(i);
-                    continue;
-                }
-
-                objects[i].Tick();
-
-                if (objects[i].IsDestroyed)
-                {
-                    objects[i].OnDestroy();
-                    objects.RemoveAt(i);
-                    continue;
-                }
-
-                if (shouldSync &&
-                    objects[i] is NetworkedGameObject networkedObject &&
-                    Game.Connection != null)
-                { networkedObject.Synchronize(Game.NetworkMode, Game.Connection); }
-
-                objects[i].Render();
+                AllComponents.Components[i].Update();
             }
         }
 
-        public bool TryGetNetworkObject(ObjectMessage message, [NotNullWhen(true)] out NetworkedGameObject? gameObject)
-            => TryGetNetworkObject(message.NetworkId, out gameObject);
-        public bool TryGetNetworkObject(int networkId, [NotNullWhen(true)] out NetworkedGameObject? gameObject)
+        public bool TryGetNetworkEntity(ObjectMessage message, [NotNullWhen(true)] out NetworkEntityComponent? gameObject)
+            => TryGetNetworkEntity(message.NetworkId, out gameObject);
+        public bool TryGetNetworkEntity(int networkId, [NotNullWhen(true)] out NetworkEntityComponent? gameObject)
         {
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = 0; i < NetworkEntityComponents.Components.Count; i++)
             {
-                if (objects[i] is NetworkedGameObject @object &&
-                    @object.NetworkId == networkId)
+                if (NetworkEntityComponents.Components[i].NetworkId == networkId)
                 {
-                    gameObject = @object;
+                    gameObject = NetworkEntityComponents.Components[i];
                     return true;
                 }
             }
-
             gameObject = null;
             return false;
         }
@@ -152,18 +117,23 @@ namespace ConsoleGame
         public int GenerateNetworkId()
         {
             int result = 1;
-            while (TryGetNetworkObject(result, out _))
+            while (TryGetNetworkEntity(result, out _))
             { result++; }
             return result;
         }
 
         public void Load()
         {
-            objects.Clear();
+            AllComponents.Components.Clear();
+            RendererComponents.Components.Clear();
+            NetworkEntityComponents.Components.Clear();
+            Entities.Clear();
 
             for (int i = 0; i < 30; i++)
             {
-                AddObject(new Enemy(new Vector(2 + i, 20), GenerateNetworkId(), GameObjectPrototype.ENEMY, Game.LocalOwner));
+                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](GenerateNetworkId(), Game.LocalOwner);
+                newEntity.GetComponentOfType<TransformComponent>().Position = new Vector(2 + i, 20);
+                AddEntity(newEntity);
             }
             return;
 
@@ -175,38 +145,27 @@ namespace ConsoleGame
 
         }
 
-        public T[] ObjectsOfType<T>()
+
+        public Entity[] ObjectsOfTag(int tags)
         {
-            List<T> result = new();
-            for (int i = objects.Count - 1; i >= 0; i--)
+            List<Entity> result = new();
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                if (obj is not T obj2) continue;
-                result.Add(obj2);
-            }
-            return result.ToArray();
-        }
-        public GameObject[] ObjectsOfTag(int tags)
-        {
-            List<GameObject> result = new();
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = objects[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) == 0) continue;
+                if ((obj.Tags & tags) == 0) continue;
                 result.Add(obj);
             }
             return result.ToArray();
         }
 
-        public GameObject? FirstObjectAt(Vector position, float distanceThreshold = 1f)
+        public Entity? FirstObjectAt(Vector position, float distanceThreshold = 1f)
         {
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                Vector diff = obj.Position - position;
+                Vector diff = TransformComponents.Components[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {
@@ -216,15 +175,15 @@ namespace ConsoleGame
             return null;
         }
 
-        public GameObject? ClosestObject(Vector position, float distanceThreshold)
+        public Entity? ClosestObject(Vector position, float distanceThreshold)
         {
-            GameObject? result = null;
+            Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                Vector diff = obj.Position - position;
+                Vector diff = TransformComponents.Components[i].Position - position;
                 float sqrDistance = diff.SqrMagnitude;
                 if (sqrDistance >= distanceThreshold * distanceThreshold) continue;
 
@@ -237,15 +196,15 @@ namespace ConsoleGame
             return result;
         }
 
-        public GameObject? ClosestObject(Vector position)
+        public Entity? ClosestObject(Vector position)
         {
-            GameObject? result = null;
+            Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                float sqrDistance = (obj.Position - position).SqrMagnitude;
+                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
 
                 if (sqrDistance < closestSqrDistance)
                 {
@@ -256,33 +215,17 @@ namespace ConsoleGame
             return result;
         }
 
-        public T? FirstObjectAt<T>(Vector position, float distanceThreshold = 1f) where T : GameObject
-        {
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = objects[i];
-                if (obj.IsDestroyed) continue;
-                if (obj is not T obj2) continue;
-                Vector diff = obj.Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    return obj2;
-                }
-            }
-            return null;
-        }
-        public GameObject? FirstObjectAt(Vector position, int tags, float distanceThreshold = 1f)
+        public Entity? FirstObjectAt(Vector position, int tags, float distanceThreshold = 1f)
         {
             float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
 
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) == 0) continue;
+                if ((obj.Tags & tags) == 0) continue;
 
-                float diffSqrMag = (obj.Position - position).SqrMagnitude;
+                float diffSqrMag = (TransformComponents.Components[i].Position - position).SqrMagnitude;
 
                 if (diffSqrMag < sqrDistanceThreshold)
                 { return obj; }
@@ -290,45 +233,20 @@ namespace ConsoleGame
             return null;
         }
 
-        public T? ClosestObject<T>(Vector position, float distanceThreshold) where T : GameObject
-        {
-            float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
-
-            T? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = objects[i];
-                if (obj.IsDestroyed) continue;
-                if (obj is not T obj2) continue;
-
-                Vector diff = obj.Position - position;
-                float sqrDistance = diff.SqrMagnitude;
-                if (sqrDistance >= sqrDistanceThreshold) continue;
-
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj2;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-        public GameObject? ClosestObject(Vector position, int tags, float radius)
+        public Entity? ClosestObject(Vector position, int tags, float radius)
         {
             float sqrRadius = radius * radius;
 
-            GameObject? result = null;
+            Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
 
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) == 0) continue;
+                if ((obj.Tags & tags) == 0) continue;
 
-                float sqrDistance = (obj.Position - position).SqrMagnitude;
+                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
                 if (sqrDistance >= sqrRadius) continue;
 
                 if (sqrDistance < closestSqrDistance)
@@ -340,37 +258,17 @@ namespace ConsoleGame
             return result;
         }
 
-        public T? ClosestObject<T>(Vector position) where T : GameObject
+        public Entity? ClosestObject(Vector position, int tags)
         {
-            T? result = null;
+            Entity? result = null;
             float closestSqrDistance = float.PositiveInfinity;
-
-            for (int i = objects.Count - 1; i >= 0; i--)
+            for (int i = Entities.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = Entities[i];
                 if (obj.IsDestroyed) continue;
-                if (obj is not T obj2) continue;
+                if ((obj.Tags & tags) == 0) continue;
 
-                float sqrDistance = (obj.Position - position).SqrMagnitude;
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj2;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-        public GameObject? ClosestObject(Vector position, int tags)
-        {
-            GameObject? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = objects[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) == 0) continue;
-
-                float sqrDistance = (obj.Position - position).SqrMagnitude;
+                float sqrDistance = (TransformComponents.Components[i].Position - position).SqrMagnitude;
                 if (sqrDistance < closestSqrDistance)
                 {
                     result = obj;
@@ -380,14 +278,14 @@ namespace ConsoleGame
             return result;
         }
 
-        public GameObject[] ObjectsAt(Vector position, float distanceThreshold = 1f)
+        public Entity[] ObjectsAt(Vector position, float distanceThreshold = 1f)
         {
-            List<GameObject> result = new();
-            for (int i = objects.Count - 1; i >= 0; i--)
+            List<Entity> result = new();
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                Vector diff = obj.Position - position;
+                Vector diff = TransformComponents.Components[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {
@@ -396,32 +294,15 @@ namespace ConsoleGame
             }
             return result.ToArray();
         }
-        public T[] ObjectsAt<T>(Vector position, float distanceThreshold = 1f) where T : GameObject
+        public Entity[] ObjectsAt(Vector position, int tags, float distanceThreshold = 1f)
         {
-            List<T> result = new();
-            for (int i = objects.Count - 1; i >= 0; i--)
+            List<Entity> result = new();
+            for (int i = TransformComponents.Components.Count - 1; i >= 0; i--)
             {
-                GameObject obj = objects[i];
+                Entity obj = TransformComponents.Components[i].Entity;
                 if (obj.IsDestroyed) continue;
-                if (obj is not T obj2) continue;
-                Vector diff = obj.Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    result.Add(obj2);
-                }
-            }
-            return result.ToArray();
-        }
-        public GameObject[] ObjectsAt(Vector position, int tags, float distanceThreshold = 1f)
-        {
-            List<GameObject> result = new();
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                GameObject obj = objects[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tag & tags) == 0) continue;
-                Vector diff = obj.Position - position;
+                if ((obj.Tags & tags) == 0) continue;
+                Vector diff = TransformComponents.Components[i].Position - position;
                 float diffSqrMag = diff.SqrMagnitude;
                 if (diffSqrMag < distanceThreshold * distanceThreshold)
                 {

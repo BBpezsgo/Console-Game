@@ -111,7 +111,7 @@ namespace ConsoleGame
                     shouldSync = true;
                 }
 
-                Scene.Tick(shouldSync);
+                Scene.Update(shouldSync);
 
                 bool hasPlayer = false;
                 GameObject[] players = Scene.ObjectsOfTag(Tags.Player);
