@@ -66,6 +66,7 @@
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new HelperTurretBehavior(newEntity));
+                    newEntity.AddComponent(new EntityHoverPopup(newEntity));
                     return newEntity;
                 }
             },

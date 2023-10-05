@@ -13,7 +13,7 @@ namespace ConsoleGame
 
         const float MeleeAttackCooldown = 1f;
         float MeleeAttackTimer;
-        const float MeleeAttackRange = 2f;
+        const float MeleeAttackRange = 1.2f;
         const float MeleeAttackDamage = 1f;
 
         Entity? PriorityTarget;
@@ -54,8 +54,11 @@ namespace ConsoleGame
             }
 
             if (PriorityTarget != null)
-            { Target = PriorityTarget; }
-            else if (Target != null && (Target.Position - Position).SqrMagnitude >= visionRange * visionRange)
+            {
+                Target = PriorityTarget;
+                if (PriorityTarget.IsDestroyed) PriorityTarget = null;
+            }
+            else if (Target != null && ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange || Target.IsDestroyed))
             { Target = null; }
             else
             {

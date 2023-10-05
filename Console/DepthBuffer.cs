@@ -26,5 +26,17 @@
 
         public void Clear() => Array.Clear(Buffer);
         public void Resize() => Buffer = new byte[Renderer.Size];
+
+        public void SetRect(RectInt rect, byte depth)
+        {
+            int top = rect.Top;
+            int left = rect.Left;
+            int bottom = rect.Bottom;
+            int right = rect.Right;
+            for (int y = top; y < bottom; y++)
+            {
+                Array.Fill(Buffer, depth, y * Width + left, right - left);
+            }
+        }
     }
 }

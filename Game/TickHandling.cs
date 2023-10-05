@@ -26,6 +26,9 @@ namespace ConsoleGame
 
         void TickWrapped()
         {
+            EntityHoverPopup.ShouldNotShow = false;
+            EntityHoverPopup.AlreadyShown = null;
+
             /*
             BitUtils.RenderBits(renderer, new VectorInt(0, 0), Keyboard.Accumulated);
             BitUtils.RenderBits(renderer, new VectorInt(0, 7), Keyboard.Stage1);
@@ -72,6 +75,13 @@ namespace ConsoleGame
             return;
             */
 
+            for (int x = 0; x < renderer.Width; x++)
+            {
+                ref CharInfo pixel = ref renderer[x, 3];
+                pixel.Attributes = ByteColor.Silver;
+                pixel.Char = Ascii.BoxSides[0b_0010];
+            }
+
             int stateBarX = 1;
 
             stateBarX += renderer.DrawLabel(
@@ -103,6 +113,9 @@ namespace ConsoleGame
             ah = Math.Clamp(ah, 0, 255);
             */
 
+            if (Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
+            { EntityHoverPopup.ShouldNotShow = true; }
+
             if (Scene != null)
             {
                 bool shouldSync = false;
@@ -115,18 +128,19 @@ namespace ConsoleGame
 
                 Scene.Update(shouldSync);
 
-                bool hasPlayer = false;
                 Entity[] players = Scene.ObjectsOfTag(Tags.Player);
+                Entity? player = null;
                 for (int i = 0; i < players.Length; i++)
                 {
+                    if (players[i].IsDestroyed) continue;
                     if (players[i].GetComponent<NetworkEntityComponent>().IsOwned)
                     {
-                        hasPlayer = true;
+                        player = players[i];
                         break;
                     }
                 }
 
-                if (!hasPlayer && (connection == null || connection.IsDone))
+                if (player == null && (connection == null || connection.IsDone))
                 {
                     RectInt box = renderer.MakeMenu(30, 8);
                     renderer.DrawBox(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
@@ -138,6 +152,46 @@ namespace ConsoleGame
                     box.Top += 3;
 
                     Menu_YouDied.Tick(box);
+                }
+
+                if (player != null)
+                {
+                    ViewportWorldPosition.X = Math.Clamp(ViewportWorldPosition.X,
+                        (int)player.Position.X - (renderer.Width / 4) - (renderer.Width / 8),
+                        (int)player.Position.X - (renderer.Width / 4) + (renderer.Width / 8));
+
+                    ViewportWorldPosition.Y = Math.Clamp(ViewportWorldPosition.Y,
+                        (int)player.Position.Y - (renderer.Height / 2) - (renderer.Height / 4),
+                        (int)player.Position.Y - (renderer.Height / 2) + (renderer.Height / 4));
+
+                    // Vector optimalViewportPosition = player.Position - new Vector(renderer.Width / 4f, renderer.Height / 2f);
+                    // ViewportWorldPosition += (optimalViewportPosition - ViewportWorldPosition) * Math.Clamp(Time.DeltaTime, 0f, 1f);
+
+                    PlayerBehavior playerBehavior = player.GetComponent<PlayerBehavior>();
+
+                    renderer[1, 1].Attributes = ByteColor.Silver;
+                    renderer[1, 1].Char = '♥';
+                    renderer[2, 1].Attributes = ByteColor.Silver;
+                    renderer[2, 1].Char = ':';
+
+                    const int HealthBarWidth = 10;
+
+                    float health = (playerBehavior.Health / PlayerBehavior.MaxHealth) * HealthBarWidth;
+
+                    for (int x = 0; x < HealthBarWidth; x++)
+                    {
+                        ref CharInfo pixel = ref renderer[x + 4, 1];
+                        pixel.Background = ByteColor.Gray;
+                        pixel.Foreground = ByteColor.BrightRed;
+                        if (health > x)
+                        {
+                            pixel.Char = Ascii.Blocks.Full;
+                        }
+                        else if (health <= x)
+                        {
+                            pixel.Char = ' ';
+                        }
+                    }
                 }
 
                 if (players.Length > 0 &&
@@ -161,6 +215,8 @@ namespace ConsoleGame
             }
             else
             {
+                EntityHoverPopup.ShouldNotShow = true;
+
                 switch (CurrentMenu)
                 {
                     case 1:
@@ -275,7 +331,7 @@ namespace ConsoleGame
 
             if (Scene == null) return false;
 
-            Vector randomPoint = Random.Point(Scene.Size);
+            Vector randomPoint = Random.Point(Scene.SizeR);
             if (Scene.FirstObjectAt(randomPoint, Tags.Player, 13f) == null)
             {
                 enemy = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](Scene.GenerateNetworkId(), LocalOwner);

@@ -22,10 +22,7 @@ namespace ConsoleGame
 
         public ref CharInfo this[int i] => ref ConsoleBuffer[i];
         public ref CharInfo this[int x, int y] => ref ConsoleBuffer[(y * width) + x];
-
-        public ref CharInfo this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
-        public ref CharInfo this[Vector position] => ref this[position.X, position.Y];
-        public ref CharInfo this[VectorInt position] => ref this[position.X, position.Y];
+        public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * width) + screenPosition.X];
 
         public ConsoleRenderer(SafeFileHandle handle, short width, short height)
         {
@@ -39,6 +36,9 @@ namespace ConsoleGame
             }
             ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = this.width, Bottom = this.height };
         }
+
+        public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
+        public bool IsVisible(int x, int y) => x >= 0 && y >= 0 && x < width && y < height;
 
         public void Render()
         {
@@ -73,7 +73,7 @@ namespace ConsoleGame
 
             width = (short)Console.WindowWidth;
             height = (short)Console.WindowHeight;
-            
+
             ConsoleBuffer = new CharInfo[width * height];
             ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = width, Bottom = height };
             return true;

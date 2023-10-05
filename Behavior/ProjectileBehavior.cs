@@ -17,7 +17,7 @@ namespace ConsoleGame
             Vector lastPosition = Position;
             Position += Velocity * Game.DeltaTime;
 
-            bool bounced = WorldBorders.Bounce(Game.Instance.Scene.Size, ref Position, ref Velocity);
+            bool bounced = WorldBorders.Bounce(Game.Instance.Scene.SizeR, ref Position, ref Velocity);
             if (bounced)
             { IsDestroyed = true; }
 

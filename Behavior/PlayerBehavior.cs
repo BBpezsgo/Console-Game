@@ -77,7 +77,7 @@ namespace ConsoleGame
                 Position.X += Game.DeltaTime * MaxSpeed;
             }
 
-            WorldBorders.Clamp(Game.Instance.Scene.Size, ref Position);
+            WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
 
             if (Reload <= 0f && (Mouse.IsLeftDown || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
             {
@@ -96,6 +96,11 @@ namespace ConsoleGame
                 Vector diff = Mouse.WorldPosition - Position;
                 float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
                 ShootGranate(Position, diff.Normalized, speed);
+            }
+
+            if (Keyboard.IsKeyDown('T'))
+            {
+                Damage(1f, null);
             }
 
             if (Reload > 0f)
@@ -139,19 +144,17 @@ namespace ConsoleGame
             if (!NetworkEntity.IsOwned) return;
 
             Entity projectile = new("Player Granate");
-            projectile.SetComponents(
-                    new RendererComponent(projectile)
-                    {
-                        Color = ByteColor.Silver,
-                        Character = '§',
-                        Priority = Depths.PROJECTILE,
-                    },
-                    new GranateBehavior(projectile)
-                    {
-                        Velocity = direction * speed,
-                        Owner = this,
-                    }
-                );
+            projectile.AddComponent(new RendererComponent(projectile)
+            {
+                Color = ByteColor.Silver,
+                Character = '§',
+                Priority = Depths.PROJECTILE,
+            });
+            projectile.AddComponent(new GranateBehavior(projectile)
+            {
+                Velocity = direction * speed,
+                Owner = this,
+            });
             projectile.Position = origin;
             Game.Instance.Scene.AddEntity(projectile);
 

@@ -130,7 +130,7 @@
 
                 Vector pos = particles[i].LocalPosition + Position;
 
-                if (!Game.Instance.Scene.Size.Contains(pos)) continue;
+                if (!Game.IsVisible(pos)) continue;
                 VectorInt p = Game.WorldToConsole(pos);
 
                 ref byte depth = ref Game.DepthBuffer[p];
@@ -142,9 +142,7 @@
 
                 float v = particles[i].AgePercent;
 
-                Color color = Gradients[particles[i].Kind].Get(v);
-
-                pixel.Foreground = (byte)color;
+                if (v >= 1f) return;
 
                 int charIndex = CharacterMode switch
                 {
@@ -153,6 +151,9 @@
                     ParticleCharacterMode.Random => Random.Integer(0, Characters.Length),
                     _ => throw new NotImplementedException(),
                 };
+                if (charIndex < 0 || charIndex >= Characters.Length) return;
+
+                pixel.Foreground = (byte)Gradients[particles[i].Kind].Get(v);
                 pixel.Char = Characters[charIndex];
             }
         }

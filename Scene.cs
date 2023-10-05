@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -11,17 +12,8 @@ namespace ConsoleGame
         public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
         public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
-        public Rect Size
-        {
-            get
-            {
-                Rect result = new(0f, 0f, (Game.Renderer.Width / 2f) - 1f, Game.Renderer.Height - 1f);
-
-                result.Top += 4;
-
-                return result;
-            }
-        }
+        public VectorInt Size => new(50, 50);
+        public RectInt SizeR => new(0, 0, 50, 50);
 
         public Scene()
         {
@@ -68,21 +60,113 @@ namespace ConsoleGame
         public void Update(bool shouldSync)
         {
             {
-                System.Random r = new(0);
-                Rect rect = Game.Instance.Scene.Size;
-                for (int _y = 0; _y <= rect.Height; _y++)
+                Rect rect = Game.VisibleWorldRect();
+                rect = Rect.Intersection(rect, SizeR);
+                for (int _y = 0; _y < rect.Height; _y++)
                 {
-                    int y = (int)(_y + rect.Y);
-                    for (int _x = 0; _x <= (rect.Width * 2); _x++)
-                    {
-                        int x = (int)(_x + rect.X);
+                    float y = _y + rect.Y;
+                    y = MathF.Round(y);
 
-                        int v = r.Next(0, 15);
-                        if (v < 10) continue;
-                        v -= 10;
-                        Game.Renderer[x, y].Foreground = v < 3 ? ByteColor.Gray : ByteColor.Silver;
-                        Game.Renderer[x, y].Char = '░';
+                    for (int _x = 0; _x < rect.Width * 2; _x++)
+                    {
+                        float x = (_x / 2f) + rect.X;
+                        x = MathF.Round(x * 2) / 2;
+
+                        float v = SimplexNoise.Noise.Generate(x, y) * .5f + .5f;
+                        if (v < .5f) continue;
+                        VectorInt conPos = Game.WorldToConsole(new Vector(x, y));
+
+                        if (!Game.Renderer.IsVisible(conPos) || Game.IsOnGui(conPos)) continue;
+
+                        ref CharInfo pixel = ref Game.Renderer[conPos];
+
+                        pixel.Foreground = v < .75f ? ByteColor.Gray : ByteColor.Silver;
+                        pixel.Char = '░';
                     }
+                }
+            }
+
+            {
+                VectorInt a = Game.WorldToConsole(Vector.Zero);
+                VectorInt b = Game.WorldToConsole(Size);
+
+                int top = a.Y;
+                int left = a.X;
+                int bottom = b.Y;
+                int right = b.X;
+
+                ConsoleRenderer r = Game.Renderer;
+
+                const byte c = ByteColor.Silver;
+
+                for (int y = top + 1; y <= bottom - 1; y++)
+                {
+                    VectorInt p1 = new(left, y);
+                    VectorInt p2 = new(right, y);
+
+                    if (r.IsVisible(p1) && !Game.IsOnGui(p1))
+                    {
+                        ref CharInfo pixel = ref r[p1];
+                        pixel.Attributes = c;
+                        pixel.Char = '|';
+                    }
+
+                    if (r.IsVisible(p2) && !Game.IsOnGui(p2))
+                    {
+                        ref CharInfo pixel = ref r[p2];
+                        pixel.Attributes = c;
+                        pixel.Char = '|';
+                    }
+                }
+
+                for (int x = left + 1; x <= right - 1; x++)
+                {
+                    VectorInt p1 = new(x, top);
+                    VectorInt p2 = new(x, bottom);
+
+                    if (r.IsVisible(p1) && !Game.IsOnGui(p1))
+                    {
+                        ref CharInfo pixel = ref r[p1];
+                        pixel.Attributes = c;
+                        pixel.Char = '-';
+                    }
+
+                    if (r.IsVisible(p2) && !Game.IsOnGui(p2))
+                    {
+                        ref CharInfo pixel = ref r[p2];
+                        pixel.Attributes = c;
+                        pixel.Char = '-';
+                    }
+                }
+
+                VectorInt p3 = new(left, top);
+                VectorInt p4 = new(left, bottom);
+                VectorInt p5 = new(right, top);
+                VectorInt p6 = new(right, bottom);
+
+                if (r.IsVisible(p3) && !Game.IsOnGui(p3))
+                {
+                    ref CharInfo pixel = ref r[p3];
+                    pixel.Attributes = c;
+                    pixel.Char = '+';
+                }
+                if (r.IsVisible(p4) && !Game.IsOnGui(p4))
+                {
+                    ref CharInfo pixel = ref r[p4];
+                    pixel.Attributes = c;
+                    pixel.Char = '+';
+                }
+                if (r.IsVisible(p5) && !Game.IsOnGui(p5))
+                {
+                    ref CharInfo pixel = ref r[p5];
+                    pixel.Attributes = c;
+                    pixel.Char = '+';
+                }
+                if (r.IsVisible(p6) && !Game.IsOnGui(p6))
+                {
+                    ref CharInfo pixel = ref r[p6];
+                    pixel.Attributes = c;
+                    pixel.Char = '+';
                 }
             }
 
@@ -145,6 +229,8 @@ namespace ConsoleGame
             RendererComponents.Components.Clear();
             NetworkEntityComponents.Components.Clear();
             Entities.Clear();
+
+            return;
 
             for (int i = 0; i < 30; i++)
             {

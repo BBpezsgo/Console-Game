@@ -11,9 +11,17 @@
 
         public override void Render()
         {
-            Vector position = Position;
-            if (!Game.Instance.Scene.Size.Contains(position)) return;
-            ref Win32.CharInfo pixel = ref Game.Renderer[Game.WorldToConsole(position)];
+            if (!Game.IsVisible(Position)) return;
+
+            VectorInt p = Game.WorldToConsole(Position);
+
+            ref byte depth = ref Game.DepthBuffer[p];
+
+            if (depth > Priority) return;
+
+            depth = Priority;
+
+            ref Win32.CharInfo pixel = ref Game.Renderer[p];
             pixel.Char = Character;
 
             float lastDamagedInterval = Time.UtcNow - LastDamaged;

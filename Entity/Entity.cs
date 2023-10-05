@@ -99,6 +99,18 @@ namespace ConsoleGame
             throw new Exception($"Component {typeof(T).Name} not found in entity {this}");
         }
 
+        /// <exception cref="Exception"></exception>
+        public T[] GetComponents<T>()
+        {
+            List<T> result = new(components.Count);
+            for (int i = 0; i < components.Count; i++)
+            {
+                if (components[i] is T _result)
+                { result.Add(_result); }
+            }
+            return result.ToArray();
+        }
+
         public bool TryGetComponent<T>([NotNullWhen(true)] out T? component)
         {
             component = TryGetComponent<T>();

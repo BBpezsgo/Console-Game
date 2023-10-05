@@ -113,6 +113,8 @@ namespace ConsoleGame
         public static bool operator ==(RectInt left, RectInt right) => left.Equals(right);
         public static bool operator !=(RectInt left, RectInt right) => !(left == right);
 
+        public static implicit operator Rect(RectInt v) => new(v.X, v.Y, v.Width, v.Height);
+
         public override readonly string ToString() => $"({X} {Y} {Width} {Height})";
         readonly string GetDebuggerDisplay() => ToString();
 

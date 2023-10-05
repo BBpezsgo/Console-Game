@@ -5,38 +5,24 @@ using DataUtilities.Serializer;
 namespace ConsoleGame
 {
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-    public struct VectorInt : IEquatable<VectorInt>, ISerializable<VectorInt>
+    public partial struct VectorInt : IEquatable<VectorInt>, ISerializable<VectorInt>
     {
         public int X;
         public int Y;
 
+        public VectorInt(int v)
+        {
+            X = v;
+            Y = v;
+        }
         public VectorInt(int x, int y)
         {
             X = x;
             Y = y;
         }
-        public VectorInt(ValueTuple<int, int> v)
-        {
-            X = v.Item1;
-            Y = v.Item2;
-        }
 
         public static bool operator ==(VectorInt left, VectorInt right) => left.Equals(right);
         public static bool operator !=(VectorInt left, VectorInt right) => !(left == right);
-
-        public static VectorInt operator +(VectorInt a, VectorInt b) => new(a.X + b.X, a.Y + b.Y);
-        public static VectorInt operator -(VectorInt a, VectorInt b) => new(a.X - b.X, a.Y - b.Y);
-        public static VectorInt operator *(VectorInt a, VectorInt b) => new(a.X * b.X, a.Y * b.Y);
-        public static VectorInt operator /(VectorInt a, VectorInt b) => new(a.X / b.X, a.Y / b.Y);
-
-        public static VectorInt operator *(VectorInt a, int b) => new(a.X * b, a.Y * b);
-        public static VectorInt operator /(VectorInt a, int b) => new(a.X / b, a.Y / b);
-
-        public static Vector operator *(VectorInt a, float b) => new(a.X * b, a.Y * b);
-        public static Vector operator /(VectorInt a, float b) => new(a.X / b, a.Y / b);
-
-        public static VectorInt operator *(int a, VectorInt b) => new(a * b.X, a * b.Y);
-        public static Vector operator *(float a, VectorInt b) => new(a * b.X, a * b.Y);
 
         public static implicit operator Vector(VectorInt v) => new(v.X, v.Y);
 
@@ -65,7 +51,7 @@ namespace ConsoleGame
             Y = deserializer.DeserializeInt32();
         }
 
-        public static VectorInt Zero => new(0, 0);
-        public static VectorInt One => new(1, 1);
+        public static VectorInt Zero => new(0);
+        public static VectorInt One => new(1);
     }
 }

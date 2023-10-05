@@ -1,8 +1,9 @@
 ﻿using ConsoleGame.Net;
+using Win32;
 
 namespace ConsoleGame
 {
-    public class HelperTurretBehavior : NetworkComponent, IDamageable
+    public class HelperTurretBehavior : NetworkComponent, IDamageable, ICanDrawEntityHoverPopup
     {
         float Reload;
 
@@ -23,11 +24,16 @@ namespace ConsoleGame
         IncomingProjectileCounter? TargetProjectileCounter;
 
         readonly DamageableRendererComponent? DamageableRenderer;
+        readonly RendererComponent? Renderer;
 
         public HelperTurretBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Helper;
             DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
+            if (DamageableRenderer == null)
+            { Renderer = Entity.TryGetComponent<RendererComponent>(); }
+            else
+            { Renderer = DamageableRenderer; }
         }
 
         public override void Destroy()
@@ -93,6 +99,8 @@ namespace ConsoleGame
                 }
             }
 
+            if (Ammo <= 0 && Renderer != null) Renderer.Color = ByteColor.Silver;
+
             if (Reload > 0f)
             { Reload -= Game.DeltaTime; }
         }
@@ -142,6 +150,32 @@ namespace ConsoleGame
             {
                 IsDestroyed = true;
             }
+        }
+
+        public void RenderHoverPopup(RectInt content)
+        {
+            Game.Renderer.DrawLabel(content.X, content.Y, "Turret", ByteColor.Black, ByteColor.Silver);
+            Game.Renderer.DrawLabel(content.X, content.Y + 1, "♥:", ByteColor.Black, ByteColor.Silver);
+            float health = (Health / MaxHealth) * (content.Width - 4);
+
+            for (int x = 0; x < content.Width - 4; x++)
+            {
+                ref CharInfo pixel = ref Game.Renderer[x + content.X + 3, content.Y + 1];
+                pixel.Background = ByteColor.Gray;
+                pixel.Foreground = ByteColor.BrightRed;
+                if (health > x)
+                {
+                    pixel.Char = Ascii.Blocks.Full;
+                }
+                else if (health <= x)
+                {
+                    pixel.Char = ' ';
+                }
+            }
+
+            Game.Renderer.DrawLabel(content.X, content.Y + 2, "∆:", ByteColor.Black, ByteColor.Silver);
+
+            Game.Renderer.DrawLabel(content.X + 3, content.Y + 2, Ammo.ToString(), ByteColor.Black, ByteColor.White);
         }
     }
 }

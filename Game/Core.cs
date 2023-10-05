@@ -83,8 +83,8 @@ namespace ConsoleGame
                 ("Exit", Exit)
                 );
             Menu_YouDied = new Menu(renderer,
-                ("Exit", Exit),
-                ("Respawn", Menu_YouDied_Respawn));
+                ("Respawn", Menu_YouDied_Respawn),
+                ("Exit", Exit));
             InputBox_ConnectAddress = new InputBox(renderer, "Connect", "127.0.0.1:7777", 21, InputBox_ConnectAddress_Ok, InputBox_ConnectAddress_Cancel);
             InputBox_HostAddress = new InputBox(renderer, "Host", "0.0.0.0:7777", 21, InputBox_HostAddress_Ok, InputBox_HostAddress_Cancel);
 
@@ -121,6 +121,7 @@ namespace ConsoleGame
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
             newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
+            FollowEntity = newEntity;
         }
 
         void Menu_YouDied_Respawn()
@@ -151,6 +152,7 @@ namespace ConsoleGame
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
             newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
+            FollowEntity = newEntity;
         }
 
         void InputBox_ConnectAddress_Ok()
@@ -197,6 +199,7 @@ namespace ConsoleGame
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
             newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);
+            FollowEntity = newEntity;
 
             InputBox_HostAddress.Reset();
         }
@@ -235,10 +238,5 @@ namespace ConsoleGame
         {
             isRunning = false;
         }
-
-        public static Vector ConsoleToWorld(VectorInt consolePosition)
-            => consolePosition * new Vector(0.5f, 1f);
-        public static VectorInt WorldToConsole(Vector worldPosition)
-            => (worldPosition * new Vector(2f, 1f)).Round();
     }
 }

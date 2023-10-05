@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace ConsoleGame
 {
@@ -102,7 +103,17 @@ namespace ConsoleGame
         public static bool operator ==(Rect left, Rect right) => left.Equals(right);
         public static bool operator !=(Rect left, Rect right) => !(left == right);
 
-        public override readonly string ToString() => $"({X} {Y} {Width} {Height})";
+        public override readonly string ToString() => $"({X.ToString("0.00", CultureInfo.InvariantCulture)}, {Y.ToString("0.00", CultureInfo.InvariantCulture)}, {Width.ToString("0.00", CultureInfo.InvariantCulture)}, {Height.ToString("0.00", CultureInfo.InvariantCulture)})";
         readonly string GetDebuggerDisplay() => ToString();
+
+        public static Rect Intersection(Rect a, Rect b)
+        {
+            float left = Math.Max(a.Left, b.Left);
+            float right = Math.Min(a.Right, b.Right);
+            float top = Math.Max(a.Top, b.Top);
+            float bottom = Math.Min(a.Bottom, b.Bottom);
+
+            return new Rect(left, top, right - left, bottom - top);
+        }
     }
 }

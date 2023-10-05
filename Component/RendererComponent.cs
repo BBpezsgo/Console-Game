@@ -22,10 +22,9 @@
 
         public virtual void Render()
         {
-            Vector position = Position;
-            if (!Game.Instance.Scene.Size.Contains(position)) return;
+            if (!Game.IsVisible(Position)) return;
 
-            VectorInt p = Game.WorldToConsole(position);
+            VectorInt p = Game.WorldToConsole(Position);
 
             ref byte depth = ref Game.DepthBuffer[p];
 
