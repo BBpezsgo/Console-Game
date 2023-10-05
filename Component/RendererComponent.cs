@@ -4,9 +4,13 @@
     {
         public byte Color;
         public char Character;
+        public byte Priority;
 
-        public RendererComponent(Entity entity) : base(entity)
+        public RendererComponent(Entity entity) : base(entity) { }
+
+        public override void Make()
         {
+            base.Make();
             Game.Instance.Scene.RendererComponents.Register(this);
         }
 
@@ -20,7 +24,17 @@
         {
             Vector position = Position;
             if (!Game.Instance.Scene.Size.Contains(position)) return;
-            ref Win32.CharInfo pixel = ref Game.Renderer[Game.WorldToConsole(position)];
+
+            VectorInt p = Game.WorldToConsole(position);
+
+            ref byte depth = ref Game.DepthBuffer[p];
+
+            if (depth > Priority) return;
+
+            depth = Priority;
+
+            ref Win32.CharInfo pixel = ref Game.Renderer[p];
+
             pixel.Attributes = Color;
             pixel.Char = Character;
         }

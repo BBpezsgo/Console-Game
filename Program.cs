@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     internal class Program
     {
@@ -56,8 +58,13 @@
             return;
             */
 
-            Game game = new();
-            game.Start();
+            try
+            {
+                Game game = new();
+                game.Start();
+            }
+            catch (WindowsException windowsException)
+            { windowsException.ShowMessageBox(); }
         }
     }
 }

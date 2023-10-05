@@ -20,17 +20,22 @@ namespace ConsoleGame
 
         Entity? Target;
 
+        IncomingProjectileCounter? TargetProjectileCounter;
+
+        readonly DamageableRendererComponent? DamageableRenderer;
+
         public HelperTurretBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Helper;
+            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
         }
 
         public override void Destroy()
         {
             base.Destroy();
-            Entity newEntity = new()
+            Entity newEntity = new("Death Explosion Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion));
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
         }
 
@@ -76,6 +81,7 @@ namespace ConsoleGame
                 if (Target == null || Target.IsDestroyed)
                 {
                     Target = Game.Instance.Scene.ClosestObject(Position, Tags.Enemy, VisionRadius);
+                    TargetProjectileCounter = Target?.TryGetComponent<IncomingProjectileCounter>();
                 }
                 else
                 {
@@ -95,12 +101,13 @@ namespace ConsoleGame
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(1, new RpcMessages.Shoot(origin, direction));
 
-            Entity projectile = new();
+            Entity projectile = new("Turret Projectile");
             projectile.SetComponents(
                     new RendererComponent(projectile)
                     {
                         Color = ByteColor.BrightYellow,
                         Character = '.',
+                        Priority = Depths.PROJECTILE,
                     },
                     new ProjectileBehavior(projectile)
                     {
@@ -110,11 +117,22 @@ namespace ConsoleGame
                 );
             projectile.Position = Position;
             Game.Instance.Scene.AddEntity(projectile);
+
+            Entity effect = new("Shoot Particles");
+            effect.SetComponents(new ParticlesRendererComponent(effect, new ParticlesConfig(PredefinedEffects.Shoot) { Direction = direction }) { Priority = Depths.EFFECT });
+            effect.Position = Position + direction;
+            Game.Instance.Scene.AddEntity(effect);
+
+            TargetProjectileCounter?.OnShot(new IncomingProjectileCounter.IncomingProjectile(projectile, Position, Time.UtcNow, ProjectileBehavior.Damage, ProjectileSpeed));
+
             Reload = ReloadTime;
+            Ammo--;
         }
 
         public void Damage(float amount, Component? by)
         {
+            DamageableRenderer?.OnDamage();
+
             if (Game.NetworkMode == NetworkMode.Client) return;
 
             SendRpc(2, new RpcMessages.Damaged(amount, by));

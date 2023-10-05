@@ -371,5 +371,52 @@
             '?',  // 0b_1110 invalid
             ' ',  // 0b_1111 invalid
         };
+
+        public static readonly char[] Stars = new char[]
+        {
+            '\'',
+            '*',
+            '¤',
+            '✶',
+        };
+
+        static readonly char[] LineSegment = new char[]
+        {
+            '^',
+
+            '/',
+            '⁄',
+
+            '>',
+
+            '\\',
+            '\\',
+
+            '|',
+
+            '/',
+            '⁄',
+
+            '<',
+
+            '\\',
+            '\\',
+        };
+
+        public static char DirectionLine(Vector dir)
+            => DirectionLine(Vector.ToDeg(dir));
+        public static char DirectionLine(float deg)
+        {
+            deg += 90f + 10f;
+            Vector.ClampAngle(ref deg);
+            deg /= 360f;
+
+            int i = (int)MathF.Round(deg * (LineSegment.Length - 1));
+
+            if (i < 0) i += (LineSegment.Length - 1);
+            if (i >= LineSegment.Length) i -= (LineSegment.Length - 1);
+
+            return LineSegment[i];
+        }
     }
 }

@@ -11,8 +11,6 @@ namespace ConsoleGame
         public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
         public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
-        readonly Game Game;
-
         public Rect Size
         {
             get
@@ -25,17 +23,16 @@ namespace ConsoleGame
             }
         }
 
-        public Scene(Game game)
+        public Scene()
         {
             Entities = new List<Entity>();
-            Game = game;
         }
 
         public void AddEntity(ObjectSpawnMessage objectSpawnMessage)
         {
-            if (TryGetNetworkEntity(objectSpawnMessage.NetworkId, out _))
+            if (TryGetNetworkEntity(objectSpawnMessage.NetworkId, out NetworkEntityComponent? alreadyCreatedEntity))
             {
-                Debug.WriteLine($"Network object {objectSpawnMessage.NetworkId} already spawned");
+                Debug.WriteLine($"Network entity {alreadyCreatedEntity} ({objectSpawnMessage.NetworkId}) already spawned");
                 return;
             }
 
@@ -46,9 +43,9 @@ namespace ConsoleGame
 
         public void AddEntity(ObjectDetailsMessage objectDetailsMessage)
         {
-            if (TryGetNetworkEntity(objectDetailsMessage.NetworkId, out _))
+            if (TryGetNetworkEntity(objectDetailsMessage.NetworkId, out NetworkEntityComponent? alreadyCreatedEntity))
             {
-                Debug.WriteLine($"Unexpected object details message for network object {objectDetailsMessage.NetworkId}");
+                Debug.WriteLine($"Unexpected entity details message for already spawned network entity {alreadyCreatedEntity.Entity} ({objectDetailsMessage.NetworkId})");
                 return;
             }
 
@@ -156,13 +153,6 @@ namespace ConsoleGame
                 AddEntity(newEntity);
             }
             return;
-
-            for (int i = 0; i < 500; i++)
-            {
-                Game.TrySpawnEnemy(out _);
-            }
-            return;
-
         }
 
 

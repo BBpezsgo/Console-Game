@@ -1,15 +1,20 @@
-using ConsoleGame.Net;
-using DataUtilities.Serializer;
+using ConsoleGame.Behavior;
+using Win32;
 
 namespace ConsoleGame
 {
     public class PlayerBehavior : NetworkComponent, IDamageable
     {
         float Reload;
+        float GranateReload;
 
         const float MaxSpeed = 3f;
+
         const float ReloadTime = .2f;
+        const float GranateReloadTime = .5f;
+
         const float ProjectileSpeed = 40f;
+        const float GranateSpeed = 15f;
 
         public const float MaxHealth = 10f;
         public float Health = MaxHealth;
@@ -21,6 +26,11 @@ namespace ConsoleGame
         public PlayerBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Player;
+        }
+
+        public override void Make()
+        {
+            base.Make();
             DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
         }
 
@@ -47,67 +57,65 @@ namespace ConsoleGame
                 }
             }
 
-            if (Keyboard.IsKeyPressed('W'))
+            if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCodes.UP))
             {
                 Position.Y -= Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('A'))
+            if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCodes.LEFT))
             {
                 Position.X -= Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('S'))
+            if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCodes.DOWN))
             {
                 Position.Y += Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('D'))
+            if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCodes.RIGHT))
             {
                 Position.X += Game.DeltaTime * MaxSpeed;
             }
 
             WorldBorders.Clamp(Game.Instance.Scene.Size, ref Position);
 
-            if (Reload <= 0f && Mouse.IsLeftDown)
+            if (Reload <= 0f && (Mouse.IsLeftDown || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
             {
                 Shoot(Position, (Mouse.WorldPosition - Position).Normalized);
             }
 
             if (Keyboard.IsKeyDown('X'))
             {
-                var newEntity = new Entity();
-                newEntity.SetComponents(
-                    new NetworkEntityComponent(newEntity)
-                    {
-                        NetworkId = Game.Instance.Scene.GenerateNetworkId(),
-                        ObjectId = GameObjectPrototype.HELPER_TURRET,
-                        Owner = Owner,
-                    },
-                    new DamageableRendererComponent(newEntity)
-                    {
-                        Character = 'X',
-                        Color = ByteColor.BrightBlue,
-                    },
-                    new HelperTurretBehavior(newEntity)
-                    );
+                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
+                newEntity.Position = Mouse.WorldPosition;
                 Game.Instance.Scene.AddEntity(newEntity);
+            }
+
+            if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
+            {
+                Vector diff = Mouse.WorldPosition - Position;
+                float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
+                ShootGranate(Position, diff.Normalized, speed);
             }
 
             if (Reload > 0f)
             { Reload -= Game.DeltaTime; }
+
+            if (GranateReload > 0f)
+            { GranateReload -= Game.DeltaTime; }
         }
 
         void Shoot(Vector origin, Vector direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(1, new RpcMessages.Shoot(origin, direction));
 
-            Entity projectile = new();
+            Entity projectile = new("Player Projectile");
             projectile.SetComponents(
                     new RendererComponent(projectile)
                     {
                         Color = ByteColor.BrightYellow,
                         Character = '.',
+                        Priority = Depths.PROJECTILE,
                     },
                     new ProjectileBehavior(projectile)
                     {
@@ -117,7 +125,37 @@ namespace ConsoleGame
                 );
             projectile.Position = Position;
             Game.Instance.Scene.AddEntity(projectile);
+
+            Entity effect = new("Shoot Effect");
+            effect.SetComponents(new ParticlesRendererComponent(effect, new ParticlesConfig(PredefinedEffects.Shoot) { Direction = direction }));
+            effect.Position = Position + direction;
+            Game.Instance.Scene.AddEntity(effect);
+
             Reload = ReloadTime;
+        }
+
+        void ShootGranate(Vector origin, Vector direction, float speed)
+        {
+            if (!NetworkEntity.IsOwned) return;
+
+            Entity projectile = new("Player Granate");
+            projectile.SetComponents(
+                    new RendererComponent(projectile)
+                    {
+                        Color = ByteColor.Silver,
+                        Character = '§',
+                        Priority = Depths.PROJECTILE,
+                    },
+                    new GranateBehavior(projectile)
+                    {
+                        Velocity = direction * speed,
+                        Owner = this,
+                    }
+                );
+            projectile.Position = origin;
+            Game.Instance.Scene.AddEntity(projectile);
+
+            GranateReload = GranateReloadTime;
         }
 
         public override void OnRpc(MessageRpc message)
@@ -164,9 +202,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
-            Entity newEntity = new()
+            Entity newEntity = new("Death Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death));
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

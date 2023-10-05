@@ -38,6 +38,8 @@ namespace ConsoleGame
         public static VectorInt operator *(int a, VectorInt b) => new(a * b.X, a * b.Y);
         public static Vector operator *(float a, VectorInt b) => new(a * b.X, a * b.Y);
 
+        public static implicit operator Vector(VectorInt v) => new(v.X, v.Y);
+
         public override readonly bool Equals(object? obj) =>
             obj is VectorInt vector &&
             Equals(vector);

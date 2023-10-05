@@ -46,6 +46,18 @@
             ParticleSpeed = (0f, 10f),
             Characters = Ascii.ShadeShort2,
         };
+        public static ParticlesConfig Shoot => new()
+        {
+            Gradients = new Gradient[]
+            {
+                new Gradient(Color.White, Color.Yellow),
+            },
+            ParticleCount = 2,
+            ParticleLifetime = .3f,
+            ParticleSpeed = (2f, 4f),
+            Characters = Ascii.Stars,
+            InDirection = .8f,
+        };
 
         public static ParticlesConfig Death => new()
         {

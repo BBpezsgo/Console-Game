@@ -14,7 +14,10 @@
         {
             SystemIndex = -1;
             Entity = entity;
+        }
 
+        public virtual void Make()
+        {
             Game.Instance.Scene.AllComponents.Register(this);
         }
 

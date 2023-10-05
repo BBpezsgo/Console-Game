@@ -64,9 +64,9 @@ namespace ConsoleGame
 
         public void ShouldResize() => shouldResize = true;
 
-        public void Resize()
+        public bool Resize()
         {
-            if (!shouldResize) return;
+            if (!shouldResize) return false;
             shouldResize = false;
 
             Console.Clear();
@@ -76,6 +76,7 @@ namespace ConsoleGame
             
             ConsoleBuffer = new CharInfo[width * height];
             ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = width, Bottom = height };
+            return true;
         }
     }
 }

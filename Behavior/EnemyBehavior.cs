@@ -9,10 +9,6 @@ namespace ConsoleGame
 
         const float MaxSpeed = 2.5f;
 
-        float LastDamaged;
-        const float DamageIndicatorBlinkPerSec = 3f * 2;
-        const float DamageIndicatorDuration = 1f;
-
         const float visionRange = 10f;
 
         const float MeleeAttackCooldown = 1f;
@@ -23,7 +19,7 @@ namespace ConsoleGame
         Entity? PriorityTarget;
         Entity? Target;
 
-        DamageableRendererComponent? DamageableRenderer;
+        readonly DamageableRendererComponent? DamageableRenderer;
 
         unsafe public EnemyBehavior(Entity entity) : base(entity)
         {
@@ -35,9 +31,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
-            Entity newEntity = new()
+            Entity newEntity = new("Death Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death));
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
         }
 
@@ -71,8 +67,12 @@ namespace ConsoleGame
                 IDamageable? damageableTarget = Target.GetComponent<IDamageable>();
                 if (damageableTarget != null)
                 {
-                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
-                    if ((Target.Position - Position).SqrMagnitude < (MeleeAttackRange * MeleeAttackRange))
+                    float sqrMag = (Target.Position - Position).SqrMagnitude;
+                    if (sqrMag > MeleeAttackRange * MeleeAttackRange)
+                    {
+                        Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                    }
+                    else
                     {
                         if (MeleeAttackTimer <= 0f)
                         {
@@ -87,7 +87,6 @@ namespace ConsoleGame
         public void Damage(float amount, Component? by)
         {
             DamageableRenderer?.OnDamage();
-            LastDamaged = Time.UtcNow;
 
             if (Game.NetworkMode == NetworkMode.Client) return;
 
@@ -102,7 +101,7 @@ namespace ConsoleGame
                 return;
             }
 
-            SendRpc(1, new RpcMessages.Damaged(amount, by.Entity.GetComponent<NetworkEntityComponent>().NetworkId));
+            SendRpc(1, new RpcMessages.Damaged(amount, by));
         }
 
         public override void OnRpc(MessageRpc message)

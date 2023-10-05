@@ -100,7 +100,7 @@ namespace ConsoleGame
 
             if (message is MessageRpc rpcMessage)
             {
-                if (!Scene.TryGetNetworkEntity(rpcMessage, out var @object))
+                if (!Scene.TryGetNetworkEntity(rpcMessage, out NetworkEntityComponent? @object))
                 {
                     if (networkMode != NetworkMode.Client) return;
                     if (Requests.Request(new Request(RequestKinds.OBJ_DETAILS_REQUEST, HashCode.Combine(rpcMessage.NetworkId))))
@@ -117,7 +117,7 @@ namespace ConsoleGame
 
             if (message is ObjectRequestMessage objectRequestMessage)
             {
-                if (!Scene.TryGetNetworkEntity(objectRequestMessage.NetworkId, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectRequestMessage.NetworkId, out NetworkEntityComponent? @object))
                 {
                     Debug.WriteLine($"Network object {objectRequestMessage.NetworkId} not found; can not send object details");
                     return;
@@ -145,7 +145,7 @@ namespace ConsoleGame
             if (message is ObjectDestroyMessage objectDestroyMessage)
             {
                 if (networkMode != NetworkMode.Client) return;
-                if (!Scene.TryGetNetworkEntity(objectDestroyMessage.NetworkId, out var @object))
+                if (!Scene.TryGetNetworkEntity(objectDestroyMessage.NetworkId, out NetworkEntityComponent? @object))
                 {
                     Debug.WriteLine($"Network object {objectDestroyMessage.NetworkId} not found; can not destroy");
                     return;

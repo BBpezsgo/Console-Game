@@ -15,7 +15,9 @@ namespace ConsoleGame
             Keyboard.BeginTick();
 
             renderer.Clear();
-            renderer.Resize();
+            depthBuffer.Clear();
+            if (renderer.Resize())
+            { depthBuffer.Resize(); }
 
             TickWrapped();
 

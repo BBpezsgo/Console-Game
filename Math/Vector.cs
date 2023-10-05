@@ -55,15 +55,23 @@ namespace ConsoleGame
         public void Normalize()
         {
             float l = Magnitude;
-            X /= l;
-            Y /= l;
+            if (l == 0f)
+            {
+                X = 0f;
+                Y = 0f;
+            }
+            else
+            {
+                X /= l;
+                Y /= l;
+            }
         }
         public readonly Vector Normalized
         {
             get
             {
                 float l = Magnitude;
-                return new Vector(X / l, Y / l);
+                return l == 0f ? Vector.Zero : new Vector(X / l, Y / l);
             }
         }
 
@@ -145,5 +153,9 @@ namespace ConsoleGame
 
         public static Vector Zero => new(0f, 0f);
         public static Vector One => new(1f, 1f);
+
+        public static Vector LinearLerp(Vector a, Vector b, float t) => (a * (1f - t)) + (b * t);
+
+        public static float Distance(Vector a, Vector b) => (b - a).Magnitude;
     }
 }

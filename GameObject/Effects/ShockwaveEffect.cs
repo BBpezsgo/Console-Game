@@ -1,5 +1,6 @@
 ﻿namespace ConsoleGame
 {
+    /*
     public class ShockwaveEffect : GameObject
     {
         readonly float Lifetime;
@@ -39,4 +40,5 @@
             }
         }
     }
+    */
 }

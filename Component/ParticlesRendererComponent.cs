@@ -1,5 +1,38 @@
 ﻿namespace ConsoleGame
 {
+    public enum ParticleCharacterMode
+    {
+        LifetimeRelative,
+        TimeRelative,
+        Random,
+    }
+
+    public struct ParticlesConfig
+    {
+        public Gradient[] Gradients;
+        public RangeInt ParticleCount;
+        public Range ParticleSpeed;
+        public Range ParticleLifetime;
+        public char[]? Characters;
+        public ParticleCharacterMode CharacterMode;
+        public float CharacterModeParam;
+        public float InDirection;
+        public Vector Direction;
+
+        public ParticlesConfig(ParticlesConfig other)
+        {
+            this.Gradients = other.Gradients;
+            this.ParticleCount = other.ParticleCount;
+            this.ParticleSpeed = other.ParticleSpeed;
+            this.ParticleLifetime = other.ParticleLifetime;
+            this.Characters = other.Characters;
+            this.CharacterMode = other.CharacterMode;
+            this.CharacterModeParam = other.CharacterModeParam;
+            this.InDirection = other.InDirection;
+            this.Direction = other.Direction;
+        }
+    }
+
     internal class ParticlesRendererComponent : RendererComponent
     {
         struct Particle
@@ -46,12 +79,25 @@
         {
             particles = new Particle[config.ParticleCount.Random()];
 
+            config.InDirection = Math.Clamp(config.InDirection, 0f, 1f);
+
             for (int i = 0; i < particles.Length; i++)
             {
+                Vector dir;
+
+                if (config.InDirection == 0f)
+                { dir = Random.Direction(); }
+                else if (config.InDirection == 1f)
+                { dir = config.Direction; }
+                else
+                { dir = Vector.LinearLerp(Random.Direction(), config.Direction, config.InDirection); }
+
+                dir.Normalize();
+
                 particles[i] = new Particle(
                     (byte)Random.Integer(0, config.Gradients.Length),
                     Vector.Zero,
-                    Random.Direction() * config.ParticleSpeed.Random(),
+                    dir * config.ParticleSpeed.Random(),
                     config.ParticleLifetime.Random());
             }
 
@@ -85,7 +131,14 @@
                 Vector pos = particles[i].LocalPosition + Position;
 
                 if (!Game.Instance.Scene.Size.Contains(pos)) continue;
-                ref Win32.CharInfo pixel = ref Game.Renderer[Game.WorldToConsole(pos)];
+                VectorInt p = Game.WorldToConsole(pos);
+
+                ref byte depth = ref Game.DepthBuffer[p];
+
+                if (depth > Priority) continue;
+                depth = Priority;
+
+                ref Win32.CharInfo pixel = ref Game.Renderer[p];
 
                 float v = particles[i].AgePercent;
 

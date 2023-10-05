@@ -52,7 +52,7 @@ namespace ConsoleGame
 
         public void SynchronizeComponents(NetworkMode networkMode, Connection socket)
         {
-            for (int i = 0; i < Entity.Components.Length; i++)
+            for (int i = 0; i < Entity.Components.Count; i++)
             {
                 Component component = Entity.Components[i];
                 if (component is not NetworkComponent networkComponent) continue;

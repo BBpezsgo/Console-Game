@@ -4,14 +4,10 @@
     {
         float LastDamaged;
 
-        const float BlinkPerSec = 2f * 2;
+        const float BlinkPerSec = 4f * 2;
         const float BlinkingDuration = 1f;
 
-
-        public DamageableRendererComponent(Entity entity) : base(entity)
-        {
-
-        }
+        public DamageableRendererComponent(Entity entity) : base(entity) { }
 
         public override void Render()
         {
@@ -31,6 +27,6 @@
             }
         }
 
-        public void OnDamage() => LastDamaged = Time.Now;
+        public void OnDamage() => LastDamaged = Time.UtcNow;
     }
 }

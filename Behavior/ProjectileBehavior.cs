@@ -5,10 +5,11 @@ namespace ConsoleGame
         public Vector Velocity;
         public Component? Owner;
 
+        public const float Damage = 1f;
+
         public ProjectileBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Projectile;
-            Entity.Name = "Projectile";
         }
 
         public override void Update()
@@ -40,7 +41,8 @@ namespace ConsoleGame
                     {
                         Position = ((Component)hit).Position;
                         IsDestroyed = true;
-                        hit.Damage(1f, Owner);
+                        hit.Damage(Damage, Owner);
+                        return;
                     }
                 }
             }
@@ -49,9 +51,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
-            Entity newEntity = new()
+            Entity newEntity = new("Projectile Impact Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.MetalSparks));
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.MetalSparks) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

@@ -17,6 +17,7 @@ namespace ConsoleGame
         public Scene Scene;
         SafeFileHandle ConsoleHandle;
         ConsoleRenderer renderer;
+        DepthBuffer depthBuffer;
         float deltaTime;
         bool isRunning;
         bool ClearOnExit = true;
@@ -32,6 +33,7 @@ namespace ConsoleGame
 
         public static float DeltaTime => Instance.deltaTime;
         public static ConsoleRenderer Renderer => Instance.renderer ?? throw new NullReferenceException();
+        public static DepthBuffer DepthBuffer => Instance.depthBuffer ?? throw new NullReferenceException();
         public static ObjectOwner LocalOwner
         {
             get
@@ -68,6 +70,7 @@ namespace ConsoleGame
             fixed (char* fileNamePtr = "CONOUT$")
             { ConsoleHandle = Kernel32.CreateFile(fileNamePtr, 0x40000000, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
             renderer = new ConsoleRenderer(ConsoleHandle, (short)Console.WindowWidth, (short)Console.WindowHeight);
+            depthBuffer = new DepthBuffer(renderer);
 
             double last = DateTime.Now.TimeOfDay.TotalSeconds;
             double now;
@@ -109,7 +112,7 @@ namespace ConsoleGame
 
         void MainMenuHandler_Offline()
         {
-            Scene = new Scene(this);
+            Scene = new Scene();
             networkMode = NetworkMode.Offline;
 
             connection = null;
@@ -156,7 +159,7 @@ namespace ConsoleGame
             if (!Socket.TryParse(value, out Socket socket))
             { return; }
 
-            Scene = new Scene(this);
+            Scene = new Scene();
             networkMode = NetworkMode.Client;
 
             connection = new UDP(false);
@@ -180,7 +183,7 @@ namespace ConsoleGame
             if (!Socket.TryParse(value, out Socket socket))
             { return; }
 
-            Scene = new Scene(this);
+            Scene = new Scene();
             networkMode = NetworkMode.Server;
 
             connection = new UDP(false);
@@ -190,7 +193,7 @@ namespace ConsoleGame
             connection.OnClientDisconnected += OnClientDisconnected;
 
             Scene.Load();
-            
+
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
             newEntity.Position = new Vector(3, 4);
             Scene.AddEntity(newEntity);

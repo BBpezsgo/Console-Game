@@ -13,15 +13,19 @@ namespace ConsoleGame
         public int ObjectId => NetworkEntity.ObjectId;
         public ObjectOwner Owner => NetworkEntity.Owner;
 
-        public NetworkComponent(Entity entity) : base(entity)
+#pragma warning disable CS8618
+        public NetworkComponent(Entity entity) : base(entity) { }
+#pragma warning restore CS8618
+
+        public override void Make()
         {
-            NetworkEntity = entity.GetComponent<NetworkEntityComponent>();
+            NetworkEntity = Entity.GetComponent<NetworkEntityComponent>();
+            base.Make();
         }
 
         public virtual void Synchronize(NetworkMode mode, Connection socket) { }
         public virtual void OnMessage(ObjectMessage message) { }
         public virtual void OnRpc(MessageRpc message) { }
-
 
         protected void SendRpc<T>(int rpcKind, T data, Action<T, Serializer> serializer)
         {

@@ -8,7 +8,7 @@
         {
             {
                 GameObjectPrototype.PLAYER, (int networkId, ObjectOwner owner) => {
-                    Entity newEntity = new();
+                    Entity newEntity = new("Player");
                     newEntity.Tags |= Tags.Player;
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
@@ -21,6 +21,7 @@
                     {
                         Character = 'O',
                         Color = ByteColor.Magenta,
+                        Priority = Depths.PLAYER,
                     });
                     newEntity.AddComponent(new PlayerBehavior(newEntity));
                     return newEntity;
@@ -28,7 +29,7 @@
             },
             {
                 GameObjectPrototype.ENEMY, (int networkId, ObjectOwner owner) => {
-                    Entity newEntity = new();
+                    Entity newEntity = new("Enemy");
                     newEntity.Tags |= Tags.Enemy;
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
@@ -41,6 +42,7 @@
                     {
                         Character = '@',
                         Color = ByteColor.BrightRed,
+                        Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new EnemyBehavior(newEntity));
                     return newEntity;
@@ -48,7 +50,7 @@
             },
             {
                 GameObjectPrototype.HELPER_TURRET, (int networkId, ObjectOwner owner) => {
-                    Entity newEntity = new();
+                    Entity newEntity = new("Helper Turret");
                     newEntity.Tags |= Tags.Helper;
                     newEntity.AddComponent(new NetworkEntityComponent(newEntity)
                     {
@@ -59,13 +61,14 @@
                     newEntity.AddComponent(new NetworkTransform(newEntity));
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
-                        Character = '#',
-                        Color = ByteColor.BrightCyan,
+                        Character = 'X',
+                        Color = ByteColor.BrightBlue,
+                        Priority = Depths.OTHER_LIVING,
                     });
+                    newEntity.AddComponent(new HelperTurretBehavior(newEntity));
                     return newEntity;
                 }
             },
         };
-
     }
 }
