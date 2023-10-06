@@ -3,7 +3,7 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public class PlayerBehavior : NetworkComponent, IDamageable
+    public class PlayerBehavior : NetworkComponent, IDamageable, ICanPickUpItem
     {
         float Reload;
         float GranateReload;
@@ -209,6 +209,18 @@ namespace ConsoleGame
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
+        }
+
+        public void OnItemPickedUp(ItemBehavior.ItemKind kind, float amount)
+        {
+            switch (kind)
+            {
+                case ItemBehavior.ItemKind.Health:
+                    Health = Math.Min(Health + amount, MaxHealth);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

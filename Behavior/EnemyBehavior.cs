@@ -2,7 +2,7 @@
 
 namespace ConsoleGame
 {
-    unsafe public class EnemyBehavior : NetworkComponent, IDamageable
+    unsafe public class EnemyBehavior : NetworkComponent, IDamageable, ICanPickUpItem
     {
         public float Health;
         public const float MaxHealth = 5f;
@@ -53,36 +53,71 @@ namespace ConsoleGame
                 MeleeAttackTimer -= Time.DeltaTime;
             }
 
+            if (Health < MaxHealth / 3f)
+            {
+                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Item, visionRange * 10f);
+            }
+
+            Targeting();
+
+            TargetHandling();
+        }
+
+        void Targeting()
+        {
+            if (Target != null) return;
+
             if (PriorityTarget != null)
             {
                 Target = PriorityTarget;
-                if (PriorityTarget.IsDestroyed) PriorityTarget = null;
+                if (PriorityTarget.IsDestroyed)
+                {
+                    PriorityTarget = null;
+                }
             }
-            else if (Target != null && ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange || Target.IsDestroyed))
-            { Target = null; }
             else
             {
                 Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player | Tags.Helper, visionRange);
             }
+        }
 
-            if (Target != null)
+        void TargetHandling()
+        {
+            if (Target == null) return;
+
+            if (Target.IsDestroyed ||
+                ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange))
             {
-                IDamageable? damageableTarget = Target.GetComponent<IDamageable>();
-                if (damageableTarget != null)
+                Target = null;
+                return;
+            }
+
+            if (Target.TryGetComponent(out IDamageable? damageableTarget))
+            {
+                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                if (sqrMag > MeleeAttackRange * MeleeAttackRange)
                 {
-                    float sqrMag = (Target.Position - Position).SqrMagnitude;
-                    if (sqrMag > MeleeAttackRange * MeleeAttackRange)
+                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                }
+                else
+                {
+                    if (MeleeAttackTimer <= 0f)
                     {
-                        Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                        MeleeAttackTimer = MeleeAttackCooldown;
+                        damageableTarget.Damage(MeleeAttackDamage, this);
                     }
-                    else
-                    {
-                        if (MeleeAttackTimer <= 0f)
-                        {
-                            MeleeAttackTimer = MeleeAttackCooldown;
-                            damageableTarget.Damage(MeleeAttackDamage, this);
-                        }
-                    }
+                }
+            }
+            else if (Target.TryGetComponent(out ItemBehavior? item))
+            {
+                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                if (sqrMag > MeleeAttackRange * MeleeAttackRange)
+                {
+                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                }
+                else
+                {
+                    item.PickUp(this);
                 }
             }
         }
@@ -117,6 +152,18 @@ namespace ConsoleGame
                         Damage(data.Amount, data.By);
                         break;
                     }
+                default:
+                    break;
+            }
+        }
+
+        public void OnItemPickedUp(ItemBehavior.ItemKind kind, float amount)
+        {
+            switch (kind)
+            {
+                case ItemBehavior.ItemKind.Health:
+                    Health = Math.Min(Health + amount, MaxHealth);
+                    break;
                 default:
                     break;
             }

@@ -14,14 +14,14 @@
             => Tick(width, 2 + 2 + 1 + Options.Length);
         public void Tick(int width, int height)
         {
-            RectInt borderRect = Renderer.MakeMenu(width, height);
+            RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            Renderer.DrawBox(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {
                 int titleLabelX = borderRect.X + ((borderRect.Width / 2) - (Title.Length / 2));
-                Renderer.DrawLabel(titleLabelX, borderRect.Y, Title);
+                GUI.Label(titleLabelX, borderRect.Y, Title);
                 Renderer[titleLabelX - 1, borderRect.Y].Char = ' ';
                 Renderer[titleLabelX - 2, borderRect.Y].Char = '┤';
                 Renderer[titleLabelX + Title.Length + 0, borderRect.Y].Char = ' ';

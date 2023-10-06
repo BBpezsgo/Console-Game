@@ -154,8 +154,8 @@ namespace ConsoleGame
 
         public void RenderHoverPopup(RectInt content)
         {
-            Game.Renderer.DrawLabel(content.X, content.Y, "Turret", ByteColor.Black, ByteColor.Silver);
-            Game.Renderer.DrawLabel(content.X, content.Y + 1, "♥:", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y, "Turret", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y + 1, "♥:", ByteColor.Black, ByteColor.Silver);
             float health = (Health / MaxHealth) * (content.Width - 4);
 
             for (int x = 0; x < content.Width - 4; x++)
@@ -173,9 +173,9 @@ namespace ConsoleGame
                 }
             }
 
-            Game.Renderer.DrawLabel(content.X, content.Y + 2, "∆:", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y + 2, "∆:", ByteColor.Black, ByteColor.Silver);
 
-            Game.Renderer.DrawLabel(content.X + 3, content.Y + 2, Ammo.ToString(), ByteColor.Black, ByteColor.White);
+            GUI.Label(content.X + 3, content.Y + 2, Ammo.ToString(), ByteColor.Black, ByteColor.White);
         }
     }
 }

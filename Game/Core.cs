@@ -12,6 +12,45 @@ namespace ConsoleGame
         public const int HELPER_TURRET = 3;
     }
 
+    struct FpsCounter
+    {
+        int[] Samples;
+        int[] Copy;
+
+        int N;
+
+        public readonly int Value
+        {
+            get
+            {
+                if (N == 0) return 0;
+                int sum = 0;
+                for (int i = 0; i < Samples.Length; i++)
+                { sum += Samples[i]; }
+                return sum / N;
+            }
+        }
+
+        public FpsCounter(int sampleCount)
+        {
+            Samples = new int[sampleCount];
+            Copy = new int[sampleCount];
+            N = 0;
+        }
+
+        public void Sample(int fps)
+        {
+            Array.Copy(Samples, 0, Copy, 1, Samples.Length - 1);
+            Copy[0] = fps;
+
+            int[] temp = Samples;
+            Samples = Copy;
+            Copy = temp;
+
+            N = Math.Min(N + 1, Samples.Length);
+        }
+    }
+
     public partial class Game
     {
         public Scene Scene;
@@ -19,6 +58,7 @@ namespace ConsoleGame
         ConsoleRenderer renderer;
         DepthBuffer depthBuffer;
         float deltaTime;
+        FpsCounter FpsCounter;
         bool isRunning;
         bool ClearOnExit = true;
 
@@ -52,6 +92,7 @@ namespace ConsoleGame
         {
             Instance = this;
             networkMode = NetworkMode.Offline;
+            FpsCounter = new FpsCounter(32);
         }
 #pragma warning restore CS8618
 
@@ -95,6 +136,9 @@ namespace ConsoleGame
                 last = now;
 
                 Tick();
+
+                // int overrun = (int)(((1f / 40f) - (DateTime.Now.TimeOfDay.TotalSeconds - now)) * 1000f);
+                // if (overrun > 0) Thread.Sleep(overrun);
             }
 
             if (ClearOnExit)

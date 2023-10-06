@@ -33,7 +33,7 @@
 
             Game.DepthBuffer.SetRect(box, Depths.GUI);
 
-            Game.Renderer.DrawBox(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
             box.Expand(-1);
 
             for (int i = 0; i < DrawerComponents.Length; i++)

@@ -7,7 +7,10 @@ namespace ConsoleGame
     public partial class Game
     {
         float ah = .5f;
+
         float LastEnemySpawn = Time.UtcNow;
+        float LastItemSpawn = Time.UtcNow;
+
         int EnemyWave = 5;
 
         void Tick()
@@ -18,6 +21,8 @@ namespace ConsoleGame
             depthBuffer.Clear();
             if (renderer.Resize())
             { depthBuffer.Resize(); }
+
+            FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
             TickWrapped();
 
@@ -84,12 +89,12 @@ namespace ConsoleGame
 
             int stateBarX = 1;
 
-            stateBarX += renderer.DrawLabel(
+            stateBarX += GUI.Label(
                 stateBarX, 0,
-                $"FPS: {(int)MathF.Round(1f / deltaTime),4}",
+                $"FPS: {FpsCounter.Value,4}",
                 ByteColor.Black, ByteColor.Gray);
 
-            stateBarX += renderer.DrawLabel(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+            stateBarX += GUI.Label(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
 
             /*
             int width = renderer.Width;
@@ -142,12 +147,12 @@ namespace ConsoleGame
 
                 if (player == null && (connection == null || connection.IsDone))
                 {
-                    RectInt box = renderer.MakeMenu(30, 8);
-                    renderer.DrawBox(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    RectInt box = GUI.GetCenteredBox(30, 8);
+                    GUI.Box(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
                     box.Expand(-1);
                     VectorInt labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
                     labelPos.Y = box.Y + 1;
-                    renderer.DrawLabel(labelPos.X, labelPos.Y, "YOU DIED", ByteColor.Black, ByteColor.BrightRed);
+                    GUI.Label(labelPos, "YOU DIED", ByteColor.Black, ByteColor.BrightRed);
 
                     box.Top += 3;
 
@@ -209,6 +214,14 @@ namespace ConsoleGame
                     LastEnemySpawn = Time.UtcNow;
                 }
 
+                if (networkMode != NetworkMode.Client &&
+                    Time.UtcNow - LastItemSpawn > 11f)
+                {
+                    for (int i = 0; i < 2; i++)
+                    { TrySpawnItem(ItemBehavior.ItemKind.Health, 5f, out _); }
+                    LastItemSpawn = Time.UtcNow;
+                }
+
                 if (shouldSync && connection != null)
                 { connection.Flush(); }
                 connection?.Receive();
@@ -245,21 +258,21 @@ namespace ConsoleGame
             {
                 if (!connection.IsDone)
                 {
-                    RectInt menu = renderer.MakeMenu(30, 3);
-                    renderer.DrawBox(menu, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    RectInt menu = GUI.GetCenteredBox(30, 3);
+                    GUI.Box(menu, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
                     menu.Expand(-1);
 
                     string text = connection.StatusText;
 
                     VectorInt labelPos = Layout.MakeCenteredLabel(menu, text);
 
-                    renderer.DrawLabel(labelPos.X, labelPos.Y, text, ByteColor.Black, ByteColor.White);
+                    GUI.Label(labelPos, text, ByteColor.Black, ByteColor.White);
                 }
 
                 string statusText = connection.StatusText;
-                stateBarX += renderer.DrawLabel(stateBarX, 0, statusText, ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, statusText, ByteColor.Black, ByteColor.Gray);
 
-                stateBarX += renderer.DrawLabel(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
 
                 string modeText = networkMode switch
                 {
@@ -268,7 +281,7 @@ namespace ConsoleGame
                     NetworkMode.Client => $"Client on {connection?.ServerEndPoint.Simplify()}",
                     _ => $"Unknown",
                 };
-                stateBarX += renderer.DrawLabel(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
             }
 
             if (Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
@@ -279,9 +292,9 @@ namespace ConsoleGame
         {
             if (connection == null) return;
 
-            RectInt menuBox = renderer.MakeMenu(40, 10);
+            RectInt menuBox = GUI.GetCenteredBox(40, 10);
 
-            renderer.DrawBox(menuBox, ByteColor.Black, ByteColor.White);
+            GUI.Box(menuBox, ByteColor.Black, ByteColor.White);
 
             menuBox.Expand(-1);
 
@@ -297,30 +310,30 @@ namespace ConsoleGame
 
                 int clientCount = Clients.Length;
                 Socket server = connection.ServerEndPoint;
-                renderer.DrawLabel(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
+                GUI.Label(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
 
                 for (int i = 0; i < clientCount; i++)
                 {
                     Socket client = Clients[i];
                     if (client == connection.LocalEndPoint)
                     {
-                        renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
+                        GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
                     }
                     else
                     {
-                        renderer.DrawLabel(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                        GUI.Label(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
                     }
                 }
             }
             else if (networkMode == NetworkMode.Server)
             {
-                renderer.DrawLabel(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
+                GUI.Label(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
 
                 int clientCount = connection.Clients.Length;
                 for (int i = 0; i < clientCount; i++)
                 {
                     Socket client = connection.Clients[i];
-                    renderer.DrawLabel(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                    GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
                 }
             }
         }
@@ -341,6 +354,26 @@ namespace ConsoleGame
             }
 
             return false;
+        }
+
+        public bool TrySpawnItem(ItemBehavior.ItemKind kind, float amount, [NotNullWhen(true)] out ItemBehavior? item)
+        {
+            item = null;
+            if (Scene == null) return false;
+            Entity entity = new("Item");
+            entity.AddComponent(new RendererComponent(entity)
+            {
+                Character = 'P',
+                Color = ByteColor.BrightGreen,
+            });
+            entity.AddComponent(item = new ItemBehavior(entity)
+            {
+                Kind = kind,
+                Amount = amount,
+            });
+            entity.Position = Random.Point(Scene.SizeR);
+            Scene.AddEntity(entity);
+            return true;
         }
     }
 }

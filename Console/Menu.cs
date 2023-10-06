@@ -87,7 +87,7 @@ namespace ConsoleGame
                     color = ByteColor.White;
                 }
 
-                Renderer.DrawLabel(contentRect.X, contentRect.Y + i, label, ByteColor.Black, color);
+                GUI.Label(contentRect.X, contentRect.Y + i, label, ByteColor.Black, color);
             }
 
             if (clicked != -1)

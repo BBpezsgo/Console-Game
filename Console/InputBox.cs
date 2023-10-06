@@ -35,14 +35,14 @@ namespace ConsoleGame
             => Tick(width, 8);
         public void Tick(int width, int height)
         {
-            RectInt borderRect = Renderer.MakeMenu(width, height);
+            RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            Renderer.DrawBox(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {
                 int titleLabelX = borderRect.X + ((borderRect.Width / 2) - (Title.Length / 2));
-                Renderer.DrawLabel(titleLabelX, borderRect.Y, Title);
+                GUI.Label(titleLabelX, borderRect.Y, Title);
                 Renderer[titleLabelX - 1, borderRect.Y].Char = ' ';
                 Renderer[titleLabelX - 2, borderRect.Y].Char = '┤';
                 Renderer[titleLabelX + Title.Length + 0, borderRect.Y].Char = ' ';
@@ -113,7 +113,7 @@ namespace ConsoleGame
                 }
             }
 
-            Renderer.DrawLabel(borderRect.X, borderRect.Y, Value.ToString(), ByteColor.Black, Selected == 0 ? ByteColor.BrightCyan : ByteColor.White);
+            GUI.Label(borderRect.X, borderRect.Y, Value.ToString(), ByteColor.Black, Selected == 0 ? ByteColor.BrightCyan : ByteColor.White);
 
             if (Selected == 0 && (int)(Time.UtcNow * 2f) % 2 == 1)
             {
@@ -196,7 +196,7 @@ namespace ConsoleGame
                     color = ByteColor.White;
                 }
 
-                Renderer.DrawLabel(borderRect.X, borderRect.Y + 0, label, ByteColor.Black, color);
+                GUI.Label(borderRect.X, borderRect.Y + 0, label, ByteColor.Black, color);
             }
 
             {
@@ -218,7 +218,7 @@ namespace ConsoleGame
                     color = ByteColor.White;
                 }
 
-                Renderer.DrawLabel(borderRect.X, borderRect.Y + 1, label, ByteColor.Black, color);
+                GUI.Label(borderRect.X, borderRect.Y + 1, label, ByteColor.Black, color);
             }
 
             if (Selected != 0 && clicked != -1)
