@@ -13,6 +13,11 @@ namespace ConsoleGame
         public Vector Position;
         public string? Name;
 
+        public bool IsSolid;
+        public bool IsStatic;
+
+        public QuadTreeLocation QuadTreeLocation;
+
         public Entity()
         {
             components = new List<Component>();
@@ -131,14 +136,79 @@ namespace ConsoleGame
         {
             for (int i = 0; i < components.Count; i++)
             { components[i].Destroy(); }
+            components.Clear();
         }
 
         public override string ToString()
         {
             string yeah = Name ?? base.ToString() ?? "?";
-            return IsDestroyed ? $"{yeah} (null)" : yeah;
+            return IsDestroyed ? $"{yeah} (destroyed)" : yeah;
         }
 
         string GetDebuggerDisplay() => ToString();
+
+        public bool DoCollisions()
+        {
+            if (!IsSolid) return false;
+
+            bool isCollided = false;
+            Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+            for (int i = 0; i < collided.Length; i++)
+            {
+                Entity other = collided[i];
+                if (other == this) continue;
+                if (!other.IsSolid) continue;
+
+                DoCollision(other);
+            }
+            return isCollided;
+        }
+        public void DoCollision(Entity other)
+        {
+            const float ErrorMultiplier = .4f;
+
+            if (IsStatic && other.IsStatic) return;
+
+            if (!IsStatic && other.IsStatic)
+            {
+                Vector error = (Position - other.Position) * ErrorMultiplier;
+                Position += error;
+            }
+            else if (IsStatic && !other.IsStatic)
+            {
+                Vector error = (Position - other.Position) * ErrorMultiplier;
+                other.Position -= error;
+            }
+            else
+            {
+                Vector error = (Position - other.Position) * (ErrorMultiplier * .5f);
+                Position += error;
+                other.Position -= error;
+            }
+        }
+
+        public bool DoBounceOff(ref Vector velocity)
+        {
+            // if (!IsSolid) return false;
+
+            bool isCollided = false;
+            Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+            for (int i = 0; i < collided.Length; i++)
+            {
+                Entity other = collided[i];
+                if (other == this) continue;
+                if (!other.IsSolid) continue;
+
+                DoBounceOff(other, ref velocity);
+            }
+            return isCollided;
+        }
+        public void DoBounceOff(Entity other, ref Vector velocity)
+        {
+            float speed = velocity.Magnitude;
+            velocity = (Position - other.Position).Normalized * speed;
+        }
+
+        public bool ClampIntoWord() => WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
     }
 }

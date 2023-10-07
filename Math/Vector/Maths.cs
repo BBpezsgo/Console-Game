@@ -69,5 +69,17 @@
         public static Vector LinearLerp(Vector a, Vector b, float t) => (a * (1f - t)) + (b * t);
 
         public static float Distance(Vector a, Vector b) => (b - a).Magnitude;
+
+        public readonly VectorInt Round() => Vector.Round(this);
+        public readonly VectorInt Floor() => Vector.Floor(this);
+        public readonly VectorInt Ceil() => Vector.Ceil(this);
+
+        public static VectorInt Round(Vector vector) => new((int)MathF.Round(vector.X), (int)MathF.Round(vector.Y));
+        public static VectorInt Floor(Vector vector) => new((int)MathF.Floor(vector.X), (int)MathF.Floor(vector.Y));
+        public static VectorInt Ceil(Vector vector) => new((int)MathF.Ceiling(vector.X), (int)MathF.Ceiling(vector.Y));
+
+        public static VectorInt Round(float x, float y) => new((int)MathF.Round(x), (int)MathF.Round(y));
+        public static VectorInt Floor(float x, float y) => new((int)MathF.Floor(x), (int)MathF.Floor(y));
+        public static VectorInt Ceil(float x, float y) => new((int)MathF.Ceiling(x), (int)MathF.Ceiling(y));
     }
 }

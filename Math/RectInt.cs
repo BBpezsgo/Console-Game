@@ -147,5 +147,26 @@ namespace ConsoleGame
 
             return this;
         }
+
+        public static RectInt Intersection(Rect a, RectInt b)
+            => RectInt.Intersection(b, a);
+        public static RectInt Intersection(RectInt a, Rect b)
+        {
+            int left = Math.Max(a.Left, (int)MathF.Floor(b.Left));
+            int right = Math.Min(a.Right, (int)MathF.Ceiling(b.Right));
+            int top = Math.Max(a.Top, (int)MathF.Floor(b.Top));
+            int bottom = Math.Min(a.Bottom, (int)MathF.Ceiling(b.Bottom));
+
+            return new RectInt(left, top, right - left, bottom - top);
+        }
+        public static RectInt Intersection(RectInt a, RectInt b)
+        {
+            int left = Math.Max(a.Left, b.Left);
+            int right = Math.Min(a.Right, b.Right);
+            int top = Math.Max(a.Top, b.Top);
+            int bottom = Math.Min(a.Bottom, b.Bottom);
+
+            return new RectInt(left, top, right - left, bottom - top);
+        }
     }
 }

@@ -31,7 +31,7 @@ namespace ConsoleGame
 
                 Vector p = (direction * radius) + Position;
 
-                p += direction * (SimplexNoise.Noise.Generate(p.X, p.Y) * .5f + .5f) * 1.5f;
+                p += direction * (Noise.Simplex(p.X, p.Y) * .5f + .5f) * 1.5f;
 
                 if (!Game.IsVisible(p)) continue;
 

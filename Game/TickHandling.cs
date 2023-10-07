@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
 
@@ -33,6 +34,37 @@ namespace ConsoleGame
         {
             EntityHoverPopup.ShouldNotShow = false;
             EntityHoverPopup.AlreadyShown = null;
+
+            for (int i = Timers.Count - 1; i >= 0; i--)
+            {
+                if (Timers[i].Elapsed >= Timers[i].Duration)
+                {
+                    Timers[i].Do();
+                    Timers.RemoveAt(i);
+                }
+            }
+
+            {
+                QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Mouse.WorldPosition);
+
+                for (int i = 0; i < branches.Length; i++)
+                {
+                    QuadTree<Entity?> branch = branches[i];
+                    RectInt conRect = Game.WorldToConsole(branch.Rect).Expand(0);
+                    conRect.Position += VectorInt.One;
+                    GUI.Box(conRect, ByteColor.White, Ascii.BoxSides);
+
+                    for (int j = 0; j < branch.Container.Count; j++)
+                    {
+                        Entity? entity = branch.Container[j].Item2;
+                        if (entity == null) continue;
+
+                        VectorInt conPos = Game.WorldToConsole(entity.Position);
+                        if (!renderer.IsVisible(conPos)) continue;
+                        renderer[conPos].Background = ByteColor.Magenta;
+                    }
+                }
+            }
 
             /*
             BitUtils.RenderBits(renderer, new VectorInt(0, 0), Keyboard.Accumulated);
@@ -197,6 +229,18 @@ namespace ConsoleGame
                             pixel.Char = ' ';
                         }
                     }
+
+                    renderer[15, 1].Attributes = ByteColor.Gray;
+                    renderer[15, 1].Char = '|';
+
+                    renderer[17, 1].Attributes = ByteColor.Silver;
+                    renderer[17, 1].Char = 'C';
+
+                    renderer[18, 1].Attributes = ByteColor.Silver;
+                    renderer[18, 1].Char = ':';
+
+                    GUI.Label(20, 1, PlayerData.Coins.ToString(), ByteColor.BrightYellow);
+
                 }
 
                 if (players.Length > 0 &&
@@ -374,6 +418,26 @@ namespace ConsoleGame
             entity.Position = Random.Point(Scene.SizeR);
             Scene.AddEntity(entity);
             return true;
+        }
+
+        public CoinItemBehavior SpawnCoin(Vector position, int amount)
+        {
+            CoinItemBehavior item;
+
+            Entity entity = new("Coin Item");
+            entity.AddComponent(item = new CoinItemBehavior(entity)
+            {
+                Amount = amount,
+            });
+            entity.AddComponent(new CoinItemRendererComponent(entity)
+            {
+                Character = Ascii.CircleNumbersOutline[0],
+                Color = ByteColor.BrightYellow,
+            });
+
+            entity.Position = position;
+            Scene.AddEntity(entity);
+            return item;
         }
     }
 }

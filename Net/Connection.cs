@@ -7,7 +7,7 @@ namespace ConsoleGame.Net
     public delegate void ClientConnectedEvent(Socket client);
     public delegate void ClientDisconnectedEvent(Socket client);
 
-    public abstract class Connection
+    public abstract class Connection : IDisposable
     {
         public const int BufferSize = 8 * 1024;
 
@@ -81,5 +81,7 @@ namespace ConsoleGame.Net
         protected void OnClientDisconnectedInternal(Socket client) => OnClientDisconnected?.Invoke(client);
 
         public virtual void FeedControlMessage(Socket sender, NetControlMessage netControlMessage) { }
+
+        public abstract void Dispose();
     }
 }

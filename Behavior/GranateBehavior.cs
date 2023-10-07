@@ -15,6 +15,9 @@
 
         readonly RendererComponent? Renderer;
 
+        bool FirstShot = true;
+        Entity? ShotBy;
+
         public GranateBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Projectile;
@@ -25,6 +28,18 @@
         public override void Update()
         {
             float t = Time.UtcNow - ShotTime;
+
+            if (FirstShot)
+            {
+                FirstShot = false;
+                Entity[] objs = Game.Instance.Scene.ObjectsAt(Position, 1f);
+                for (int i = 0; i < objs.Length; i++)
+                {
+                    if (objs[i] == Entity) continue;
+                    ShotBy = objs[i];
+                    break;
+                }
+            }
 
             if (Renderer != null)
             {
@@ -42,6 +57,20 @@
             Velocity += Velocity.Normalized * Acceleration * Game.DeltaTime;
 
             Vector lastPosition = Position;
+
+            {
+                Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+                for (int i = 0; i < collided.Length; i++)
+                {
+                    Entity other = collided[i];
+                    if (other == Entity) continue;
+                    if (other == ShotBy) continue;
+                    if (!other.IsSolid) continue;
+
+                    Entity.DoBounceOff(other, ref Velocity);
+                }
+            }
+
             Position += Velocity * Game.DeltaTime;
 
             if (IsDestroyed) return;
@@ -56,6 +85,7 @@
                 return;
             }
 
+            /*
             Vector positionDiff = Position - lastPosition;
             Vector direction = positionDiff.Normalized;
             float distanceTravelled = positionDiff.Magnitude;
@@ -65,14 +95,14 @@
             {
                 currentPoint += direction;
 
-                Entity? hit = Game.Instance.Scene.FirstObjectAt(Position, Tags.Enemy);
-                if (hit != null)
-                {
-                    Position = hit.Position - direction;
-                    Velocity = Vector.Zero;
-                    break;
-                }
+                Entity? hit = Game.Instance.Scene.FirstObjectAt(Position, Tags.Enemy, 1f);
+                if (hit == null) continue;
+
+                // Position = hit.Position - direction;
+                // Velocity = Vector.Zero;
+                break;
             }
+            */
         }
 
         public override void Destroy()
@@ -89,22 +119,30 @@
                 if (obj.TryGetComponent(out IDamageable? damageable))
                 {
                     distance = MathF.Sqrt(distance);
-                    float damage = 1f - (distance / Radius);
-                    damage *= Damage;
-                    damageable.Damage(damage, Owner);
+                    Game.StartTimer(new DynamicTimer(.5f * (distance / Radius), () =>
+                    {
+                        float damage = 1f - (distance / Radius);
+                        damage *= Damage;
+                        damageable.Damage(damage, Owner);
+                    }));
+
                     continue;
                 }
 
                 if (obj.TryGetComponent(out GranateBehavior? otherGranate) && otherGranate != this)
                 {
-                    if (distance < 1f * 1f)
-                    {
-                        otherGranate.IsDestroyed = true;
-                        continue;
-                    }
-
                     distance = MathF.Sqrt(distance);
-                    otherGranate.Velocity += (otherGranate.Position - Position).Normalized * (1f - (distance / Radius)) * 30f;
+                    Game.StartTimer(new DynamicTimer(.5f * (distance / Radius), () =>
+                    {
+                        if (distance < 1f * 1f)
+                        {
+                            otherGranate.IsDestroyed = true;
+                            return;
+                        }
+
+                        otherGranate.Velocity += (otherGranate.Position - Position).Normalized * (1f - (distance / Radius)) * 30f;
+                    }));
+
                     continue;
                 }
             }

@@ -5,6 +5,7 @@
         public enum ItemKind
         {
             Health,
+            Coin,
         }
 
         public ItemKind Kind;

@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Diagnostics;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -6,6 +7,61 @@ namespace ConsoleGame
     {
         static void Main(string[] args)
         {
+            /*
+            {
+                Rect size = new(0, 0, 1000, 1000);
+                StaticQuadTree<int> ints1 = new(size);
+                List<Rect> ints2 = new();
+
+                for (int i = 0; i < 1000000; i++)
+                {
+                    Vector point = Random.Point(size);
+                    int v = Random.Integer(int.MinValue, int.MaxValue);
+                    Rect r = new(point, Vector.One);
+
+                    ints1.Add(v, r);
+                    ints2.Add(r);
+                }
+
+                int overlapped;
+                Rect overlapRect = new(100, 100, 100, 100);
+                Stopwatch sw = new();
+
+                Console.WriteLine($"Linear");
+                for (int i = 0; i < 16; i++)
+                {
+                    overlapped = 0;
+
+                    sw.Restart();
+                    for (int j = 0; j < ints2.Count; j++)
+                    {
+                        if (overlapRect.Overlaps(ints2[j]))
+                        {
+                            overlapped++;
+                        }
+                    }
+                    sw.Stop();
+
+                    if (i == 0) Console.WriteLine($"Overlapped: {overlapped}");
+                    Console.WriteLine($"{sw.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture)} ms");
+                }
+
+                Console.WriteLine($"QuadTree");
+                for (int i = 0; i < 16; i++)
+                {
+                    overlapped = 0;
+
+                    sw.Restart();
+                    overlapped += ints1.Search(overlapRect).Length;
+                    sw.Stop();
+
+                    if (i == 0) Console.WriteLine($"Overlapped: {overlapped}");
+                    Console.WriteLine($"{sw.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture)} ms");
+                }
+            }
+            return;
+            */
+
             /*
             if (false) // { 0.00 - 0.31(Avg: 0.09, N: 16581375) }
             {

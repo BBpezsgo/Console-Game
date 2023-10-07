@@ -4,7 +4,7 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public class Scene
+    public partial class Scene
     {
         public readonly List<Entity> Entities;
 
@@ -12,12 +12,38 @@ namespace ConsoleGame
         public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
         public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
-        public VectorInt Size => new(50, 50);
-        public RectInt SizeR => new(0, 0, 50, 50);
+        public VectorInt Size = new(50, 50);
+
+        bool DrawGround;
+
+        public RectInt SizeR => new(VectorInt.Zero, Size);
+
+        public readonly CharInfo[,] BackgroundTexture;
+
+        public readonly QuadTree<Entity?> QuadTree;
 
         public Scene()
         {
             Entities = new List<Entity>();
+            QuadTree = new QuadTree<Entity?>(SizeR);
+
+            BackgroundTexture = new CharInfo[Size.X, Size.Y];
+
+            for (int y = 0; y < Size.Y; y++)
+            {
+                for (int x = 0; x < Size.X; x++)
+                {
+                    ref CharInfo pixel = ref BackgroundTexture[x, y];
+
+                    float v = Noise.Simplex(new Vector(x, y) * 0.25f);
+                    if (v < .5f) continue;
+
+                    pixel.Foreground = v < .75f ? ByteColor.Gray : ByteColor.Silver;
+                    pixel.Char = '░';
+                }
+            }
+
+            DrawGround = true;
         }
 
         public void AddEntity(ObjectSpawnMessage objectSpawnMessage)
@@ -50,6 +76,9 @@ namespace ConsoleGame
         {
             Entities.Add(entity);
 
+            QuadTreeLocation location = QuadTree.Add(entity, new Rect(entity.Position, Vector.Zero));
+            entity.QuadTreeLocation = location;
+
             if (Game.NetworkMode == NetworkMode.Server && Game.Connection != null)
             {
                 if (entity.TryGetComponent(out NetworkEntityComponent? networkEntity))
@@ -59,35 +88,30 @@ namespace ConsoleGame
 
         public void Update(bool shouldSync)
         {
+            if (DrawGround)
             {
                 Rect rect = Game.VisibleWorldRect();
-                rect = Rect.Intersection(rect, SizeR);
-                for (int _y = 0; _y < rect.Height; _y++)
+                RectInt rect2 = RectInt.Intersection(rect, SizeR);
+                for (int _y = 0; _y < rect2.Height; _y++)
                 {
-                    float y = _y + rect.Y;
-                    y = MathF.Round(y);
+                    float y = _y + rect2.Y;
 
-                    for (int _x = 0; _x < rect.Width * 2; _x++)
+                    for (int _x = 0; _x < rect2.Width * 2; _x++)
                     {
-                        float x = (_x / 2f) + rect.X;
+                        float x = (_x / 2f) + rect2.X;
                         x = MathF.Round(x * 2) / 2;
 
-                        float v = SimplexNoise.Noise.Generate(x, y) * .5f + .5f;
-                        if (v < .5f) continue;
-                        VectorInt conPos = Game.WorldToConsole(new Vector(x, y));
+                        VectorInt conPos = Game.WorldToConsole(x, y);
 
                         if (!Game.Renderer.IsVisible(conPos) || Game.IsOnGui(conPos)) continue;
 
-                        ref CharInfo pixel = ref Game.Renderer[conPos];
-
-                        pixel.Foreground = v < .75f ? ByteColor.Gray : ByteColor.Silver;
-                        pixel.Char = '░';
+                        Game.Renderer[conPos] = BackgroundTexture[_x / 2 + rect2.X, _y + rect2.Y];
                     }
                 }
             }
 
             {
-                VectorInt a = Game.WorldToConsole(Vector.Zero);
+                VectorInt a = Game.WorldToConsole(0f, 0f);
                 VectorInt b = Game.WorldToConsole(Size);
 
                 int top = a.Y;
@@ -174,6 +198,8 @@ namespace ConsoleGame
             {
                 if (Entities[i].IsDestroyed)
                 {
+                    if (!QuadTree.Remove(Entities[i].QuadTreeLocation, Entities[i]))
+                    { Debug.WriteLine($"Could not remove {Entities[i]} from the quadtree"); }
                     Entities[i].OnDestroy();
                     Entities.RemoveAt(i);
                     continue;
@@ -196,6 +222,11 @@ namespace ConsoleGame
             for (int i = 0; i < RendererComponents.Components.Count; i++)
             {
                 RendererComponents.Components[i].Render();
+            }
+
+            for (int i = 0; i < Entities.Count; i++)
+            {
+                QuadTree.Relocate(ref Entities[i].QuadTreeLocation, Entities[i], Entities[i].Position);
             }
         }
 
@@ -229,183 +260,28 @@ namespace ConsoleGame
             RendererComponents.Components.Clear();
             NetworkEntityComponents.Components.Clear();
             Entities.Clear();
+            QuadTree.Clear();
 
-            return;
-
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 10; i++)
             {
+                /*
+                for (int @try = 0; @try < 5; @try++)
+                {
+                    if (Game.Instance.TrySpawnEnemy(out Entity? newEntity))
+                    {
+                        break;
+                    }
+                }
+                */
+
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](GenerateNetworkId(), Game.LocalOwner);
                 newEntity.Position = new Vector(2 + i, 20);
                 AddEntity(newEntity);
             }
-            return;
-        }
 
-
-        public Entity[] ObjectsOfTag(int tags)
-        {
-            List<Entity> result = new();
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tags & tags) == 0) continue;
-                result.Add(obj);
-            }
-            return result.ToArray();
-        }
-
-        public Entity? FirstObjectAt(Vector position, float distanceThreshold = 1f)
-        {
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                Vector diff = Entities[i].Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    return obj;
-                }
-            }
-            return null;
-        }
-
-        public Entity? ClosestObject(Vector position, float distanceThreshold)
-        {
-            Entity? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                Vector diff = Entities[i].Position - position;
-                float sqrDistance = diff.SqrMagnitude;
-                if (sqrDistance >= distanceThreshold * distanceThreshold) continue;
-
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-
-        public Entity? ClosestObject(Vector position)
-        {
-            Entity? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
-
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-
-        public Entity? FirstObjectAt(Vector position, int tags, float distanceThreshold = 1f)
-        {
-            float sqrDistanceThreshold = distanceThreshold * distanceThreshold;
-
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tags & tags) == 0) continue;
-
-                float diffSqrMag = (Entities[i].Position - position).SqrMagnitude;
-
-                if (diffSqrMag < sqrDistanceThreshold)
-                { return obj; }
-            }
-            return null;
-        }
-
-        public Entity? ClosestObject(Vector position, int tags, float radius)
-        {
-            float sqrRadius = radius * radius;
-
-            Entity? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tags & tags) == 0) continue;
-
-                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
-                if (sqrDistance >= sqrRadius) continue;
-
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-
-        public Entity? ClosestObject(Vector position, int tags)
-        {
-            Entity? result = null;
-            float closestSqrDistance = float.PositiveInfinity;
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tags & tags) == 0) continue;
-
-                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
-                if (sqrDistance < closestSqrDistance)
-                {
-                    result = obj;
-                    closestSqrDistance = sqrDistance;
-                }
-            }
-            return result;
-        }
-
-        public Entity[] ObjectsAt(Vector position, float distanceThreshold = 1f)
-        {
-            List<Entity> result = new();
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                Vector diff = Entities[i].Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    result.Add(obj);
-                }
-            }
-            return result.ToArray();
-        }
-        public Entity[] ObjectsAt(Vector position, int tags, float distanceThreshold = 1f)
-        {
-            List<Entity> result = new();
-            for (int i = Entities.Count - 1; i >= 0; i--)
-            {
-                Entity obj = Entities[i];
-                if (obj.IsDestroyed) continue;
-                if ((obj.Tags & tags) == 0) continue;
-                Vector diff = Entities[i].Position - position;
-                float diffSqrMag = diff.SqrMagnitude;
-                if (diffSqrMag < distanceThreshold * distanceThreshold)
-                {
-                    result.Add(obj);
-                }
-            }
-            return result.ToArray();
+            Entity newEntity2 = EntityPrototypes.Builders[GameObjectPrototype.ENEMY_FACTORY](GenerateNetworkId(), Game.LocalOwner);
+            newEntity2.Position = new Vector(30, 30);
+            AddEntity(newEntity2);
         }
     }
 }

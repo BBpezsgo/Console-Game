@@ -60,14 +60,6 @@ namespace ConsoleGame
             return Vector.FromDeg((float)deserializer.DeserializeByte() * Byte2Deg);
         }
 
-        public readonly VectorInt Round() => Vector.Round(this);
-        public readonly VectorInt Floor() => Vector.Floor(this);
-        public readonly VectorInt Ceil() => Vector.Ceil(this);
-
-        public static VectorInt Round(Vector vector) => new((int)MathF.Round(vector.X), (int)MathF.Round(vector.Y));
-        public static VectorInt Floor(Vector vector) => new((int)MathF.Floor(vector.X), (int)MathF.Floor(vector.Y));
-        public static VectorInt Ceil(Vector vector) => new((int)MathF.Ceiling(vector.X), (int)MathF.Ceiling(vector.Y));
-
         public static Vector Zero => new(0f);
         public static Vector One => new(1f);
     }

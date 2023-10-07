@@ -34,7 +34,7 @@
 
             ref Win32.CharInfo pixel = ref Game.Renderer[p];
 
-            pixel.Attributes = Color;
+            pixel.Foreground = Color;
             pixel.Char = Character;
         }
     }

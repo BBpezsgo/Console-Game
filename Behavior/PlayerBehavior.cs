@@ -91,6 +91,13 @@ namespace ConsoleGame
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
+            if (Keyboard.IsKeyDown('O'))
+            {
+                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_THINGY](Game.Instance.Scene.GenerateNetworkId(), Owner);
+                newEntity.Position = Mouse.WorldPosition;
+                Game.Instance.Scene.AddEntity(newEntity);
+            }
+
             if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
             {
                 Vector diff = Mouse.WorldPosition - Position;
@@ -101,6 +108,16 @@ namespace ConsoleGame
             if (Keyboard.IsKeyDown('T'))
             {
                 Damage(1f, null);
+            }
+
+            if (Game.NetworkMode != NetworkMode.Client)
+            {
+                Entity[] coinsNearby = Game.Instance.Scene.ObjectsAt(Position, Tags.Item, .5f);
+                for (int i = 0; i < coinsNearby.Length; i++)
+                {
+                    if (!coinsNearby[i].TryGetComponent(out CoinItemBehavior? coin)) continue;
+                    coin.PickUp(this);
+                }
             }
 
             if (Reload > 0f)
@@ -163,11 +180,9 @@ namespace ConsoleGame
 
         public override void OnRpc(MessageRpc message)
         {
-            base.OnRpc(message);
-
             switch (message.RpcKind)
             {
-                case 1:
+                case RpcMessages.Kind.Shoot:
                     {
                         if (!NetworkEntity.IsOwned)
                         {
@@ -176,7 +191,7 @@ namespace ConsoleGame
                         }
                         break;
                     }
-                case 2:
+                case RpcMessages.Kind.Damage:
                     {
                         RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
                         Damage(data.Amount, data.By);
@@ -193,7 +208,7 @@ namespace ConsoleGame
 
             if (Game.NetworkMode == NetworkMode.Client) return;
 
-            SendRpc(2, new RpcMessages.Damaged(amount, by));
+            SendRpc(RpcMessages.Kind.Damage, new RpcMessages.Damaged(amount, by));
 
             Health -= amount;
             if (Health <= 0f)
@@ -217,6 +232,10 @@ namespace ConsoleGame
             {
                 case ItemBehavior.ItemKind.Health:
                     Health = Math.Min(Health + amount, MaxHealth);
+                    break;
+                case ItemBehavior.ItemKind.Coin:
+                    if (IsOwned)
+                    { Game.Instance.PlayerData.Coins += (int)MathF.Round(amount); }
                     break;
                 default:
                     break;

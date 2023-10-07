@@ -13,16 +13,26 @@
             => viewportPosition + Game.Instance.ViewportWorldPosition;
 
         public static VectorInt ViewportToConsole(Vector viewportPosition)
-            => (viewportPosition * new Vector(2f, 1f)).Round();
+            => Vector.Round(viewportPosition * new Vector(2f, 1f));
+        public static VectorInt ViewportToConsole(float x, float y)
+            => Vector.Round(x * 2f, y);
 
         public static Vector ConsoleToViewport(VectorInt consolePosition)
             => consolePosition * new Vector(0.5f, 1f);
+        public static Vector ConsoleToViewport(int x, int y)
+            => new(x * 0.5f, y);
 
         public static Vector ConsoleToWorld(VectorInt consolePosition)
             => (consolePosition * new Vector(0.5f, 1f)) + Game.Instance.ViewportWorldPosition;
+        public static Vector ConsoleToWorld(int x, int y)
+            => new Vector(x * 0.5f, y) + Game.Instance.ViewportWorldPosition;
 
         public static VectorInt WorldToConsole(Vector worldPosition)
-            => ((worldPosition - Game.Instance.ViewportWorldPosition) * new Vector(2f, 1f)).Round();
+            => Vector.Round((worldPosition - Game.Instance.ViewportWorldPosition) * new Vector(2f, 1f));
+        public static VectorInt WorldToConsole(float x, float y)
+            => Vector.Round((x - Game.Instance.ViewportWorldPosition.X) * 2, y - Game.Instance.ViewportWorldPosition.Y);
+
+        public static RectInt WorldToConsole(Rect worldRect) => new(WorldToConsole(worldRect.Position), Vector.Round(worldRect.Size * new Vector(2f, 1f)));
 
         public static Rect VisibleWorldRect() => new()
         {
@@ -36,7 +46,7 @@
         {
             Vector viewportPosition = Game.WorldToViewport(worldPosition);
             if (viewportPosition.X < 0f || viewportPosition.Y < 0f) return false;
-            
+
             VectorInt consolePosition = Game.ViewportToConsole(viewportPosition);
             if (consolePosition.X >= Renderer.Width || consolePosition.Y >= Renderer.Height) return false;
 

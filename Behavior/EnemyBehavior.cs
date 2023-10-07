@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Net;
+﻿using ConsoleGame.Behavior;
+using ConsoleGame.Net;
 
 namespace ConsoleGame
 {
@@ -35,6 +36,9 @@ namespace ConsoleGame
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
+
+            if (Random.Float() <= .5f)
+            { Game.Instance.SpawnCoin(Position, Random.Integer(1, 4)); }
         }
 
         public override void Update()
@@ -49,44 +53,51 @@ namespace ConsoleGame
             }
 
             if (MeleeAttackTimer > 0f)
-            {
-                MeleeAttackTimer -= Time.DeltaTime;
-            }
+            { MeleeAttackTimer -= Time.DeltaTime; }
+
+            Targeting(out bool canLoseTarget);
+            TargetHandling(canLoseTarget);
+            Entity.DoCollisions();
+            Entity.ClampIntoWord();
+        }
+
+        void Targeting(out bool canLoseTarget)
+        {
+            canLoseTarget = true;
 
             if (Health < MaxHealth / 3f)
             {
                 Target = Game.Instance.Scene.ClosestObject(Position, Tags.Item, visionRange * 10f);
+                canLoseTarget = false;
+                return;
             }
 
-            Targeting();
-
-            TargetHandling();
-        }
-
-        void Targeting()
-        {
             if (Target != null) return;
 
             if (PriorityTarget != null)
             {
-                Target = PriorityTarget;
                 if (PriorityTarget.IsDestroyed)
                 {
                     PriorityTarget = null;
                 }
+                else
+                {
+                    Target = PriorityTarget;
+                    canLoseTarget = false;
+                    return;
+                }
             }
-            else
-            {
-                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player | Tags.Helper, visionRange);
-            }
+
+            Target = Game.Instance.Scene.ClosestObject(Position, Tags.Player | Tags.Helper, visionRange);
+            return;
         }
 
-        void TargetHandling()
+        void TargetHandling(bool canLoseTarget)
         {
             if (Target == null) return;
 
             if (Target.IsDestroyed ||
-                ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange))
+                (canLoseTarget && ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange)))
             {
                 Target = null;
                 return;
@@ -94,7 +105,8 @@ namespace ConsoleGame
 
             if (Target.TryGetComponent(out IDamageable? damageableTarget))
             {
-                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                Vector diff = Target.Position - Position;
+                float sqrMag = diff.SqrMagnitude;
                 if (sqrMag > MeleeAttackRange * MeleeAttackRange)
                 {
                     Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
@@ -105,6 +117,11 @@ namespace ConsoleGame
                     {
                         MeleeAttackTimer = MeleeAttackCooldown;
                         damageableTarget.Damage(MeleeAttackDamage, this);
+
+                        Entity newEntity = new();
+                        newEntity.AddComponent(new ParticlesRendererComponent(newEntity, PredefinedEffects.Stuff));
+                        newEntity.Position = Position + (diff * .5f);
+                        Game.Instance.Scene.AddEntity(newEntity);
                     }
                 }
             }
@@ -139,14 +156,14 @@ namespace ConsoleGame
                 return;
             }
 
-            SendRpc(1, new RpcMessages.Damaged(amount, by));
+            SendRpc(RpcMessages.Kind.Damage, new RpcMessages.Damaged(amount, by));
         }
 
         public override void OnRpc(MessageRpc message)
         {
             switch (message.RpcKind)
             {
-                case 1:
+                case RpcMessages.Kind.Damage:
                     {
                         RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
                         Damage(data.Amount, data.By);

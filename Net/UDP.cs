@@ -62,7 +62,7 @@ namespace ConsoleGame.Net
 
         readonly ConcurrentDictionary<string, UdpClient> Connections = new();
 
-        bool connectedToServer = false;
+        bool connectedToServer;
 
         public override Socket[] Clients
         {
@@ -172,7 +172,7 @@ namespace ConsoleGame.Net
 
                     if (isServer)
                     {
-                        if (Connections.TryGetValue(result.RemoteEndPoint.ToString(), out var client))
+                        if (Connections.TryGetValue(result.RemoteEndPoint.ToString(), out UdpClient? client))
                         {
                             await client.Pipe.Writer.WriteAsync(result.Buffer);
                         }
@@ -212,7 +212,7 @@ namespace ConsoleGame.Net
 
         public override void Receive()
         {
-            while (IncomingQueue.TryDequeue(out var message))
+            while (IncomingQueue.TryDequeue(out UdpReceiveResult message))
             {
                 OnReceiveInternal((Socket)message.RemoteEndPoint, message.Buffer);
             }
@@ -301,6 +301,11 @@ namespace ConsoleGame.Net
                     default: return;
                 }
             }
+        }
+
+        public override void Dispose()
+        {
+            UdpSocket?.Dispose();
         }
     }
 }

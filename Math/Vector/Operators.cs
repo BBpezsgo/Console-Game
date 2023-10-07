@@ -2,6 +2,8 @@
 {
     public partial struct Vector
     {
+        public static Vector operator -(Vector a) => new(-a.X, -a.Y);
+
         public static Vector operator +(Vector a, Vector b) => new(a.X + b.X, a.Y + b.Y);
         public static Vector operator -(Vector a, Vector b) => new(a.X - b.X, a.Y - b.Y);
         public static Vector operator *(Vector a, Vector b) => new(a.X * b.X, a.Y * b.Y);

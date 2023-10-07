@@ -2,6 +2,16 @@
 {
     public struct PredefinedEffects
     {
+        public static ParticlesConfig Stuff => new()
+        {
+            Characters = Ascii.Stuff1,
+            Gradients = new Gradient[]
+            { new Gradient(Color.White, Color.Red) },
+            ParticleCount = (1, 3),
+            ParticleSpeed = (4, 7),
+            ParticleLifetime = (0.2f, 0.6f),
+        };
+
         public static ParticlesConfig LargeExplosion => new()
         {
             Gradients = new Gradient[]

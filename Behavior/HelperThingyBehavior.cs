@@ -3,28 +3,32 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public class HelperTurretBehavior : NetworkComponent, IDamageable, ICanDrawEntityHoverPopup
+    internal class HelperThingyBehavior : NetworkComponent, IDamageable, ICanDrawEntityHoverPopup, ICanPickUpItem
     {
         float Reload;
 
-        const float ReloadTime = .7f;
+        const float ReloadTime = 1.5f;
         const float ProjectileSpeed = 40f;
 
+        const float FleeRadius = 5f;
         const float VisionRadius = 15f;
+        const float ShootRadius = 10f;
 
-        public const float MaxHealth = 10f;
+        public const float MaxHealth = 5f;
         public float Health = MaxHealth;
 
-        const int MaxAmmo = 20;
+        const float MaxSpeed = 1.5f;
 
+        const int MaxAmmo = 10;
         int Ammo = MaxAmmo;
 
+        Entity? PriorityTarget;
         Entity? Target;
 
         readonly DamageableRendererComponent? DamageableRenderer;
         readonly RendererComponent? Renderer;
 
-        public HelperTurretBehavior(Entity entity) : base(entity)
+        public HelperThingyBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Helper;
             DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
@@ -78,35 +82,114 @@ namespace ConsoleGame
 
         public override void Update()
         {
-            if (!IsOwned) return;
+            if (Game.NetworkMode == NetworkMode.Client)
+            { return; }
 
-            if (Ammo > 0 && Reload <= 0f)
-            {
-                if (Target == null || Target.IsDestroyed)
-                {
-                    Target = Game.Instance.Scene.ClosestObject(Position, Tags.Enemy, VisionRadius);
-                }
-                else
-                {
-                    Vector direction = (Target.Position - Position).Normalized;
-
-                    SendRpcImmediate(1, new RpcMessages.Shoot(Position, direction));
-
-                    Shoot(Position, direction);
-                }
-            }
+            // if (!Entity.HandleCollisions())
+            // Position += Vector.MoveTowards(Position, Mouse.WorldPosition, MaxSpeed * Time.DeltaTime);
 
             if (Ammo <= 0 && Renderer != null) Renderer.Color = ByteColor.Silver;
 
             if (Reload > 0f)
             { Reload -= Game.DeltaTime; }
+
+            Targeting(out bool canLoseTarget);
+            TargetHandling(canLoseTarget);
+            Entity.DoCollisions();
+            Entity.ClampIntoWord();
+        }
+
+        void Targeting(out bool canLoseTarget)
+        {
+            canLoseTarget = true;
+
+            if (Ammo <= 0)
+            {
+                Target = null;
+                return;
+            }
+
+            if (Health < MaxHealth / 3f)
+            {
+                Target = Game.Instance.Scene.ClosestObject(Position, Tags.Item, VisionRadius * 10f);
+                canLoseTarget = false;
+                return;
+            }
+
+            if (Target != null) return;
+
+            if (PriorityTarget != null)
+            {
+                if (PriorityTarget.IsDestroyed)
+                {
+                    PriorityTarget = null;
+                }
+                else
+                {
+                    Target = PriorityTarget;
+                    canLoseTarget = false;
+                    return;
+                }
+            }
+
+            Target = Game.Instance.Scene.ClosestObject(Position, Tags.Enemy, VisionRadius);
+            return;
+        }
+
+        void TargetHandling(bool canLoseTarget)
+        {
+            if (Target == null) return;
+
+            if (Target.IsDestroyed ||
+                (canLoseTarget && ((Target.Position - Position).SqrMagnitude >= VisionRadius * VisionRadius)))
+            {
+                Target = null;
+                return;
+            }
+
+            if (Target.TryGetComponent(out IDamageable? damageableTarget))
+            {
+                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                if (sqrMag > ShootRadius * ShootRadius)
+                {
+                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                }
+                else
+                {
+                    if (Ammo > 0 && Reload <= 0f)
+                    {
+                        Vector direction = (Target.Position - Position).Normalized;
+
+                        SendRpcImmediate(1, new RpcMessages.Shoot(Position, direction));
+
+                        Shoot(Position, direction);
+                    }
+
+                    if (sqrMag <= FleeRadius * FleeRadius)
+                    {
+                        Position -= Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                    }
+                }
+            }
+            else if (Target.TryGetComponent(out ItemBehavior? item))
+            {
+                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                if (sqrMag > 1f * 1f)
+                {
+                    Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
+                }
+                else
+                {
+                    item.PickUp(this);
+                }
+            }
         }
 
         void Shoot(Vector origin, Vector direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot(origin, direction));
 
-            Entity projectile = new("Turret Projectile");
+            Entity projectile = new("Helper Thingy Projectile");
             projectile.SetComponents(
                     new RendererComponent(projectile)
                     {
@@ -149,7 +232,7 @@ namespace ConsoleGame
 
         public void RenderHoverPopup(RectInt content)
         {
-            GUI.Label(content.X, content.Y, "Turret", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y, "Helper", ByteColor.Black, ByteColor.Silver);
             GUI.Label(content.X, content.Y + 1, "♥:", ByteColor.Black, ByteColor.Silver);
             float health = (Health / MaxHealth) * (content.Width - 4);
 
@@ -171,6 +254,18 @@ namespace ConsoleGame
             GUI.Label(content.X, content.Y + 2, "∆:", ByteColor.Black, ByteColor.Silver);
 
             GUI.Label(content.X + 3, content.Y + 2, Ammo.ToString(), ByteColor.Black, ByteColor.White);
+        }
+
+        public void OnItemPickedUp(ItemBehavior.ItemKind kind, float amount)
+        {
+            switch (kind)
+            {
+                case ItemBehavior.ItemKind.Health:
+                    Health = Math.Min(Health + amount, MaxHealth);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

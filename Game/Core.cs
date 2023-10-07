@@ -5,52 +5,6 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public readonly struct GameObjectPrototype
-    {
-        public const int PLAYER = 1;
-        public const int ENEMY = 2;
-        public const int HELPER_TURRET = 3;
-    }
-
-    struct FpsCounter
-    {
-        int[] Samples;
-        int[] Copy;
-
-        int N;
-
-        public readonly int Value
-        {
-            get
-            {
-                if (N == 0) return 0;
-                int sum = 0;
-                for (int i = 0; i < Samples.Length; i++)
-                { sum += Samples[i]; }
-                return sum / N;
-            }
-        }
-
-        public FpsCounter(int sampleCount)
-        {
-            Samples = new int[sampleCount];
-            Copy = new int[sampleCount];
-            N = 0;
-        }
-
-        public void Sample(int fps)
-        {
-            Array.Copy(Samples, 0, Copy, 1, Samples.Length - 1);
-            Copy[0] = fps;
-
-            int[] temp = Samples;
-            Samples = Copy;
-            Copy = temp;
-
-            N = Math.Min(N + 1, Samples.Length);
-        }
-    }
-
     public partial class Game
     {
         public Scene Scene;
@@ -71,9 +25,13 @@ namespace ConsoleGame
         Menu Menu_YouDied;
         int CurrentMenu = 1;
 
+        List<ITimer> Timers = new();
+
+        public PlayerData PlayerData;
+
         public static float DeltaTime => Instance.deltaTime;
-        public static ConsoleRenderer Renderer => Instance.renderer ?? throw new NullReferenceException();
-        public static DepthBuffer DepthBuffer => Instance.depthBuffer ?? throw new NullReferenceException();
+        public static ConsoleRenderer Renderer => Instance.renderer;
+        public static DepthBuffer DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {
             get
@@ -86,6 +44,8 @@ namespace ConsoleGame
                 return new ObjectOwner(instance.connection.LocalEndPoint);
             }
         }
+
+        public static void StartTimer(ITimer timer) => Instance.Timers.Add(timer);
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         public Game()
@@ -128,6 +88,13 @@ namespace ConsoleGame
                 ("Exit", Exit));
             InputBox_ConnectAddress = new InputBox(renderer, "Connect", "127.0.0.1:7777", 21, InputBox_ConnectAddress_Ok, InputBox_ConnectAddress_Cancel);
             InputBox_HostAddress = new InputBox(renderer, "Host", "0.0.0.0:7777", 21, InputBox_HostAddress_Ok, InputBox_HostAddress_Cancel);
+
+            if (Files.TryLoadAnyDataFile("player_data", out PlayerData savedPlayerData))
+            {
+                PlayerData = savedPlayerData;
+            }
+
+            MainMenu.Select("Offline");
 
             while (isRunning)
             {
@@ -281,6 +248,7 @@ namespace ConsoleGame
         public void Exit()
         {
             isRunning = false;
+            Files.SaveText("player_data", PlayerData);
         }
     }
 }

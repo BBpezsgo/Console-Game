@@ -32,7 +32,7 @@ namespace ConsoleGame
             {
                 currentPoint += direction;
 
-                Entity? hitEntity = Game.Instance.Scene.FirstObjectAt(Position, Tags.Enemy);
+                Entity? hitEntity = Game.Instance.Scene.FirstObjectAt(Position, Tags.Enemy, 1f);
                 if (hitEntity != null)
                 {
                     IDamageable? hit = hitEntity?.TryGetComponent<IDamageable>();

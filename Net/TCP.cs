@@ -267,5 +267,10 @@ namespace ConsoleGame.Net
                 }
             }
         }
+
+        public override void Dispose()
+        {
+            Socket?.Dispose();
+        }
     }
 }

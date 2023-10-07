@@ -106,6 +106,36 @@ namespace ConsoleGame
         public override readonly string ToString() => $"({X.ToString("0.00", CultureInfo.InvariantCulture)}, {Y.ToString("0.00", CultureInfo.InvariantCulture)}, {Width.ToString("0.00", CultureInfo.InvariantCulture)}, {Height.ToString("0.00", CultureInfo.InvariantCulture)})";
         readonly string GetDebuggerDisplay() => ToString();
 
+        public Rect Expand(int v)
+        {
+            X -= v;
+            Y -= v;
+            Width += v * 2;
+            Height += v * 2;
+
+            return this;
+        }
+
+        public Rect Expand(Vector v)
+        {
+            X -= v.X;
+            Y -= v.Y;
+            Width += v.X * 2;
+            Height += v.Y * 2;
+
+            return this;
+        }
+
+        public Rect Expand(float top, float right, float bottom, float left)
+        {
+            X -= left;
+            Y -= top;
+            Width += left + right;
+            Height += top + bottom;
+
+            return this;
+        }
+
         public static Rect Intersection(Rect a, Rect b)
         {
             float left = Math.Max(a.Left, b.Left);
@@ -114,6 +144,46 @@ namespace ConsoleGame
             float bottom = Math.Min(a.Bottom, b.Bottom);
 
             return new Rect(left, top, right - left, bottom - top);
+        }
+
+        public readonly bool Overlaps(Rect other) =>
+            !(this.Left > other.Left + other.Width) &&
+            !(this.Left + this.Width < other.Left) &&
+            !(this.Top > other.Top + other.Height) &&
+            !(this.Top + this.Height < other.Top);
+
+        public readonly bool Contains(Rect other) =>
+            this.X <= other.X &&
+            this.Y <= other.Y &&
+            this.Right >= other.Right &&
+            this.Bottom >= other.Bottom;
+
+        public Rect Move(Vector offset)
+        {
+            this.X += offset.X;
+            this.Y += offset.Y;
+            return this;
+        }
+
+        public Rect Move(float x, float y)
+        {
+            this.X += x;
+            this.Y += y;
+            return this;
+        }
+
+        public static Rect Move(Rect rect, Vector offset)
+        {
+            rect.X += offset.X;
+            rect.Y += offset.Y;
+            return rect;
+        }
+
+        public static Rect Move(Rect rect, float x, float y)
+        {
+            rect.X += x;
+            rect.Y += y;
+            return rect;
         }
     }
 }

@@ -485,6 +485,18 @@
             '\\',
         };
 
+        public static readonly char[] HorizontalLines = new char[]
+        {
+            '‐',
+            '‒',
+            '‒',
+            '–',
+            '—',
+            '―',
+        };
+
+        public static readonly char[] Stuff1 = "¨`¯´˚˙˘˜˝΄΅·´῾῭΅`῝῞῟῁῀᾿᾽῏῎῍՚՛՜՝՞՟‘’‛“”‟\"'".ToCharArray();
+
         public static readonly Dictionary<char, char> UpperIndex = new()
         {
             { '0', (char)0x2070 },
@@ -505,16 +517,60 @@
             { ')', (char)0x207e },
             { '~', (char)0x02dc },
 
+            { 'a', (char)0x0363 },
+            // { 'a', (char)0x1d43 },
+            { 'b', (char)0x1d47 },
+            { 'c', (char)0x0368 },
+            // { 'd', (char)0x1d48 },
+            { 'd', (char)0x0369 },
+            // { 'e', (char)0x1d49 },
+            { 'e', (char)0x0364 },
+            { 'g', (char)0x1d4d },
+            // { 'h', (char)0x036a },
             { 'h', (char)0x02b0 },
+            // { 'i', (char)0x0365 },
             { 'i', (char)0x2071 },
             { 'j', (char)0x02b2 },
+            { 'k', (char)0x1d4f },
             { 'l', (char)0x02e1 },
+            // { 'm', (char)0x1d50 },
+            { 'm', (char)0x036b },
             { 'n', (char)0x207f },
+            // { 'o', (char)0x1d52 },
+            { 'o', (char)0x0366 },
+            { 'p', (char)0x1d56 },
+            // { 'r', (char)0x036c },
             { 'r', (char)0x02b3 },
             { 's', (char)0x02e2 },
+            // { 't', (char)0x1d57 },
+            { 't', (char)0x036d },
+            // { 'u', (char)0x1d58 },
+            { 'u', (char)0x0367 },
+            // { 'v', (char)0x1d5b },
+            { 'v', (char)0x036e },
             { 'w', (char)0x02b7 },
+            // { 'x', (char)0x036f },
             { 'x', (char)0x02e3 },
             { 'y', (char)0x02b8 },
+
+            { 'A', (char)0x1d2c },
+            { 'B', (char)0x1d2e },
+            { 'D', (char)0x1d30 },
+            { 'E', (char)0x1d31 },
+            { 'G', (char)0x1d33 },
+            { 'H', (char)0x1d34 },
+            { 'I', (char)0x1d35 },
+            { 'J', (char)0x1d36 },
+            { 'K', (char)0x1d37 },
+            { 'L', (char)0x1d38 },
+            { 'M', (char)0x1d39 },
+            { 'N', (char)0x1d3a },
+            { 'O', (char)0x1d3c },
+            { 'P', (char)0x1d3e },
+            { 'R', (char)0x1d3f },
+            { 'T', (char)0x1d40 },
+            { 'U', (char)0x1d41 },
+            { 'W', (char)0x1d42 },
         };
 
         public static char DirectionLine(Vector dir)

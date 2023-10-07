@@ -27,11 +27,11 @@
             float lastDamagedInterval = Time.UtcNow - LastDamaged;
             if (lastDamagedInterval < BlinkingDuration && (int)(lastDamagedInterval * BlinkPerSec) % 2 == 0)
             {
-                pixel.Attributes = ByteColor.White;
+                pixel.Foreground = ByteColor.White;
             }
             else
             {
-                pixel.Attributes = Color;
+                pixel.Foreground = Color;
             }
         }
 
