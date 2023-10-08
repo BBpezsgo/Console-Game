@@ -3,64 +3,16 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public partial class ConsoleRenderer
+    public class ConsoleRenderer : Win32.Utilities.ConsoleRenderer
     {
-        readonly SafeFileHandle Handle;
-
-        public short Width => width;
-        public short Height => height;
-
-        public int Size => width * height;
-
-        short width;
-        short height;
-
-        CharInfo[] ConsoleBuffer;
-        SmallRect ConsoleRect;
-
         bool shouldResize;
 
-        public ref CharInfo this[int i] => ref ConsoleBuffer[i];
-        public ref CharInfo this[int x, int y] => ref ConsoleBuffer[(y * width) + x];
-        public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * width) + screenPosition.X];
+        public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * bufferWidth) + screenPosition.X];
 
-        public ConsoleRenderer(SafeFileHandle handle, short width, short height)
-        {
-            Handle = handle;
-            this.width = width;
-            this.height = height;
-            ConsoleBuffer = new CharInfo[this.width * this.height];
-            for (int i = 0; i < ConsoleBuffer.Length; i++)
-            {
-                ConsoleBuffer[i].Char = ' ';
-            }
-            ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = this.width, Bottom = this.height };
-        }
+        public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
+        { }
 
         public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
-        public bool IsVisible(int x, int y) => x >= 0 && y >= 0 && x < width && y < height;
-
-        public void Render()
-        {
-            if (Handle.IsInvalid)
-            {
-                System.Diagnostics.Debug.Fail("Console handle is invalid");
-                return;
-            }
-
-            if (Handle.IsClosed)
-            { return; }
-
-            if (Kernel32.WriteConsoleOutputW(
-                Handle,
-                ConsoleBuffer,
-                new Coord(width, height),
-                new Coord(0, 0),
-                ref ConsoleRect) == 0)
-            { throw WindowsException.Get(); }
-        }
-
-        public void Clear() => Array.Clear(ConsoleBuffer);
 
         public void ShouldResize() => shouldResize = true;
 
@@ -71,11 +23,11 @@ namespace ConsoleGame
 
             Console.Clear();
 
-            width = (short)Console.WindowWidth;
-            height = (short)Console.WindowHeight;
+            bufferWidth = (short)Console.WindowWidth;
+            bufferHeight = (short)Console.WindowHeight;
 
-            ConsoleBuffer = new CharInfo[width * height];
-            ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = width, Bottom = height };
+            ConsoleBuffer = new CharInfo[bufferWidth * bufferHeight];
+            ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = bufferWidth, Bottom = bufferHeight };
             return true;
         }
     }

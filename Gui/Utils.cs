@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     public static class GUI
     {
@@ -43,15 +45,15 @@
             return w;
         }
 
-        public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, ConsoleRenderer.MakeAttributes(background, foreground));
-        public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, ConsoleRenderer.MakeAttributes(background, foreground));
+        public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharInfoAttribute.Make(background, foreground));
+        public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, CharInfoAttribute.Make(background, foreground));
 
         #endregion
 
         #region Box
 
         public static void Box(RectInt box) => Box(box, Ascii.BoxSides);
-        public static void Box(RectInt box, byte background, byte foreground) => Box(box, ConsoleRenderer.MakeAttributes(background, foreground));
+        public static void Box(RectInt box, byte background, byte foreground) => Box(box, CharInfoAttribute.Make(background, foreground));
         public static void Box(RectInt box, ushort attributes) => Box(box, attributes, Ascii.BoxSides);
         
         public static void Box(RectInt box, char[] sideCharacters)
@@ -80,7 +82,7 @@
                 }
             }
         }
-        public static void Box(RectInt box, byte background, byte foreground, char[] sideCharacters) => Box(box, ConsoleRenderer.MakeAttributes(background, foreground), sideCharacters);
+        public static void Box(RectInt box, byte background, byte foreground, char[] sideCharacters) => Box(box, CharInfoAttribute.Make(background, foreground), sideCharacters);
         public static void Box(RectInt box, ushort attributes, char[] sideCharacters)
         {
             for (int _y = 0; _y < box.Height; _y++)

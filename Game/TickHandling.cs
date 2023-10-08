@@ -18,7 +18,7 @@ namespace ConsoleGame
         {
             Keyboard.BeginTick();
 
-            renderer.Clear();
+            renderer.ClearBuffer();
             depthBuffer.Clear();
             if (renderer.Resize())
             { depthBuffer.Resize(); }

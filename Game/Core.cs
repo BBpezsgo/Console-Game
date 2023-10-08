@@ -2,6 +2,7 @@
 using ConsoleGame.Net;
 using Microsoft.Win32.SafeHandles;
 using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {
@@ -110,7 +111,7 @@ namespace ConsoleGame
 
             if (ClearOnExit)
             {
-                renderer.Clear();
+                renderer.ClearBuffer();
                 renderer.Render();
             }
 

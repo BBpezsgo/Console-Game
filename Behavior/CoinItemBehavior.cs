@@ -19,20 +19,22 @@
             {
                 if (otherItems[i] == Entity) continue;
 
+                if (!otherItems[i].TryGetComponent(out CoinItemBehavior? otherCoin)&&
+                    !otherItems[i].TryGetComponent<PlayerBehavior>(out _))
+                { continue; }
+
                 Vector diff = otherItems[i].Position - Position;
                 float distance = diff.SqrMagnitude;
 
-                if (otherItems[i].TryGetComponent(out CoinItemBehavior? otherCoin))
+                if (otherCoin != null && distance <= 1f)
                 {
-                    if (distance <= 1f)
-                    {
-                        otherCoin.Amount += this.Amount;
-                        this.IsDestroyed = true;
-                        continue;
-                    }
+                    otherCoin.Amount += this.Amount;
+                    this.IsDestroyed = true;
+                    continue;
                 }
 
                 Position += diff.Normalized * (1f - (MathF.Sqrt(distance) / MagnetRange)) * Time.DeltaTime;
+
             }
 
             WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
