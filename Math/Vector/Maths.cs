@@ -81,5 +81,31 @@
         public static VectorInt Round(float x, float y) => new((int)MathF.Round(x), (int)MathF.Round(y));
         public static VectorInt Floor(float x, float y) => new((int)MathF.Floor(x), (int)MathF.Floor(y));
         public static VectorInt Ceil(float x, float y) => new((int)MathF.Ceiling(x), (int)MathF.Ceiling(y));
+
+        public static Vector RotateByDeg(Vector direction, float deg)
+        {
+            float v = Vector.ToDeg(direction);
+            v += deg;
+            return Vector.FromDeg(v);
+        }
+        public static void RotateByDeg(ref Vector direction, float deg)
+        {
+            float v = Vector.ToDeg(direction);
+            v += deg;
+            direction = Vector.FromDeg(v);
+        }
+
+        public static Vector RotateByRad(Vector direction, float rad)
+        {
+            float v = Vector.ToRad(direction);
+            v += rad;
+            return Vector.FromRad(v);
+        }
+        public static void RotateByRad(ref Vector direction, float rad)
+        {
+            float v = Vector.ToRad(direction);
+            v += rad;
+            direction = Vector.FromRad(v);
+        }
     }
 }

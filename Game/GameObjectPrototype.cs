@@ -7,5 +7,6 @@
         public const int HELPER_TURRET = 3;
         public const int HELPER_THINGY = 4;
         public const int ENEMY_FACTORY = 5;
+        public const int HELPER_TURRET2 = 6;
     }
 }

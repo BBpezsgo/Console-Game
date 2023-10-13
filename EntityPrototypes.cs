@@ -101,6 +101,30 @@ namespace ConsoleGame
                 }
             },
             {
+                GameObjectPrototype.HELPER_TURRET2, (int networkId, ObjectOwner owner) => {
+                    Entity newEntity = new("Helper Turret2");
+                    newEntity.Tags |= Tags.Helper;
+                    newEntity.IsSolid = true;
+                    newEntity.IsStatic = true;
+                    newEntity.AddComponent(new NetworkEntityComponent(newEntity)
+                    {
+                        NetworkId = networkId,
+                        ObjectId = GameObjectPrototype.HELPER_TURRET2,
+                        Owner = owner,
+                    });
+                    newEntity.AddComponent(new NetworkTransform(newEntity));
+                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
+                    {
+                        Character = 'V',
+                        Color = ByteColor.BrightBlue,
+                        Priority = Depths.OTHER_LIVING,
+                    });
+                    newEntity.AddComponent(new HelperTurret2Behavior(newEntity));
+                    newEntity.AddComponent(new EntityHoverPopup(newEntity));
+                    return newEntity;
+                }
+            },
+            {
                 GameObjectPrototype.HELPER_THINGY, (int networkId, ObjectOwner owner) => {
                     Entity newEntity = new("Helper Thingy");
                     newEntity.Tags |= Tags.Helper;

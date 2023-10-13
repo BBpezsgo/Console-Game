@@ -1,13 +1,13 @@
 namespace ConsoleGame
 {
-    public class Projectile2Behavior : Component
+    public class ProjectileBehavior : Component
     {
         public Vector Velocity;
         public Component? Owner;
 
         public const float Damage = 1f;
 
-        public Projectile2Behavior(Entity entity) : base(entity)
+        public ProjectileBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Projectile;
         }
@@ -51,9 +51,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
-            Entity newEntity = new("Projectile2 Impact Particles")
+            Entity newEntity = new("Projectile Impact Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });
+            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.MetalSparks) { Priority = Depths.EFFECT });
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

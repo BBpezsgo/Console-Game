@@ -81,12 +81,19 @@ namespace ConsoleGame
 
             if (Reload <= 0f && (Mouse.IsLeftDown || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
             {
-                Shoot(Position, (Mouse.WorldPosition - Position).Normalized);
+                Shoot(Position, Vector.RotateByDeg((Mouse.WorldPosition - Position).Normalized, Random.Float(-2f, 2f)));
             }
 
             if (Keyboard.IsKeyDown('X'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
+                newEntity.Position = Mouse.WorldPosition;
+                Game.Instance.Scene.AddEntity(newEntity);
+            }
+
+            if (Keyboard.IsKeyDown('V'))
+            {
+                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET2](Game.Instance.Scene.GenerateNetworkId(), Owner);
                 newEntity.Position = Mouse.WorldPosition;
                 Game.Instance.Scene.AddEntity(newEntity);
             }
@@ -102,7 +109,9 @@ namespace ConsoleGame
             {
                 Vector diff = Mouse.WorldPosition - Position;
                 float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
-                ShootGranate(Position, diff.Normalized, speed);
+                Vector direction = diff.Normalized;
+                Vector.RotateByDeg(ref direction, Random.Float(-1f, 1f));
+                ShootGranate(Position, direction, speed);
             }
 
             if (Keyboard.IsKeyDown('T'))

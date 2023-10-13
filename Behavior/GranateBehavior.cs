@@ -36,6 +36,7 @@
                 for (int i = 0; i < objs.Length; i++)
                 {
                     if (objs[i] == Entity) continue;
+                    if (!objs[i].IsSolid) continue;
                     ShotBy = objs[i];
                     break;
                 }
