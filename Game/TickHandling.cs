@@ -114,6 +114,7 @@ namespace ConsoleGame
 
             for (int x = 0; x < renderer.Width; x++)
             {
+                if (3 >= renderer.Height) break;
                 ref CharInfo pixel = ref renderer[x, 3];
                 pixel.Attributes = ByteColor.Silver;
                 pixel.Char = Ascii.BoxSides[0b_0010];

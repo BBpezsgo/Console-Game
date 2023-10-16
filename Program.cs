@@ -9,6 +9,21 @@ namespace ConsoleGame
         {
             /*
             {
+                Color[] p = new Color[32 * 32];
+                for (int y = 0; y < 32; y++)
+                {
+                    for (int x = 0; x < 32; x++)
+                    {
+                        p[x + (y * 32)] = new Color(x / 32f, y / 32f, 0);
+                    }
+                }
+                Image img = new(p, 32, 32);
+                Ppm.SaveFile(img, @"C:\Users\bazsi\Desktop\uv.ppm");
+            }
+            return;
+            */
+            /*
+            {
                 Rect size = new(0, 0, 1000, 1000);
                 StaticQuadTree<int> ints1 = new(size);
                 List<Rect> ints2 = new();

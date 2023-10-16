@@ -89,12 +89,14 @@ namespace ConsoleGame
             {
                 int actualY = box.Y + _y;
                 if (actualY >= Height) break;
+                if (actualY < 0) continue;
 
                 for (int _x = 0; _x < box.Width; _x++)
                 {
                     int actualX = box.X + _x;
 
                     if (actualX >= Width) break;
+                    if (actualX < 0) continue;
 
                     int size = 0b_0000;
 

@@ -220,7 +220,7 @@
             */
         }
 
-        public static Color From4bitIRGB(byte r, byte g, byte b, byte i) 
+        public static Color From4bitIRGB(byte r, byte g, byte b, byte i)
             => Color.From4bitIRGB((byte)((i << 3) | (r << 2) | (g << 1) | (b)));
 
         public static byte To4bitIRGB(Color color)
@@ -244,6 +244,61 @@
 
             return result;
             */
+        }
+
+        public static Win32.CharInfo ToCharacter(Color color)
+        {
+            Win32.CharInfo result = new(' ', 0);
+            float smallestDist = float.PositiveInfinity;
+
+            for (byte c1 = 0; c1 < 0b_1111; c1++)
+            {
+                Color c1a = Color.From4bitIRGB(c1);
+                {
+                    float dist = Color.Distance(c1a, color);
+                    if (smallestDist > dist)
+                    {
+                        smallestDist = dist;
+                        result = new Win32.CharInfo(' ', 0, c1);
+                    }
+                    if (dist <= float.Epsilon) return result;
+                }
+                for (byte c2 = (byte)(c1 + 1); c2 < 0b_1111; c2++)
+                {
+                    Color c2a = Color.From4bitIRGB(c2);
+                    for (int i = 0; i < Ascii.BlockShade.Length; i++)
+                    {
+                        float shade = (float)i / (float)Ascii.BlockShade.Length;
+                        Color shadedColor = (c1a * shade) + (c2a * (1f - shade));
+                        float dist = Color.Distance(shadedColor, color);
+                        if (smallestDist > dist)
+                        {
+                            smallestDist = dist;
+                            result = new Win32.CharInfo(Ascii.BlockShade[i], c1, c2);
+                        }
+                        if (dist <= float.Epsilon) return result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static Color FromCharacter(Win32.CharInfo character)
+        {
+            float shade = character.Char switch
+            {
+                '░' => .25f,
+                '▒' => .50f,
+                '▓' => .75f,
+                ' ' => 0f,
+                _ => .5f,
+            };
+
+            Color bg = Color.From4bitIRGB(character.Background);
+            Color fg = Color.From4bitIRGB(character.Foreground);
+
+            return (bg * (1f - shade)) + (fg * shade);
         }
 
         // const float Ratio1 = 128f / byte.MaxValue;
@@ -375,7 +430,7 @@
             return Color.From4bitIRGB(irgb);
         }
 
-        public static ConsoleColor ToConsoleColor(byte colorIRGB) 
+        public static ConsoleColor ToConsoleColor(byte colorIRGB)
             => ConsoleColors[colorIRGB];
 
         #endregion
