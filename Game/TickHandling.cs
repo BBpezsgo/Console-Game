@@ -14,6 +14,46 @@ namespace ConsoleGame
 
         int EnemyWave = 5;
 
+        readonly Mesh MeshCube = new()
+        {
+            Triangles = new List<Triangle>()
+            {
+                new Triangle((0, 0, 0), (0, 1, 0), (1, 1, 0)),
+                new Triangle((0, 0, 0), (1, 1, 0), (1, 0, 0)),
+
+                new Triangle((1, 0, 0), (1, 1, 0), (1, 1, 1)),
+                new Triangle((1, 0, 0), (1, 1, 1), (1, 0, 1)),
+
+                new Triangle((1, 0, 1), (1, 1, 1), (0, 1, 1)),
+                new Triangle((1, 0, 1), (0, 1, 1), (0, 0, 1)),
+
+                new Triangle((0, 0, 1), (0, 1, 1), (0, 1, 0)),
+                new Triangle((0, 0, 1), (0, 1, 0), (0, 0, 0)),
+
+                new Triangle((0, 1, 0), (0, 1, 1), (1, 1, 1)),
+                new Triangle((0, 1, 0), (1, 1, 1), (1, 1, 0)),
+
+                new Triangle((1, 0, 1), (0, 0, 1), (0, 0, 0)),
+                new Triangle((1, 0, 1), (0, 0, 0), (1, 0, 0)),
+            },
+        };
+        readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
+        readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
+        readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
+        readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
+
+        const float fNear = 0.1f;
+        const float fFar = 1000.0f;
+        const float fFov = 90.0f;
+        readonly float fFovRad = 1.0f / MathF.Tan(fFov * 0.5f / 180f * MathF.PI);
+
+        Vector3 CameraPosition;
+        Vector3 CameraLookDirection = new(0f, 0f, 1f);
+
+        readonly Matrix4x4 projectionMatrix = Matrix4x4.Zero;
+        readonly Matrix4x4 matRotZ = Matrix4x4.Zero;
+        readonly Matrix4x4 matRotX = Matrix4x4.Zero;
+
         void Tick()
         {
             Keyboard.BeginTick();
@@ -25,7 +65,133 @@ namespace ConsoleGame
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
-            TickWrapped();
+            // TickWrapped();
+
+            const float CameraSpeed = 8f;
+
+            if (Keyboard.IsKeyPressed('W'))
+            {
+                CameraPosition.Z += Time.DeltaTime * CameraSpeed;
+            }
+            if (Keyboard.IsKeyPressed('A'))
+            {
+                CameraPosition.X -= Time.DeltaTime * CameraSpeed;
+            }
+            if (Keyboard.IsKeyPressed('S'))
+            {
+                CameraPosition.Z -= Time.DeltaTime * CameraSpeed;
+            }
+            if (Keyboard.IsKeyPressed('D'))
+            {
+                CameraPosition.X += Time.DeltaTime * CameraSpeed;
+            }
+            if (Keyboard.IsKeyPressed(VirtualKeyCodes.SHIFT))
+            {
+                CameraPosition.Y -= Time.DeltaTime * CameraSpeed;
+            }
+            if (Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE))
+            {
+                CameraPosition.Y += Time.DeltaTime * CameraSpeed;
+            }
+
+            float aspectRatio = (float)renderer.Height / (float)renderer.Width;
+
+            Matrix4x4.MakeProjection(projectionMatrix, aspectRatio, fFovRad, fFar, fNear);
+
+            float theta = 0f;
+
+            Matrix4x4.MakeRotationZ(matRotZ, theta);
+            Matrix4x4.MakeRotationX(matRotX, theta * 0.5f);
+
+            Matrix4x4 worldMatrix = Matrix4x4.MakeRotationZ(theta * 0.5f) * Matrix4x4.MakeRotationX(theta);
+            worldMatrix *= Matrix4x4.MakeTransition(0f, 0f, 8f);
+
+            Vector3 up = new(0f, 1f, 0f);
+            Vector3 target = CameraPosition + CameraLookDirection;
+
+            Matrix4x4 cameraMatrix = Matrix4x4.MakePointAt(CameraPosition, target, up);
+
+            Matrix4x4 viewMatrix = Matrix4x4.QuickInverse(cameraMatrix);
+
+            VectorInt screenSize = new(renderer.Width, renderer.Height);
+
+            List<(Triangle, Color)> trianglesToDraw = new();
+
+            for (int i = 0; i < MeshAxis.Triangles.Count; i++)
+            {
+                Triangle tri = MeshAxis.Triangles[i];
+
+                tri.A *= worldMatrix;
+                tri.B *= worldMatrix;
+                tri.C *= worldMatrix;
+
+                tri.A -= CameraPosition;
+                tri.B -= CameraPosition;
+                tri.C -= CameraPosition;
+
+                Vector3 normal, line1, line2;
+
+                line1 = tri.B - tri.A;
+                line2 = tri.C - tri.A;
+
+                normal = Vector3.Cross(line1, line2);
+
+                normal.Normalize();
+
+                Vector3 cameraRay = tri.A - CameraPosition;
+
+                if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) continue;
+
+                Vector3 sunDirection = (0f, 0f, -1f);
+                Color color = Color.White;
+
+                float dp = Math.Max(0.1f, Vector3.Dot(sunDirection, normal));
+                color *= Math.Clamp(dp, 0f, 1f);
+
+                tri.A *= viewMatrix;
+                tri.B *= viewMatrix;
+                tri.C *= viewMatrix;
+
+                tri.A *= projectionMatrix;
+                tri.B *= projectionMatrix;
+                tri.C *= projectionMatrix;
+
+                tri.A += Vector3.One;
+                tri.B += Vector3.One;
+                tri.C += Vector3.One;
+
+                tri.A *= 0.5f;
+                tri.B *= 0.5f;
+                tri.C *= 0.5f;
+
+                trianglesToDraw.Add((tri, color));
+            }
+
+            trianglesToDraw.Sort(new Comparison<(Triangle, Color)>((a, b) =>
+            {
+                float midA = (a.Item1.A.Z + a.Item1.B.Z + a.Item1.C.Z) / 3;
+                float midB = (b.Item1.A.Z + b.Item1.B.Z + b.Item1.C.Z) / 3;
+                return -midA.CompareTo(midB);
+            }));
+
+            for (int i = 0; i < trianglesToDraw.Count; i++)
+            {
+                (Triangle tri, Color color) = trianglesToDraw[i];
+
+                renderer.FillTriangle(
+                    ((Vector)tri.A * screenSize).Round(),
+                    ((Vector)tri.B * screenSize).Round(),
+                    ((Vector)tri.C * screenSize).Round(),
+                    Color.ToCharacterShaded(color));
+                /*
+                renderer.DrawLines(new VectorInt[]
+                {
+                    ((Vector)tri.A * screenSize).Round(),
+                    ((Vector)tri.B * screenSize).Round(),
+                    ((Vector)tri.C * screenSize).Round(),
+                }, ByteColor.White << 4, ' ', true);
+                */
+            }
 
             renderer.Render();
         }

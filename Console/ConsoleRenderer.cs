@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using System.Runtime.ExceptionServices;
+using Microsoft.Win32.SafeHandles;
 using Win32;
 
 namespace ConsoleGame
@@ -18,6 +19,112 @@ namespace ConsoleGame
 
         public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
         { }
+
+        public void DrawLines(VectorInt[] points, Color color, bool connectEnd = false)
+            => DrawLines(points, (byte)color, ' ', connectEnd);
+        public void DrawLines(VectorInt[] points, ushort attributes, char c, bool connectEnd = false)
+        {
+            for (int i = 1; i < points.Length; i++)
+            { DrawLine(points[i - 1], points[i], attributes, c); }
+
+            if (connectEnd && points.Length > 2)
+            { DrawLine(points[0], points[^1], attributes, c); }
+        }
+        public void DrawLine(VectorInt a, VectorInt b, Color color)
+            => DrawLine(a, b, (byte)color, ' ');
+        public void DrawLine(VectorInt a, VectorInt b, ushort attributes, char c)
+        {
+            int dist = (int)MathF.Sqrt((a - b).SqrMagnitude);
+
+            for (int i = 0; i < dist; i++)
+            {
+                float v = (float)i / (float)dist;
+                Vector p = (a * v) + (b * (1f - v));
+                VectorInt p2 = p.Round();
+                if (!IsVisible(p2)) continue;
+                this[p2].Attributes = attributes;
+                this[p2].Char = c;
+            }
+            return;
+
+            int minX = Math.Min(a.X, b.X);
+            int minY = Math.Min(a.Y, b.Y);
+            int maxX = Math.Max(a.X, b.X);
+            int maxY = Math.Max(a.Y, b.Y);
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int x = minX; x <= maxX; x++)
+                {
+                    if (!IsVisible(x, y)) continue;
+                    this[x, y].Attributes = attributes;
+                    this[x, y].Char = c;
+                }
+            }
+        }
+
+        static void Swap<T>(ref T a, ref T b)
+        {
+            T temp = b;
+            b = a;
+            a = temp;
+        }
+
+        public void FillTriangle(VectorInt a, VectorInt b, VectorInt c, ushort attributes, char character)
+            => FillTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, new CharInfo(character, attributes));
+        public void FillTriangle(VectorInt a, VectorInt b, VectorInt c, CharInfo c1)
+            => FillTriangle(a.X, a.Y, b.X, b.Y, c.X, c.Y, c1);
+        public void FillTriangle(int x0, int y0, int x1, int y1, int x2, int y2, CharInfo c)
+        {
+            int width = this.Width;
+            int height = this.Height;
+
+            // sort the points vertically
+            if (y1 > y2)
+            {
+                Swap(ref x1, ref x2);
+                Swap(ref y1, ref y2);
+            }
+            if (y0 > y1)
+            {
+                Swap(ref x0, ref x1);
+                Swap(ref y0, ref y1);
+            }
+            if (y1 > y2)
+            {
+                Swap(ref x1, ref x2);
+                Swap(ref y1, ref y2);
+            }
+
+            double dx_far = Convert.ToDouble(x2 - x0) / (y2 - y0 + 1);
+            double dx_upper = Convert.ToDouble(x1 - x0) / (y1 - y0 + 1);
+            double dx_low = Convert.ToDouble(x2 - x1) / (y2 - y1 + 1);
+            double xf = x0;
+            double xt = x0 + dx_upper; // if y0 == y1, special case
+            for (int y = y0; y <= (y2 > height - 1 ? height - 1 : y2); y++)
+            {
+                if (y >= 0)
+                {
+                    for (int x = (xf > 0 ? Convert.ToInt32(xf) : 0);
+                         x <= (xt < width ? xt : width - 1); x++)
+                    {
+                        if (!this.IsVisible(x, y)) continue;
+                        this[Convert.ToInt32(x + y * width)] = c;
+                    }
+                    for (int x = (xf < width ? Convert.ToInt32(xf) : width - 1);
+                         x >= (xt > 0 ? xt : 0); x--)
+                    {
+                        if (!this.IsVisible(x, y)) continue;
+                        this[Convert.ToInt32(x + y * width)] = c;
+                    }
+                }
+                xf += dx_far;
+                if (y < y1)
+                { xt += dx_upper; }
+                else
+                { xt += dx_low; }
+            }
+        }
 
         public void DrawImage(Image? image, VectorInt position, bool fixWidth)
         {
@@ -175,7 +282,7 @@ namespace ConsoleGame
                     VectorInt imageCoord = Vector.Floor(uv);
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
-                    this[point] = Color.ToCharacter(pixel);
+                    this[point] = Color.ToCharacterColored(pixel);
                 }
             }
         }
@@ -262,7 +369,7 @@ namespace ConsoleGame
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
                     Color alreadyThere = Color.FromCharacter(this[point]);
-                    this[point] = Color.ToCharacter(pixel.Blend(alreadyThere));
+                    this[point] = Color.ToCharacterColored(pixel.Blend(alreadyThere));
                 }
             }
         }

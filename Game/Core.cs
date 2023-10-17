@@ -61,6 +61,9 @@ namespace ConsoleGame
         {
             Console.Title = $"Game";
 
+            ConsoleUtils.SetCurrentFont("Consolas", 4);
+            // ConsoleUtils.Reset();
+
             ConsoleHandler.Setup();
 
             ConsoleListener.KeyEvent += OnKey;

@@ -246,7 +246,26 @@
             */
         }
 
-        public static Win32.CharInfo ToCharacter(Color color)
+        public static Win32.CharInfo ToCharacterShaded(Color color)
+        {
+            Win32.CharInfo result = new(' ', 0);
+
+            byte c = Color.To4bitIRGB(color);
+            float shade = color.Luminance;
+            if (shade <= float.Epsilon)
+            {
+                return result;
+            }
+
+            if (shade >= 1f)
+            {
+                return new Win32.CharInfo(' ', (ushort)(c << 4));
+            }
+
+            return new Win32.CharInfo(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
+        }
+
+        public static Win32.CharInfo ToCharacterColored(Color color)
         {
             Win32.CharInfo result = new(' ', 0);
             float smallestDist = float.PositiveInfinity;
