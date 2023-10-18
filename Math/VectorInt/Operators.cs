@@ -15,5 +15,7 @@
 
         public static VectorInt operator *(int a, VectorInt b) => new(a * b.X, a * b.Y);
         public static Vector operator *(float a, VectorInt b) => new(a * b.X, a * b.Y);
+
+        public static implicit operator VectorInt(Win32.Point v) => new(v.X, v.Y);
     }
 }

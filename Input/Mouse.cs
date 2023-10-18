@@ -37,7 +37,13 @@ namespace ConsoleGame
         public static bool IsMiddleDown => pressed[MouseButton.Middle];
         public static bool IsRightDown => pressed[MouseButton.Right];
 
-        public static VectorInt Position => new(mousePosition.X, mousePosition.Y);
+        public static VectorInt Position {
+            get {
+                _ = User32.GetCursorPos(out Point pos);
+                return new VectorInt(pos.X, pos.Y);
+            }
+            // get => new(mousePosition.X, mousePosition.Y);
+        }
 
         public static void Feed(MouseEvent e)
         {

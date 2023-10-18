@@ -16,22 +16,15 @@ namespace ConsoleGame
         int EnemyWave = 5;
 
         readonly Mesh MeshCube = Mesh.MakeCube();
-        readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
-        readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
-        readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
-        readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
-        readonly Mesh MeshTerrain = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\uploads_files_3707747_landscape.obj");
+        // readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
+        // readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
+        // readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
+        // readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
+        // readonly Mesh MeshTerrain = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\uploads_files_3707747_landscape.obj");
 
-        readonly Image ImgUv = Ppm.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\bruh.ppm");
+        // readonly Image ImgUv = Ppm.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\bruh.ppm");
 
-        const float fNear = 0.01f;
-        const float fFar = 1000.0f;
-        const float fFov = 90.0f;
-        readonly float fFovRad = 1.0f / MathF.Tan(fFov * 0.5f / 180f * MathF.PI);
-
-        Vector3 CameraPosition;
-        Vector3 CameraLookDirection = new(0f, 0f, 1f);
-        float CameraYaw;
+        Camera camera = new();
 
         readonly Matrix4x4 projectionMatrix = Matrix4x4.Zero;
         readonly Matrix4x4 matRotZ = Matrix4x4.Zero;
@@ -40,6 +33,12 @@ namespace ConsoleGame
         VectorInt LastMousePosition;
 
         readonly Win32.Utilities.Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
+
+        public static readonly int width  = User32.GetSystemMetrics(0);
+        public static readonly int height = User32.GetSystemMetrics(1);
+
+        bool LockCursor;
+        const float MouseIntensity = 0.001f;
 
         unsafe void Tick()
         {
@@ -52,48 +51,14 @@ namespace ConsoleGame
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
-            VectorInt mouseDelta = Mouse.Position - LastMousePosition;
-            LastMousePosition = Mouse.Position;
-
             // TickWrapped();
 
-            const float CameraSpeed = 8f;
+            if (Keyboard.IsKeyDown('C'))
+            { LockCursor = !LockCursor; }
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.LEFT))
-            { CameraPosition.X -= Time.DeltaTime * CameraSpeed; }
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.RIGHT))
-            { CameraPosition.X += Time.DeltaTime * CameraSpeed; }
+            camera.HandleInput(LockCursor, ref LastMousePosition);
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.UP))
-            { CameraPosition.Y -= Time.DeltaTime * CameraSpeed; }
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.DOWN))
-            { CameraPosition.Y += Time.DeltaTime * CameraSpeed; }
-
-            Vector3 cameraForward = CameraLookDirection * CameraSpeed * Time.DeltaTime;
-
-            if (Keyboard.IsKeyPressed('W'))
-            { CameraPosition += cameraForward; }
-
-            if (Keyboard.IsKeyPressed('S'))
-            { CameraPosition -= cameraForward; }
-
-            if (Keyboard.IsKeyPressed('A'))
-            { CameraYaw += 2.0f * Time.DeltaTime; }
-
-            if (Keyboard.IsKeyPressed('D'))
-            { CameraYaw -= 2.0f * Time.DeltaTime; }
-
-
-            {
-                Win32.Rect r = ConsoleWindow.ClientRect;
-                _ = User32.SetCursorPos(r.Left + r.Width / 2, r.Top + r.Height / 2);
-            }
-
-            // CameraYaw += mouseDelta.Y * 0.05f;
-
-            float aspectRatio = (float)renderer.Height / (float)renderer.Width;
-
-            Matrix4x4.MakeProjection(projectionMatrix, aspectRatio, fFovRad, fFar, fNear);
+            Matrix4x4.MakeProjection(projectionMatrix, (float)renderer.Height / (float)renderer.Width, Camera.fFovRad, Camera.fFar, Camera.fNear);
 
             float theta = 0f;
 
@@ -105,11 +70,11 @@ namespace ConsoleGame
 
             Vector3 up = new(0f, 1f, 0f);
             Vector3 target = new(0f, 0f, 1f);
-            Matrix4x4 cameraRotationMatrix = Matrix4x4.MakeRotationY(CameraYaw);
-            CameraLookDirection = target * cameraRotationMatrix;
-            target = CameraPosition + CameraLookDirection;
+            Matrix4x4 cameraRotationMatrix = Matrix4x4.MakeRotationY(camera.CameraYaw) * Matrix4x4.MakeRotationX(camera.CameraBruh);
+            camera.CameraLookDirection = target * cameraRotationMatrix;
+            target = camera.CameraPosition + camera.CameraLookDirection;
 
-            Matrix4x4 cameraMatrix = Matrix4x4.MakePointAt(CameraPosition, target, up);
+            Matrix4x4 cameraMatrix = Matrix4x4.MakePointAt(camera.CameraPosition, target, up);
 
             Matrix4x4 viewMatrix = Matrix4x4.QuickInverse(cameraMatrix);
 
@@ -136,7 +101,7 @@ namespace ConsoleGame
 
                 normal.Normalize();
 
-                Vector3 cameraRay = tri.PointA - CameraPosition;
+                Vector3 cameraRay = tri.PointA - camera.CameraPosition;
 
                 if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) continue;
 
@@ -239,19 +204,21 @@ namespace ConsoleGame
 
                 for (int j = 0; j < triangles_.Length; j++)
                 {
+                    /*
                     renderer.FillTriangle(
                         (((Vector)triangles_[j].PointA) * screenSize).Round(), triangles_[j].TexA,
                         (((Vector)triangles_[j].PointB) * screenSize).Round(), triangles_[j].TexB,
                         (((Vector)triangles_[j].PointC) * screenSize).Round(), triangles_[j].TexC,
                         ImgUv);
+                    */
 
-                    /*
                     renderer.FillTriangle(
                         ((Vector.One - (Vector)triangles_[j].PointA) * screenSize).Round(),
                         ((Vector.One - (Vector)triangles_[j].PointB) * screenSize).Round(),
                         ((Vector.One - (Vector)triangles_[j].PointC) * screenSize).Round(),
                         Color.ToCharacterShaded(color));
 
+                    /*
                     renderer.DrawLines(new VectorInt[]
                     {
                         ((Vector.One - (Vector)tri.A) * screenSize).Round(),
