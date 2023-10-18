@@ -16,19 +16,17 @@ namespace ConsoleGame
         int EnemyWave = 5;
 
         readonly Mesh MeshCube = Mesh.MakeCube();
-        // readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
-        // readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
-        // readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
-        // readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
-        // readonly Mesh MeshTerrain = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\uploads_files_3707747_landscape.obj");
+        readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
+        readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
+        readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
+        readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
+        readonly Mesh MeshTerrain = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\uploads_files_3707747_landscape.obj");
 
-        // readonly Image ImgUv = Ppm.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\bruh.ppm");
+        readonly Image ImgUv = Ppm.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\bruh.ppm");
 
         Camera camera = new();
 
-        readonly Matrix4x4 projectionMatrix = Matrix4x4.Zero;
-        readonly Matrix4x4 matRotZ = Matrix4x4.Zero;
-        readonly Matrix4x4 matRotX = Matrix4x4.Zero;
+        Renderer3D Renderer3D;
 
         VectorInt LastMousePosition;
 
@@ -57,177 +55,9 @@ namespace ConsoleGame
             { LockCursor = !LockCursor; }
 
             camera.HandleInput(LockCursor, ref LastMousePosition);
+            camera.DoMath(renderer.Rect, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix);
 
-            Matrix4x4.MakeProjection(projectionMatrix, (float)renderer.Height / (float)renderer.Width, Camera.fFovRad, Camera.fFar, Camera.fNear);
-
-            float theta = 0f;
-
-            Matrix4x4.MakeRotationZ(matRotZ, theta);
-            Matrix4x4.MakeRotationX(matRotX, theta * 0.5f);
-
-            Matrix4x4 worldMatrix = Matrix4x4.MakeRotationZ(theta * 0.5f) * Matrix4x4.MakeRotationX(theta);
-            worldMatrix *= Matrix4x4.MakeTransition(0f, 0f, 8f);
-
-            Vector3 up = new(0f, 1f, 0f);
-            Vector3 target = new(0f, 0f, 1f);
-            Matrix4x4 cameraRotationMatrix = Matrix4x4.MakeRotationY(camera.CameraYaw) * Matrix4x4.MakeRotationX(camera.CameraBruh);
-            camera.CameraLookDirection = target * cameraRotationMatrix;
-            target = camera.CameraPosition + camera.CameraLookDirection;
-
-            Matrix4x4 cameraMatrix = Matrix4x4.MakePointAt(camera.CameraPosition, target, up);
-
-            Matrix4x4 viewMatrix = Matrix4x4.QuickInverse(cameraMatrix);
-
-            VectorInt screenSize = new(renderer.Width, renderer.Height);
-
-            List<(TriangleEx, Color)> trianglesToDraw = new();
-
-            TriangleEx* clipped = stackalloc TriangleEx[2];
-
-            for (int i = 0; i < MeshCube.Triangles.Count; i++)
-            {
-                TriangleEx tri = MeshCube.Triangles[i];
-
-                tri.PointA *= worldMatrix;
-                tri.PointB *= worldMatrix;
-                tri.PointC *= worldMatrix;
-
-                Vector3 normal, line1, line2;
-
-                line1 = tri.PointB - tri.PointA;
-                line2 = tri.PointC - tri.PointA;
-
-                normal = Vector3.Cross(line1, line2);
-
-                normal.Normalize();
-
-                Vector3 cameraRay = tri.PointA - camera.CameraPosition;
-
-                if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) continue;
-
-                Vector3 sunDirection = (0f, .7f, -1f);
-                Color color = Color.White;
-
-                float dp = Math.Clamp(Vector3.Dot(sunDirection, normal), 0.3f, 1f);
-                color *= dp;
-
-                tri.PointA *= viewMatrix;
-                tri.PointB *= viewMatrix;
-                tri.PointC *= viewMatrix;
-
-                int clippedTriangles = Triangle.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
-
-                for (int n = 0; n < clippedTriangles; n++)
-                {
-                    TriangleEx clippedTriangle = clipped[n];
-
-                    clippedTriangle.PointA *= projectionMatrix;
-                    clippedTriangle.PointB *= projectionMatrix;
-                    clippedTriangle.PointC *= projectionMatrix;
-
-                    clippedTriangle.TexA.X /= clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.X /= clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.X /= clippedTriangle.PointC.W;
-
-                    clippedTriangle.TexA.Y /= clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.Y /= clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.Y /= clippedTriangle.PointC.W;
-
-                    clippedTriangle.TexA.Z = 1f / clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.Z = 1f / clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.Z = 1f / clippedTriangle.PointC.W;
-
-                    if (clippedTriangle.PointA.W != 0f)
-                    { clippedTriangle.PointA /= clippedTriangle.PointA.W; }
-
-                    if (clippedTriangle.PointB.W != 0f)
-                    { clippedTriangle.PointB /= clippedTriangle.PointB.W; }
-
-                    if (clippedTriangle.PointC.W != 0f)
-                    { clippedTriangle.PointC /= clippedTriangle.PointC.W; }
-
-                    Vector3 viewOffset = new(1f, 1f, 0f);
-
-                    clippedTriangle.PointA += viewOffset;
-                    clippedTriangle.PointB += viewOffset;
-                    clippedTriangle.PointC += viewOffset;
-
-                    clippedTriangle.PointA *= 0.5f;
-                    clippedTriangle.PointB *= 0.5f;
-                    clippedTriangle.PointC *= 0.5f;
-
-                    trianglesToDraw.Add((clippedTriangle, color));
-                }
-            }
-
-            /*
-            trianglesToDraw.Sort(new Comparison<(TriangleEx, Color)>((a, b) =>
-            {
-                float midA = (a.Item1.PointA.Z + a.Item1.PointB.Z + a.Item1.PointC.Z) / 3;
-                float midB = (b.Item1.PointA.Z + b.Item1.PointB.Z + b.Item1.PointC.Z) / 3;
-                return -midA.CompareTo(midB);
-            }));
-            */
-
-            for (int i = 0; i < trianglesToDraw.Count; i++)
-            {
-                (TriangleEx tri, Color color) = trianglesToDraw[i];
-
-                Queue<TriangleEx> triangles = new();
-                triangles.Enqueue(tri);
-                int newTriangles = 1;
-
-                for (int p = 0; p < 4; p++)
-                {
-                    int trisToAdd = 0;
-                    while (newTriangles > 0)
-                    {
-                        TriangleEx test = triangles.Dequeue();
-                        newTriangles--;
-
-                        switch (p)
-                        {
-                            case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, renderer.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(renderer.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            default: break;
-                        }
-
-                        for (int w = 0; w < trisToAdd; w++)
-                            triangles.Enqueue(clipped[w]);
-                    }
-                    newTriangles = triangles.Count;
-                }
-
-                TriangleEx[] triangles_ = triangles.ToArray();
-
-                for (int j = 0; j < triangles_.Length; j++)
-                {
-                    /*
-                    renderer.FillTriangle(
-                        (((Vector)triangles_[j].PointA) * screenSize).Round(), triangles_[j].TexA,
-                        (((Vector)triangles_[j].PointB) * screenSize).Round(), triangles_[j].TexB,
-                        (((Vector)triangles_[j].PointC) * screenSize).Round(), triangles_[j].TexC,
-                        ImgUv);
-                    */
-
-                    renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles_[j].PointA) * screenSize).Round(),
-                        ((Vector.One - (Vector)triangles_[j].PointB) * screenSize).Round(),
-                        ((Vector.One - (Vector)triangles_[j].PointC) * screenSize).Round(),
-                        Color.ToCharacterShaded(color));
-
-                    /*
-                    renderer.DrawLines(new VectorInt[]
-                    {
-                        ((Vector.One - (Vector)tri.A) * screenSize).Round(),
-                        ((Vector.One - (Vector)tri.B) * screenSize).Round(),
-                        ((Vector.One - (Vector)tri.C) * screenSize).Round(),
-                    }, ByteColor.Magenta << 4, ' ', true);
-                    */
-                }
-            }
+            Renderer3D.Render(MeshMountains, camera, null);
 
             renderer.Render();
         }

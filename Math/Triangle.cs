@@ -181,6 +181,9 @@ namespace ConsoleGame
 
             if (insidePointCount == 2 && outsidePointCount == 1)
             {
+                triangleOut1 = triangleIn;
+                triangleOut2 = triangleIn;
+
                 float t;
 
                 triangleOut1.PointA = insidePoints[0];

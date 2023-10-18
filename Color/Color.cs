@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace ConsoleGame
 {
@@ -76,6 +77,25 @@ namespace ConsoleGame
         {
             Color d = a - b;
             return (d.R * d.R) + (d.G * d.G) + (d.B * d.B);
+        }
+
+        public static bool TryParse(string text, out Color color)
+        {
+            color = default;
+            text = text.Trim();
+            string[] parts = text.Split(' ');
+
+            if (parts.Length != 3)
+            { return false; }
+
+            if (!float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out color.R))
+            { return false; }
+            if (!float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out color.G))
+            { return false; }
+            if (!float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out color.B))
+            { return false; }
+
+            return true;
         }
     }
 }
