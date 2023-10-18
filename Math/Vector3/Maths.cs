@@ -44,13 +44,24 @@
         public static float Distance(Vector3 a, Vector3 b) => (b - a).Magnitude;
 
         public static float Dot(Vector3 a, Vector3 b) => (a.X * b.X) + (a.Y * b.Y) + (a.Z * b.Z);
-        public static Vector3 Cross(Vector3 a, Vector3 b)
+        public static Vector3 Cross(Vector3 a, Vector3 b) => new(
+            a.Y * b.Z - a.Z * b.Y,
+            a.Z * b.X - a.X * b.Z,
+            a.X * b.Y - a.Y * b.X
+        );
+
+        public static Vector3 IntersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd)
+            => Vector3.IntersectPlane(planePoint, planeNormal, lineStart, lineEnd, out _);
+        public static Vector3 IntersectPlane(Vector3 planePoint, Vector3 planeNormal, Vector3 lineStart, Vector3 lineEnd, out float t)
         {
-            Vector3 v;
-            v.X = a.Y * b.Z - a.Z * b.Y;
-            v.Y = a.Z * b.X - a.X * b.Z;
-            v.Z = a.X * b.Y - a.Y * b.X;
-            return v;
+            planeNormal.Normalize();
+            float planeD = -Vector3.Dot(planeNormal, planePoint);
+            float ad = Vector3.Dot(lineStart, planeNormal);
+            float bd = Vector3.Dot(lineEnd, planeNormal);
+            t = (-planeD - ad) / (bd - ad);
+            Vector3 lineStartToEnd = lineEnd - lineStart;
+            Vector3 lineToIntersect = lineStartToEnd * t;
+            return lineStart + lineToIntersect;
         }
     }
 }

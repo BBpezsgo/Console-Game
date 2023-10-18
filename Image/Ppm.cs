@@ -85,9 +85,9 @@ namespace ConsoleGame
             return result;
         }
 
-        public static Image? LoadFile(string file)
+        public static Image LoadFile(string file)
         {
-            if (!File.Exists(file)) return null;
+            if (!File.Exists(file)) throw new Exception($"File \"{file}\" not found");
             string data = File.ReadAllText(file, Encoding.ASCII);
             int i = 0;
 
@@ -100,9 +100,9 @@ namespace ConsoleGame
             int? maxRgbValue = ExpectInt(data, ref i) ?? 255;
             ConsumeJunk(data, ref i);
 
-            if (!width.HasValue) return null;
-            if (!height.HasValue) return null;
-            if (maxRgbValue == 0) return null;
+            if (!width.HasValue) throw new Exception($"Invalid width value");
+            if (!height.HasValue) throw new Exception($"Invalid height value");
+            if (maxRgbValue == 0) throw new Exception($"Invalid maxRgbValue value {maxRgbValue}");
 
             int width_ = width.Value;
             int height_ = height.Value;

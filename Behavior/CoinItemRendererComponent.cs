@@ -23,7 +23,7 @@
 
             VectorInt p = Game.WorldToConsole(Position);
 
-            ref byte depth = ref Game.DepthBuffer[p];
+            ref float depth = ref Game.DepthBuffer[p];
 
             if (depth > Priority) return;
 

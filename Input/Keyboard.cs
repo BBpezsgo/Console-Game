@@ -52,7 +52,7 @@ namespace ConsoleGame
             Stage3 = Stage2;
             Stage2 = Stage1;
             Stage1 = savedStage3;
-            Buffer.BlockCopy(Accumulated, 0, Stage1, 0, 8 * sizeof(int));
+            System.Buffer.BlockCopy(Accumulated, 0, Stage1, 0, 8 * sizeof(int));
         }
     }
 }

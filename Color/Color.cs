@@ -11,6 +11,7 @@ namespace ConsoleGame
 
         public readonly float Luminance => (0.2126f * R) + (0.7152f * G) + (0.0722f * B);
         public readonly bool Overflow => R > 1f || G > 1f || B > 1f;
+        public readonly float Intensity => MathF.Sqrt((R * R) + (G * G) + (B * B));
 
         public Color(float r, float g, float b)
         {

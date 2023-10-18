@@ -15,6 +15,8 @@
         public static Vector3 operator *(float a, Vector3 b) => new(a * b.X, a * b.Y, a * b.Z);
 
         public static implicit operator Vector3(ValueTuple<float, float, float> v) => new(v.Item1, v.Item2, v.Item3);
+
         public static explicit operator Vector(Vector3 v) => new(v.X, v.Y);
+        public static implicit operator Vector3(Vector v) => new(v.X, v.Y, 0f);
     }
 }

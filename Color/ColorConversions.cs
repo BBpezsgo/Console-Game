@@ -251,7 +251,7 @@
             Win32.CharInfo result = new(' ', 0);
 
             byte c = Color.To4bitIRGB(color);
-            float shade = color.Luminance;
+            float shade = color.Intensity;
             if (shade <= float.Epsilon)
             {
                 return result;

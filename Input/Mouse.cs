@@ -37,6 +37,8 @@ namespace ConsoleGame
         public static bool IsMiddleDown => pressed[MouseButton.Middle];
         public static bool IsRightDown => pressed[MouseButton.Right];
 
+        public static VectorInt Position => new(mousePosition.X, mousePosition.Y);
+
         public static void Feed(MouseEvent e)
         {
             pressed = (CompactMouse)e.ButtonState;

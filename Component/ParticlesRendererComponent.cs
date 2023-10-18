@@ -133,7 +133,7 @@
                 if (!Game.IsVisible(pos)) continue;
                 VectorInt p = Game.WorldToConsole(pos);
 
-                ref byte depth = ref Game.DepthBuffer[p];
+                ref float depth = ref Game.DepthBuffer[p];
 
                 if (depth > Priority) continue;
                 depth = Priority;

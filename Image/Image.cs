@@ -30,5 +30,16 @@
             Array.Copy(Data, data, Data.Length);
             return new Image(data, Width, Height);
         }
+
+        public Color NormalizedSample(float texU, float texV)
+        {
+            int x = (int)(texU * Width);
+            int y = (int)(texV * Height);
+
+            x = Math.Clamp(x, 0, Width - 1);
+            y = Math.Clamp(y, 0, Height - 1);
+
+            return this[x, y];
+        }
     }
 }

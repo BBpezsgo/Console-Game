@@ -39,7 +39,7 @@ namespace ConsoleGame
 
                 if (Game.IsOnGui(conPos)) continue;
 
-                ref byte depth = ref Game.DepthBuffer[conPos];
+                ref float depth = ref Game.DepthBuffer[conPos];
 
                 if (depth > Priority) continue;
 

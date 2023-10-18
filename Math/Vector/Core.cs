@@ -62,5 +62,22 @@ namespace ConsoleGame
 
         public static Vector Zero => new(0f);
         public static Vector One => new(1f);
+
+        public static bool TryParse(string text, out Vector vector2)
+        {
+            vector2 = default;
+            text = text.Trim();
+            string[] parts = text.Split(' ');
+
+            if (parts.Length != 2)
+            { return false; }
+
+            if (!float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out vector2.X))
+            { return false; }
+            if (!float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out vector2.Y))
+            { return false; }
+
+            return true;
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace ConsoleGame
         public Scene Scene;
         SafeFileHandle ConsoleHandle;
         ConsoleRenderer renderer;
-        DepthBuffer depthBuffer;
+        Buffer<float> depthBuffer;
         float deltaTime;
         FpsCounter FpsCounter;
         bool isRunning;
@@ -32,7 +32,7 @@ namespace ConsoleGame
 
         public static float DeltaTime => Instance.deltaTime;
         public static ConsoleRenderer Renderer => Instance.renderer;
-        public static DepthBuffer DepthBuffer => Instance.depthBuffer;
+        public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {
             get
@@ -61,10 +61,10 @@ namespace ConsoleGame
         {
             Console.Title = $"Game";
 
-            ConsoleUtils.SetCurrentFont("Consolas", 4);
             // ConsoleUtils.Reset();
 
             ConsoleHandler.Setup();
+            ConsoleHandler.SetFont("Consolas", 4);
 
             ConsoleListener.KeyEvent += OnKey;
             ConsoleListener.MouseEvent += OnMouse;
@@ -75,7 +75,7 @@ namespace ConsoleGame
             fixed (char* fileNamePtr = "CONOUT$")
             { ConsoleHandle = Kernel32.CreateFile(fileNamePtr, 0x40000000, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
             renderer = new ConsoleRenderer(ConsoleHandle, (short)Console.WindowWidth, (short)Console.WindowHeight);
-            depthBuffer = new DepthBuffer(renderer);
+            depthBuffer = new Buffer<float>(renderer);
 
             double last = DateTime.Now.TimeOfDay.TotalSeconds;
             double now;

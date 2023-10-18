@@ -10,12 +10,14 @@ namespace ConsoleGame
         public float X;
         public float Y;
         public float Z;
+        public float W;
 
         public Vector3(float v)
         {
             X = v;
             Y = v;
             Z = v;
+            W = 1f;
         }
 
         public Vector3(float x, float y, float z)
@@ -23,6 +25,7 @@ namespace ConsoleGame
             X = x;
             Y = y;
             Z = z;
+            W = 1f;
         }
 
         public static bool operator ==(Vector3 left, Vector3 right) => left.Equals(right);
@@ -58,5 +61,24 @@ namespace ConsoleGame
 
         public static Vector3 Zero => new(0f);
         public static Vector3 One => new(1f);
+
+        public static bool TryParse(string text, out Vector3 vector3)
+        {
+            vector3 = default;
+            text = text.Trim();
+            string[] parts = text.Split(' ');
+
+            if (parts.Length != 3)
+            { return false; }
+
+            if (!float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out vector3.X))
+            { return false; }
+            if (!float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out vector3.Y))
+            { return false; }
+            if (!float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out vector3.Z))
+            { return false; }
+
+            return true;
+        }
     }
 }

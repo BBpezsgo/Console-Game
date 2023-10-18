@@ -1,0 +1,42 @@
+﻿namespace ConsoleGame
+{
+    public partial class Buffer<T>
+    {
+        readonly ConsoleRenderer Renderer;
+
+        public short Width => Renderer.Width;
+        public short Height => Renderer.Height;
+
+        public int Size => Renderer.Size;
+
+        T[] buffer;
+
+        public ref T this[int i] => ref buffer[i];
+        public ref T this[int x, int y] => ref buffer[(y * Width) + x];
+
+        public ref T this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
+        public ref T this[Vector position] => ref this[position.X, position.Y];
+        public ref T this[VectorInt position] => ref this[position.X, position.Y];
+
+        public Buffer(ConsoleRenderer renderer)
+        {
+            Renderer = renderer;
+            buffer = new T[renderer.Size];
+        }
+
+        public void Clear() => Array.Clear(buffer);
+        public void Resize() => buffer = new T[Renderer.Size];
+
+        public void SetRect(RectInt rect, T value)
+        {
+            int top = rect.Top;
+            int left = rect.Left;
+            int bottom = rect.Bottom;
+            int right = rect.Right;
+            for (int y = top; y < bottom; y++)
+            {
+                Array.Fill(buffer, value, y * Width + left, right - left);
+            }
+        }
+    }
+}

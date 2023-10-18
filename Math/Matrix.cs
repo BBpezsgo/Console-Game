@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ConsoleGame
+﻿namespace ConsoleGame
 {
     public readonly struct Matrix4x4
     {
@@ -41,12 +35,21 @@ namespace ConsoleGame
         public static Vector3 operator *(Vector3 v, Matrix4x4 m)
         {
             Vector3 result = Vector3.Zero;
+
+            result.X = v.X * m[0, 0] + v.Y * m[1, 0] + v.Z * m[2, 0] + v.W * m[3, 0];
+            result.Y = v.X * m[0, 1] + v.Y * m[1, 1] + v.Z * m[2, 1] + v.W * m[3, 1];
+            result.Z = v.X * m[0, 2] + v.Y * m[1, 2] + v.Z * m[2, 2] + v.W * m[3, 2];
+            result.W = v.X * m[0, 3] + v.Y * m[1, 3] + v.Z * m[2, 3] + v.W * m[3, 3];
+
+            /*
             result.X = v.X * m[0, 0] + v.Y * m[1, 0] + v.Z * m[2, 0] + m[3, 0];
             result.Y = v.X * m[0, 1] + v.Y * m[1, 1] + v.Z * m[2, 1] + m[3, 1];
             result.Z = v.X * m[0, 2] + v.Y * m[1, 2] + v.Z * m[2, 2] + m[3, 2];
-            float w = v.X * m[0, 3] + v.Y * m[1, 3] + v.Z * m[2, 3] + m[3, 3];
+            float  w = v.X * m[0, 3] + v.Y * m[1, 3] + v.Z * m[2, 3] + m[3, 3];
             if (w != 0f)
             { result /= w; }
+            */
+
             return result;
         }
 
