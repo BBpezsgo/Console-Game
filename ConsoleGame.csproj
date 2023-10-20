@@ -21,7 +21,7 @@
     <PackageReference Include="System.IO.Pipelines" Version="8.0.0-rc.1.23419.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Data Utilities\Data Utilities.csproj" />
+    <ProjectReference Include="..\Data Utilities\DataUtilities.csproj" />
     <ProjectReference Include="..\Win32-Stuff\Win32.csproj" />
   </ItemGroup>
 </Project>
