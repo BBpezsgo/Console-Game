@@ -19,6 +19,9 @@ namespace ConsoleGame
 
         unsafe public static int ClipAgainstPlane(Vector3 planePoint, Vector3 planeNormal, Triangle triangleIn, out Triangle triangleOut1, out Triangle triangleOut2)
         {
+            triangleOut1 = default;
+            triangleOut2 = default;
+
             planeNormal.Normalize();
 
             // Return signed shortest distance from point to plane, plane normal must be normalized
@@ -93,6 +96,9 @@ namespace ConsoleGame
 
         unsafe public static int ClipAgainstPlane(Vector3 planePoint, Vector3 planeNormal, TriangleEx triangleIn, out TriangleEx triangleOut1, out TriangleEx triangleOut2)
         {
+            triangleOut1 = default;
+            triangleOut2 = default;
+
             planeNormal.Normalize();
 
             // Return signed shortest distance from point to plane, plane normal must be normalized

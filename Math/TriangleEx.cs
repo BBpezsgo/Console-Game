@@ -23,6 +23,7 @@
             Color = Color.Magenta;
             DiffuseColor = Color.White;
             AmbientColor = Color.Black;
+            SpecularExponent = 0f;
         }
 
         public static implicit operator Triangle(TriangleEx triangle) => new(triangle.PointA, triangle.PointB, triangle.PointC);
