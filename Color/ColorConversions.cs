@@ -265,14 +265,22 @@
             return new Win32.CharInfo(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
         }
 
+        static readonly (char Character, float Intensity)[] ShadeCharacters = new (char Character, float Intensity)[]
+        {
+            ( '░', .25f ),
+            ( '▒', .50f ),
+            ( '▓', .75f ),
+        };
+
         public static Win32.CharInfo ToCharacterColored(Color color)
         {
             Win32.CharInfo result = new(' ', 0);
             float smallestDist = float.PositiveInfinity;
 
-            for (byte c1 = 0; c1 < 0b_1111; c1++)
+            for (byte c1 = 0; c1 < ByteColor.White; c1++)
             {
                 Color c1a = Color.From4bitIRGB(c1);
+                
                 {
                     float dist = Color.Distance(c1a, color);
                     if (smallestDist > dist)
@@ -282,18 +290,19 @@
                     }
                     if (dist <= float.Epsilon) return result;
                 }
-                for (byte c2 = (byte)(c1 + 1); c2 < 0b_1111; c2++)
+
+                for (byte c2 = (byte)(c1 + 1); c2 < ByteColor.White; c2++)
                 {
                     Color c2a = Color.From4bitIRGB(c2);
-                    for (int i = 0; i < Ascii.BlockShade.Length; i++)
+                    for (int i = 0; i < ShadeCharacters.Length; i++)
                     {
-                        float shade = (float)i / (float)Ascii.BlockShade.Length;
+                        float shade = ShadeCharacters[i].Intensity;
                         Color shadedColor = (c1a * shade) + (c2a * (1f - shade));
                         float dist = Color.Distance(shadedColor, color);
                         if (smallestDist > dist)
                         {
                             smallestDist = dist;
-                            result = new Win32.CharInfo(Ascii.BlockShade[i], c1, c2);
+                            result = new Win32.CharInfo(ShadeCharacters[i].Character, c1, c2);
                         }
                         if (dist <= float.Epsilon) return result;
                     }

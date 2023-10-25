@@ -21,6 +21,7 @@ namespace ConsoleGame
         public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
         {
             DepthBuffer = new Buffer<float>(this);
+            shouldResize = true;
         }
 
         public override void ClearBuffer()

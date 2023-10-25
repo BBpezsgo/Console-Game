@@ -74,7 +74,7 @@ namespace ConsoleGame
             try
             {
                 data = Parser.Parse(txt).Object<T>();
-                return true;
+                return data is not null;
             }
             catch (Exception)
             {
@@ -103,7 +103,7 @@ namespace ConsoleGame
             try
             {
                 data = DataUtilities.Json.Parser.Parse(txt).Object<T>();
-                return true;
+                return data is not null;
             }
             catch (Exception)
             {

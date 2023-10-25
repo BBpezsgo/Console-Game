@@ -1,6 +1,4 @@
-﻿using DataUtilities.Serializer;
-
-namespace ConsoleGame
+﻿namespace ConsoleGame
 {
     public interface IDamageable
     {
