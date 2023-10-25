@@ -246,31 +246,29 @@
             */
         }
 
-        public static Win32.CharInfo ToCharacterShaded(Color color)
-        {
-            Win32.CharInfo result = new(' ', 0);
-
-            byte c = Color.To4bitIRGB(color);
-            float shade = color.Intensity;
-            if (shade <= float.Epsilon)
-            {
-                return result;
-            }
-
-            if (shade >= 1f)
-            {
-                return new Win32.CharInfo(' ', (ushort)(c << 4));
-            }
-
-            return new Win32.CharInfo(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
-        }
-
         static readonly (char Character, float Intensity)[] ShadeCharacters = new (char Character, float Intensity)[]
         {
             ( '░', .25f ),
             ( '▒', .50f ),
             ( '▓', .75f ),
         };
+
+        public static Win32.CharInfo ToCharacterShaded(Color color)
+        {
+            Win32.CharInfo result = new(' ', 0);
+
+            float shade = color.Intensity;
+
+            if (shade <= float.Epsilon)
+            { return result; }
+
+            byte c = Color.To4bitIRGB(color);
+            
+            if (shade >= 1f)
+            { return new Win32.CharInfo(' ', (ushort)(c << 4)); }
+
+            return new Win32.CharInfo(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
+        }
 
         public static Win32.CharInfo ToCharacterColored(Color color)
         {

@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Runtime.CompilerServices;
+
+namespace ConsoleGame
 {
     public struct ByteColor
     {
@@ -20,5 +22,11 @@
         public const byte Silver = 0b_0111;
         public const byte Gray = 0b_1000;
         public const byte White = 0b_1111;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Bg2Fg(byte backgroundColor) => (byte)(backgroundColor >> 4);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte Fg2Bg(byte foregroundColor) => (byte)(foregroundColor << 4);
     }
 }
