@@ -64,7 +64,7 @@ namespace ConsoleGame
             // ConsoleUtils.Reset();
 
             ConsoleHandler.Setup();
-            ConsoleHandler.SetFont("Consolas", 4);
+            ConsoleHandler.SetFont("Consolas", 8);
 
             ConsoleListener.KeyEvent += OnKey;
             ConsoleListener.MouseEvent += OnMouse;

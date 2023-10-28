@@ -1,4 +1,5 @@
 using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {

@@ -1,5 +1,6 @@
 using ConsoleGame.Behavior;
 using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {
@@ -79,35 +80,35 @@ namespace ConsoleGame
 
             WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
 
-            if (Reload <= 0f && (Mouse.IsLeftDown || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
+            if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
             {
-                Shoot(Position, Vector.RotateByDeg((Mouse.WorldPosition - Position).Normalized, Random.Float(-2f, 2f)));
+                Shoot(Position, Vector.RotateByDeg((Game.ConsoleToWorld(Mouse.RecordedPosition) - Position).Normalized, Random.Float(-2f, 2f)));
             }
 
             if (Keyboard.IsKeyDown('X'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Mouse.WorldPosition;
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (Keyboard.IsKeyDown('V'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET2](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Mouse.WorldPosition;
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (Keyboard.IsKeyDown('O'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_THINGY](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Mouse.WorldPosition;
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
             {
-                Vector diff = Mouse.WorldPosition - Position;
+                Vector diff = Game.ConsoleToWorld(Mouse.RecordedPosition) - Position;
                 float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
                 Vector direction = diff.Normalized;
                 Vector.RotateByDeg(ref direction, Random.Float(-1f, 1f));

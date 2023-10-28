@@ -1,5 +1,4 @@
-﻿using System.Runtime.ExceptionServices;
-using Microsoft.Win32.SafeHandles;
+﻿using Microsoft.Win32.SafeHandles;
 using Win32;
 
 namespace ConsoleGame
@@ -16,7 +15,7 @@ namespace ConsoleGame
         bool shouldResize;
 
         readonly Buffer<float> DepthBuffer;
-        public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * bufferWidth) + screenPosition.X];
+        public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
 
         public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
         {
@@ -30,16 +29,16 @@ namespace ConsoleGame
             DepthBuffer.Clear();
         }
 
-        public void DrawLines(VectorInt[] points, Color color, bool connectEnd = false)
-            => DrawLines(points, (byte)color, ' ', connectEnd);
-        public void DrawLines(VectorInt[] points, ushort attributes, char c, bool connectEnd = false)
+        public void DrawLines(VectorInt[] points, CharInfo c, bool connectEnd = false)
         {
             for (int i = 1; i < points.Length; i++)
-            { DrawLine(points[i - 1], points[i], attributes, c); }
+            { DrawLine(points[i - 1], points[i], c); }
 
             if (connectEnd && points.Length > 2)
-            { DrawLine(points[0], points[^1], attributes, c); }
+            { DrawLine(points[0], points[^1], c); }
         }
+
+        /*
         public void DrawLine(VectorInt a, VectorInt b, Color color)
             => DrawLine(a, b, (byte)color, ' ');
         public void DrawLine(VectorInt a, VectorInt b, ushort attributes, char c)
@@ -54,6 +53,60 @@ namespace ConsoleGame
                 if (!IsVisible(p2)) continue;
                 this[p2].Attributes = attributes;
                 this[p2].Char = c;
+            }
+        }
+        */
+
+        /// <summary>
+        /// Source: <see href="https://stackoverflow.com/a/32252934">StackOverflow</see>
+        /// </summary>
+        public void DrawLine(VectorInt a, VectorInt b, CharInfo c)
+            => DrawLine(a.X, a.Y, b.X, b.Y, c);
+        /// <summary>
+        /// Source: <see href="https://stackoverflow.com/a/32252934">StackOverflow</see>
+        /// </summary>
+        void DrawLine(int x1, int y1, int x2, int y2, CharInfo c)
+        {
+            int Dx = x2 - x1;
+            int Dy = y2 - y1;
+
+            int Sx = Math.Sign(Dx);
+            int Sy = Math.Sign(Dy);
+
+            Dx = Math.Abs(Dx);
+            Dy = Math.Abs(Dy);
+            int D = Math.Max(Dx, Dy);
+
+            double R = D / 2;
+
+            int X = x1;
+            int Y = y1;
+            if (Dx > Dy)
+            {
+                for (int I = 0; I < D; I++)
+                {
+                    this[X, Y] = c;
+                    X += Sx; R += Dy;
+                    if (R >= Dx)
+                    {
+                        Y += Sy;
+                        R -= Dx;
+                    }
+                }
+            }
+            else
+            {
+                for (int I = 0; I < D; I++)
+                {
+                    this[X, Y] = c;
+                    Y += Sy;
+                    R += Dx;
+                    if (R >= Dy)
+                    {
+                        X += Sx;
+                        R -= Dy;
+                    }
+                }
             }
         }
 
@@ -782,20 +835,17 @@ namespace ConsoleGame
 
         public void ShouldResize() => shouldResize = true;
 
-        public bool Resize()
+        public new bool Resize()
         {
             if (!shouldResize) return false;
             shouldResize = false;
 
             Console.Clear();
 
-            bufferWidth = (short)Console.WindowWidth;
-            bufferHeight = (short)Console.WindowHeight;
+            base.Resize();
 
             DepthBuffer?.Resize();
 
-            ConsoleBuffer = new CharInfo[bufferWidth * bufferHeight];
-            ConsoleRect = new SmallRect() { Left = 0, Top = 0, Right = bufferWidth, Bottom = bufferHeight };
             return true;
         }
     }

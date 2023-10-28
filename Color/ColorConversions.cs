@@ -275,7 +275,7 @@
             Win32.CharInfo result = new(' ', 0);
             float smallestDist = float.PositiveInfinity;
 
-            for (byte c1 = 0; c1 < ByteColor.White; c1++)
+            for (byte c1 = 0; c1 <= ByteColor.White; c1++)
             {
                 Color c1a = Color.From4bitIRGB(c1);
                 
@@ -289,7 +289,7 @@
                     if (dist <= float.Epsilon) return result;
                 }
 
-                for (byte c2 = (byte)(c1 + 1); c2 < ByteColor.White; c2++)
+                for (byte c2 = (byte)(c1 + 1); c2 <= ByteColor.White; c2++)
                 {
                     Color c2a = Color.From4bitIRGB(c2);
                     for (int i = 0; i < ShadeCharacters.Length; i++)

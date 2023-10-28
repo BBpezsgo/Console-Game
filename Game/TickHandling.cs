@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {
@@ -32,7 +33,7 @@ namespace ConsoleGame
 
         readonly Win32.Utilities.Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
 
-        public static readonly int width  = User32.GetSystemMetrics(0);
+        public static readonly int width = User32.GetSystemMetrics(0);
         public static readonly int height = User32.GetSystemMetrics(1);
 
         bool LockCursor;
@@ -40,7 +41,7 @@ namespace ConsoleGame
 
         unsafe void Tick()
         {
-            Keyboard.BeginTick();
+            Keyboard.Tick();
 
             renderer.ClearBuffer();
             depthBuffer.Clear();
@@ -57,10 +58,29 @@ namespace ConsoleGame
             camera.HandleInput(LockCursor, ref LastMousePosition);
             camera.DoMath(renderer.Rect, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix);
 
-            Renderer3D.Render(MeshMountains, camera, null);
+            // Renderer3D.Render(MeshMountains, camera, null);
+
+            for (int y = 0; y < renderer.Height; y++)
+            {
+                for (int x = 0; x < renderer.Width; x++)
+                {
+                    float vx = (float)x / (float)renderer.Width;
+                    float vy = (float)y / (float)renderer.Height;
+                    Color c = Color.FromHSL(vx, vy, ah2);
+                    renderer[x, y] = Color.ToCharacterColored(c);
+                }
+            }
+
+            if (Keyboard.IsKeyDown('W'))
+            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
+            if (Keyboard.IsKeyDown('S'))
+            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
+
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}");
 
             renderer.Render();
         }
+        float ah2 = .5f;
 
         void TickWrapped()
         {
@@ -77,7 +97,7 @@ namespace ConsoleGame
             }
 
             {
-                QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Mouse.WorldPosition);
+                QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Game.ConsoleToWorld(Mouse.RecordedPosition));
 
                 for (int i = 0; i < branches.Length; i++)
                 {

@@ -1,4 +1,5 @@
 ﻿using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {
@@ -52,9 +53,9 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Mouse.IsLeftDown && contentRect.Contains(Mouse.X, Mouse.Y))
+            if (Mouse.IsPressed(MouseButton.Left) && contentRect.Contains(Mouse.RecordedPosition))
             {
-                int i = Mouse.Y;
+                int i = Mouse.RecordedPosition.Y;
                 i -= contentRect.Y;
 
                 if (i >= 0 && i < Options.Length)

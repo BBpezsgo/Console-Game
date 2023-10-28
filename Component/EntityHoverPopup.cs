@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using Win32.Utilities;
+
+namespace ConsoleGame
 {
     public class EntityHoverPopup : RendererComponent
     {
@@ -50,7 +52,7 @@
                 return;
             }
 
-            float dist = (Mouse.WorldPosition - Position).SqrMagnitude;
+            float dist = (Game.ConsoleToWorld(Mouse.RecordedPosition) - Position).SqrMagnitude;
             bool shouldShown = dist <= (DistanceToShow * DistanceToShow);
 
             if (!shouldShown)
@@ -61,7 +63,7 @@
 
             if (AlreadyShown != null)
             {
-                float dist2 = (Mouse.WorldPosition - AlreadyShown.Position).SqrMagnitude;
+                float dist2 = (Game.ConsoleToWorld(Mouse.RecordedPosition) - AlreadyShown.Position).SqrMagnitude;
                 if (dist2 < dist)
                 {
                     IsShown = false;

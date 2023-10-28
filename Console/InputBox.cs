@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Win32;
+using Win32.Utilities;
 
 namespace ConsoleGame
 {
@@ -51,9 +52,9 @@ namespace ConsoleGame
 
             borderRect.Expand(-2, -2, -2, -2);
 
-            if (Mouse.IsLeftDown)
+            if (Mouse.IsPressed(MouseButton.Left))
             {
-                if (Mouse.Y == borderRect.Y && borderRect.Contains(Mouse.X, Mouse.Y))
+                if (Mouse.RecordedPosition.Y == borderRect.Y && borderRect.Contains(Mouse.RecordedPosition))
                 {
                     Selected = 0;
                 }
@@ -161,9 +162,9 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Mouse.IsLeftDown && borderRect.Contains(Mouse.X, Mouse.Y))
+            if (Mouse.IsPressed(MouseButton.Left) && borderRect.Contains(Mouse.RecordedPosition))
             {
-                int i = Mouse.Y;
+                int i = Mouse.RecordedPosition.Y;
                 i -= borderRect.Y;
 
                 if (i >= 0 && i <= 1)
