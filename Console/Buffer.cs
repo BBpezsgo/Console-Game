@@ -38,5 +38,18 @@
                 Array.Fill(buffer, value, y * Width + left, right - left);
             }
         }
+
+        public static explicit operator T[](Buffer<T> v) => v.buffer;
+
+        public void Copy(ConsoleRenderer destination, Func<T, Win32.CharInfo> converter)
+        {
+            for (int y = 0; y < this.Height; y++)
+            {
+                for (int x = 0; x < this.Width; x++)
+                {
+                    destination[x, y] = converter.Invoke(this[x, y]);
+                }
+            }
+        }
     }
 }

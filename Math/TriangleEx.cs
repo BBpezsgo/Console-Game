@@ -6,9 +6,7 @@
         public Vector3 TexA, TexB, TexC;
         public Color Color;
 
-        public Color DiffuseColor;
-        public Color AmbientColor;
-        public float SpecularExponent;
+        public int MaterialIndex;
 
         public TriangleEx(Vector3 a, Vector3 b, Vector3 c)
         {
@@ -21,9 +19,7 @@
             TexC = c;
 
             Color = Color.Magenta;
-            DiffuseColor = Color.White;
-            AmbientColor = Color.Black;
-            SpecularExponent = 0f;
+            MaterialIndex = -1;
         }
 
         public static implicit operator Triangle(TriangleEx triangle) => new(triangle.PointA, triangle.PointB, triangle.PointC);

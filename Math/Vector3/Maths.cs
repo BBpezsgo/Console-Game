@@ -63,5 +63,8 @@
             Vector3 lineToIntersect = lineStartToEnd * t;
             return lineStart + lineToIntersect;
         }
+
+        public static Vector3 Reflect(Vector3 direction, Vector3 normal)
+            => -2f * Vector3.Dot(normal, direction) * normal + direction;
     }
 }

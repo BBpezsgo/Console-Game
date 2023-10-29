@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
@@ -16,28 +15,31 @@ namespace ConsoleGame
 
         int EnemyWave = 5;
 
-        readonly Mesh MeshCube = Mesh.MakeCube();
-        readonly Mesh MeshSpaceship = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\VideoShip.obj");
-        readonly Mesh MeshTeapot = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\teapot.obj");
-        readonly Mesh MeshAxis = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\axis.obj");
-        readonly Mesh MeshMountains = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\mountains.obj");
-        readonly Mesh MeshTerrain = Obj.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\uploads_files_3707747_landscape.obj");
+        static readonly string AssetsProject = @$"C:\Users\{Environment.UserName}\source\repos\ConsoleGame\Assets\";
+        static readonly string AssetsRuntime = @$"{Path.Combine(Directory.GetCurrentDirectory(), "Assets").TrimEnd('\\')}\";
 
-        readonly Image ImgUv = Ppm.LoadFile($"C:\\users\\{Environment.UserName}\\Desktop\\bruh.ppm");
+        readonly Mesh MeshCube = Mesh.MakeCube();
+        readonly Mesh MeshSpaceship = Obj.LoadFile($"{AssetsRuntime}VideoShip.obj");
+        readonly Mesh MeshTeapot = Obj.LoadFile($"{AssetsRuntime}teapot.obj");
+        readonly Mesh MeshAxis = Obj.LoadFile($"{AssetsRuntime}axis.obj");
+        readonly Mesh MeshMountains = Obj.LoadFile($"{AssetsRuntime}mountains.obj");
+        readonly Mesh MeshTerrain = Obj.LoadFile($"{AssetsRuntime}uploads_files_3707747_landscape.obj");
+
+        readonly Image ImgUv = Ppm.LoadFile($"{AssetsRuntime}bruh.ppm");
 
         Camera camera = new();
 
-        Renderer3D Renderer3D;
-
         VectorInt LastMousePosition;
 
-        readonly Win32.Utilities.Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
+        readonly Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
 
         public static readonly int width = User32.GetSystemMetrics(0);
         public static readonly int height = User32.GetSystemMetrics(1);
 
         bool LockCursor;
         const float MouseIntensity = 0.001f;
+
+        const bool Test3D = true;
 
         unsafe void Tick()
         {
@@ -50,33 +52,62 @@ namespace ConsoleGame
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
-            // TickWrapped();
-
-            if (Keyboard.IsKeyDown('C'))
-            { LockCursor = !LockCursor; }
-
-            camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Rect, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix);
-
-            // Renderer3D.Render(MeshMountains, camera, null);
-
-            for (int y = 0; y < renderer.Height; y++)
+            if (Test3D)
             {
-                for (int x = 0; x < renderer.Width; x++)
+                if (true)
                 {
-                    float vx = (float)x / (float)renderer.Width;
-                    float vy = (float)y / (float)renderer.Height;
-                    Color c = Color.FromHSL(vx, vy, ah2);
-                    renderer[x, y] = Color.ToCharacterColored(c);
+                    if (Keyboard.IsKeyDown('C'))
+                    { LockCursor = !LockCursor; }
+
+                    camera.HandleInput(LockCursor, ref LastMousePosition);
+                    camera.DoMath(renderer.Rect, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix);
+
+                    Renderer3D.Render(renderer, MeshTerrain, camera, null);
+                    /*
+                    for (int y = 0; y < renderer.BloomBlur.Height; y++)
+                    {
+                        for (int x = 0; x < renderer.BloomBlur.Width; x++)
+                        {
+                            renderer.BloomBlur[x, y] -= Color.White;
+                        }
+                    }
+                    Renderer3D.FastBlur((Color[])renderer.BloomBlur, renderer.BloomBlur.Width, renderer.BloomBlur.Height, 3);
+                    for (int y = 0; y < renderer.BloomBlur.Height; y++)
+                    {
+                        for (int x = 0; x < renderer.BloomBlur.Width; x++)
+                        {
+                            renderer.BloomBlur[x, y] += Color.FromCharacter(renderer[x, y]);
+                            renderer.BloomBlur[x, y].Clamp();
+                        }
+                    }
+                    renderer.BloomBlur.Copy(renderer, Color.ToCharacterShaded);
+                    */
+                }
+                else
+                {
+                    for (int y = 0; y < renderer.Height; y++)
+                    {
+                        for (int x = 0; x < renderer.Width; x++)
+                        {
+                            float vx = (float)x / (float)renderer.Width;
+                            float vy = (float)y / (float)renderer.Height;
+                            Color c = Color.FromHSL(vx, vy, ah2);
+                            renderer[x, y] = Color.ToCharacterColored(c);
+                        }
+                    }
+
+                    if (Keyboard.IsKeyDown('W'))
+                    { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
+                    if (Keyboard.IsKeyDown('S'))
+                    { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
+
+                    GUI.Label(0, 0, $"FPS: {FpsCounter.Value}");
                 }
             }
-
-            if (Keyboard.IsKeyDown('W'))
-            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
-            if (Keyboard.IsKeyDown('S'))
-            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
-
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}");
+            else
+            {
+                TickWrapped();
+            }
 
             renderer.Render();
         }

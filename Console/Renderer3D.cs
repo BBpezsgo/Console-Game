@@ -1,29 +1,23 @@
 ﻿namespace ConsoleGame
 {
-    public class Renderer3D
+    public static class Renderer3D
     {
-        readonly ConsoleRenderer Renderer;
-        VectorInt ScreenSize => Renderer.Rect;
+        static readonly bool SimpleLightning = false;
 
-        public Renderer3D(ConsoleRenderer renderer)
-        {
-            this.Renderer = renderer;
-        }
-
-        unsafe public void Render(Mesh mesh, Camera camera, Image? image)
+        unsafe public static void Render(ConsoleRenderer renderer, Mesh mesh, Camera camera, Image? image)
         {
             List<TriangleEx> trianglesToDraw = new();
 
             TriangleEx* clipped = stackalloc TriangleEx[2];
 
-            this.DoMathWithTriangles(mesh.Triangles, camera, trianglesToDraw, clipped);
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
 
-            this.ClipAndDrawTriangles(trianglesToDraw, clipped, image);
+            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image);
         }
 
-        unsafe void DoMathWithTriangles(List<TriangleEx> triangles, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
+        unsafe static void DoMathWithTriangles(TriangleEx[] triangles, Material[] materials, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
         {
-            for (int i = 0; i < triangles.Count; i++)
+            for (int i = 0; i < triangles.Length; i++)
             {
                 TriangleEx tri = triangles[i];
 
@@ -46,25 +40,33 @@
 
                 Vector3 sunDirection = (0f, .7f, -1f);
 
-                float dp = Math.Clamp(Vector3.Dot(sunDirection, normal), 0.3f, 1f);
-                tri.Color = tri.DiffuseColor * dp;
+                Material material = materials[tri.MaterialIndex];
 
-                /*
-                const float AmbientIntensity = 1.0f;
-                const float DiffuseIntensity = 1.0f;
-                const float SpecularIntensity = 2.0f;
+                if (SimpleLightning)
+                {
+                    float dp = Math.Clamp(Vector3.Dot(sunDirection, normal), 0.3f, 1f);
+                    tri.Color = material.DiffuseColor * dp;
+                }
+                else
+                {
+                    const float AmbientIntensity = 0.2f;
+                    const float DiffuseIntensity = 1.0f;
+                    const float SpecularIntensity = 1.0f;
 
-                // Calculate the ambient term: 
-                Color ambient = AmbientIntensity * tri.AmbientColor;
-                // Calculate the diffuse term: 
-                Color diffuse = DiffuseIntensity * dp * Color.White;
-                // Calculate the reflection vector: 
-                Vector3 r = (2 * Vector3.Dot(normal, -sunDirection) * normal + sunDirection).Normalized;
-                // Calculate the speculate component: 
-                Color specular = tri.SpecularExponent > float.Epsilon ? (MathF.Pow(Vector3.Dot(r, cameraRay.Normalized), Math.Clamp(tri.SpecularExponent, 1f, 50f)) * SpecularIntensity) * Color.White : Color.Black;
-                // Calculate final color: 
-                tri.Color = (ambient + diffuse + specular) * tri.DiffuseColor;
-                */
+                    Color ambientComponent = AmbientIntensity * material.AmbientColor;
+
+                    Color diffuse = DiffuseIntensity * Math.Clamp(Vector3.Dot(sunDirection, normal), 0f, 1f) * material.DiffuseColor;
+
+                    Color specular = Color.Black;
+                    if (material.SpecularExponent > float.Epsilon)
+                    {
+                        Vector3 reflected = Vector3.Reflect(-sunDirection, normal).Normalized;
+                        float specularConstant = MathF.Pow(Math.Max(Vector3.Dot(-cameraRay.Normalized, reflected), 0f), material.SpecularExponent);
+                        specular = material.SpecularColor * specularConstant * SpecularIntensity;
+                    }
+
+                    tri.Color = (ambientComponent + diffuse + specular);
+                }
 
                 tri.PointA *= camera.ViewMatrix;
                 tri.PointB *= camera.ViewMatrix;
@@ -125,8 +127,9 @@
             */
         }
 
-        unsafe void ClipAndDrawTriangles(List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        unsafe static void ClipAndDrawTriangles(ConsoleRenderer renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
         {
+            Win32.Coord screenSize = renderer.Rect;
             for (int i = 0; i < trianglesToDraw.Count; i++)
             {
                 TriangleEx tri = trianglesToDraw[i];
@@ -146,9 +149,9 @@
                         switch (p)
                         {
                             case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, ScreenSize.Y - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Y - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(ScreenSize.X - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.X - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             default: break;
                         }
 
@@ -158,19 +161,18 @@
                     newTriangles = triangles.Count;
                 }
 
-                this.DrawTriangles(triangles.ToArray(), image);
+                DrawTriangles(renderer, triangles.ToArray(), image);
             }
         }
 
-        static readonly Image SolidImage = new(new Color[1], 1, 1);
-
-        unsafe void DrawTriangles(TriangleEx[] triangles, Image? image)
+        unsafe static void DrawTriangles(ConsoleRenderer renderer, TriangleEx[] triangles, Image? image)
         {
+            Win32.Coord ScreenSize = renderer.Rect;
             for (int i = 0; i < triangles.Length; i++)
             {
                 if (image.HasValue)
                 {
-                    Renderer.FillTriangle(
+                    renderer.FillTriangle(
                         ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
                         ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
                         ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
@@ -178,12 +180,11 @@
                 }
                 else
                 {
-                    SolidImage.Data[0] = triangles[i].Color;
-                    Renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
-                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
-                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
-                        SolidImage);
+                    renderer.FillTriangle(
+                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA.Z,
+                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
+                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
+                        Color.ToCharacterShaded(triangles[i].Color));
                 }
 
                 /*

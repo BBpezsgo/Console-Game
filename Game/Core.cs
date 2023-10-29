@@ -76,7 +76,6 @@ namespace ConsoleGame
             { ConsoleHandle = Kernel32.CreateFile(fileNamePtr, 0x40000000, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
             renderer = new ConsoleRenderer(ConsoleHandle, (short)Console.WindowWidth, (short)Console.WindowHeight);
             depthBuffer = new Buffer<float>(renderer);
-            Renderer3D = new Renderer3D(renderer);
 
             double last = DateTime.Now.TimeOfDay.TotalSeconds;
             double now;

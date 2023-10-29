@@ -10,16 +10,22 @@ namespace ConsoleGame
         Subpixels,
     }
 
+    public delegate void SimpleEventHandler();
+
     public class ConsoleRenderer : Win32.Utilities.ConsoleRenderer
     {
         bool shouldResize;
 
-        readonly Buffer<float> DepthBuffer;
+        public readonly Buffer<float> DepthBuffer;
+        // public readonly Buffer<Color> BloomBlur;
         public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
+
+        public event SimpleEventHandler? OnResized;
 
         public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
         {
             DepthBuffer = new Buffer<float>(this);
+            // BloomBlur = new Buffer<Color>(this);
             shouldResize = true;
         }
 
@@ -27,6 +33,7 @@ namespace ConsoleGame
         {
             base.ClearBuffer();
             DepthBuffer.Clear();
+            // BloomBlur.Clear();
         }
 
         public void DrawLines(VectorInt[] points, CharInfo c, bool connectEnd = false)
@@ -174,40 +181,26 @@ namespace ConsoleGame
         }
 
         public void FillTriangle(
-            VectorInt a,
-            Vector3 texA,
-            VectorInt b,
-            Vector3 texB,
-            VectorInt c,
-            Vector3 texC,
-            CharInfo @char
-            )
+            VectorInt a, float depthA,
+            VectorInt b, float depthB,
+            VectorInt c, float depthC,
+            CharInfo @char)
             => this.FillTriangle(
-                a.X, a.Y,
-                texA.X, texA.Y, texA.Z,
-                b.X, b.Y,
-                texB.X, texB.Y, texB.Z,
-                c.X, c.Y,
-                texC.X, texC.Y, texC.Z,
-                @char
-                );
+                a.X, a.Y, depthA,
+                b.X, b.Y, depthB,
+                c.X, c.Y, depthC,
+                @char);
         public void FillTriangle(
-            int x1, int y1,
-            float u1, float v1, float w1,
-            int x2, int y2,
-            float u2, float v2, float w2,
-            int x3, int y3,
-            float u3, float v3, float w3,
-            CharInfo @char
-            )
+            int x1, int y1, float w1,
+            int x2, int y2, float w2,
+            int x3, int y3, float w3,
+            CharInfo @char)
         {
             // sort the points vertically
             if (y2 < y1)
             {
                 Swap(ref x1, ref x2);
                 Swap(ref y1, ref y2);
-                Swap(ref u1, ref u2);
-                Swap(ref v1, ref v2);
                 Swap(ref w1, ref w2);
             }
 
@@ -215,8 +208,6 @@ namespace ConsoleGame
             {
                 Swap(ref x1, ref x3);
                 Swap(ref y1, ref y3);
-                Swap(ref u1, ref u3);
-                Swap(ref v1, ref v3);
                 Swap(ref w1, ref w3);
             }
 
@@ -224,43 +215,29 @@ namespace ConsoleGame
             {
                 Swap(ref x2, ref x3);
                 Swap(ref y2, ref y3);
-                Swap(ref u2, ref u3);
-                Swap(ref v2, ref v3);
                 Swap(ref w2, ref w3);
             }
 
             int dy1 = y2 - y1;
             int dx1 = x2 - x1;
-            float dv1 = v2 - v1;
-            float du1 = u2 - u1;
             float dw1 = w2 - w1;
 
             int dy2 = y3 - y1;
             int dx2 = x3 - x1;
-            float dv2 = v3 - v1;
-            float du2 = u3 - u1;
             float dw2 = w3 - w1;
 
-            float texW;
+            float w;
 
             float daxStep = 0f;
             float dbxStep = 0f;
-            float du1Step = 0f;
-            float dv1Step = 0f;
-            float du2Step = 0f;
-            float dv2Step = 0f;
             float dw1Step = 0f;
             float dw2Step = 0f;
 
             if (dy1 != 0) daxStep = dx1 / MathF.Abs(dy1);
             if (dy2 != 0) dbxStep = dx2 / MathF.Abs(dy2);
 
-            if (dy1 != 0) du1Step = du1 / MathF.Abs(dy1);
-            if (dy1 != 0) dv1Step = dv1 / MathF.Abs(dy1);
             if (dy1 != 0) dw1Step = dw1 / MathF.Abs(dy1);
 
-            if (dy2 != 0) du2Step = du2 / MathF.Abs(dy2);
-            if (dy2 != 0) dv2Step = dv2 / MathF.Abs(dy2);
             if (dy2 != 0) dw2Step = dw2 / MathF.Abs(dy2);
 
             if (dy1 != 0)
@@ -270,20 +247,14 @@ namespace ConsoleGame
                     int ax = (int)(x1 + ((i - y1) * daxStep));
                     int bx = (int)(x1 + ((i - y1) * dbxStep));
 
-                    float texSu = u1 + (i - y1) * du1Step;
-                    float texSv = v1 + (i - y1) * dv1Step;
-                    float texSw = w1 + (i - y1) * dw1Step;
+                    float sw = w1 + (i - y1) * dw1Step;
 
-                    float texEu = u1 + (i - y1) * du2Step;
-                    float texEv = v1 + (i - y1) * dv2Step;
-                    float texEw = w1 + (i - y1) * dw2Step;
+                    float ew = w1 + (i - y1) * dw2Step;
 
                     if (ax > bx)
                     {
                         Swap(ref ax, ref bx);
-                        Swap(ref texSu, ref texEu);
-                        Swap(ref texSv, ref texEv);
-                        Swap(ref texSw, ref texEw);
+                        Swap(ref sw, ref ew);
                     }
 
                     float tStep = 1f / (float)(bx - ax);
@@ -291,12 +262,13 @@ namespace ConsoleGame
 
                     for (int j = ax; j < bx; j++)
                     {
-                        texW = (1f - t) * texSw + t * texEw;
+                        w = (1f - t) * sw + t * ew;
 
-                        if (this.IsVisible(j, i) && (DepthBuffer == null || texW > DepthBuffer[j, i]))
+                        if (this.IsVisible(j, i) && (DepthBuffer == null || w > DepthBuffer[j, i]))
                         {
                             this[j, i] = @char;
-                            if (DepthBuffer != null) DepthBuffer[j, i] = texW;
+                            // BloomBlur[j, i] = c;
+                            if (DepthBuffer != null) DepthBuffer[j, i] = w;
                         }
 
                         t += tStep;
@@ -306,17 +278,11 @@ namespace ConsoleGame
 
             dy1 = y3 - y2;
             dx1 = x3 - x2;
-            dv1 = v3 - v2;
-            du1 = u3 - u2;
             dw1 = w3 - w2;
 
             if (dy1 != 0) daxStep = dx1 / MathF.Abs(dy1);
             if (dy2 != 0) dbxStep = dx2 / MathF.Abs(dy2);
 
-            du1Step = 0f;
-            dv1Step = 0f;
-            if (dy1 != 0) du1Step = du1 / MathF.Abs(dy1);
-            if (dy1 != 0) dv1Step = dv1 / MathF.Abs(dy1);
             if (dy1 != 0) dw1Step = dw1 / MathF.Abs(dy1);
 
             if (dy1 != 0)
@@ -326,20 +292,14 @@ namespace ConsoleGame
                     int ax = (int)(x2 + ((i - y2) * daxStep));
                     int bx = (int)(x1 + ((i - y1) * dbxStep));
 
-                    float texSu = u2 + (i - y2) * du1Step;
-                    float texSv = v2 + (i - y2) * dv1Step;
-                    float texSw = w2 + (i - y2) * dw1Step;
+                    float sw = w2 + (i - y2) * dw1Step;
 
-                    float texEu = u1 + (i - y1) * du2Step;
-                    float texEv = v1 + (i - y1) * dv2Step;
-                    float texEw = w1 + (i - y1) * dw2Step;
+                    float ew = w1 + (i - y1) * dw2Step;
 
                     if (ax > bx)
                     {
                         Swap(ref ax, ref bx);
-                        Swap(ref texSu, ref texEu);
-                        Swap(ref texSv, ref texEv);
-                        Swap(ref texSw, ref texEw);
+                        Swap(ref sw, ref ew);
                     }
 
                     float tStep = 1f / (float)(bx - ax);
@@ -347,12 +307,13 @@ namespace ConsoleGame
 
                     for (int j = ax; j < bx; j++)
                     {
-                        texW = (1f - t) * texSw + t * texEw;
+                        w = (1f - t) * sw + t * ew;
 
-                        if (this.IsVisible(j, i) && (DepthBuffer == null || texW > DepthBuffer[j, i]))
+                        if (this.IsVisible(j, i) && (DepthBuffer == null || w > DepthBuffer[j, i]))
                         {
                             this[j, i] = @char;
-                            if (DepthBuffer != null) DepthBuffer[j, i] = texW;
+                            // BloomBlur[j, i] = c;
+                            if (DepthBuffer != null) DepthBuffer[j, i] = w;
                         }
 
                         t += tStep;
@@ -362,32 +323,20 @@ namespace ConsoleGame
         }
 
         public void FillTriangle(
-            VectorInt a,
-            Vector3 texA,
-            VectorInt b,
-            Vector3 texB,
-            VectorInt c,
-            Vector3 texC,
-            Image image
-            )
+            VectorInt a, Vector3 texA,
+            VectorInt b, Vector3 texB,
+            VectorInt c, Vector3 texC,
+            Image image)
             => this.FillTriangle(
-                a.X, a.Y,
-                texA.X, texA.Y, texA.Z,
-                b.X, b.Y,
-                texB.X, texB.Y, texB.Z,
-                c.X, c.Y,
-                texC.X, texC.Y, texC.Z,
-                image
-                );
+                a.X, a.Y, texA.X, texA.Y, texA.Z,
+                b.X, b.Y, texB.X, texB.Y, texB.Z,
+                c.X, c.Y, texC.X, texC.Y, texC.Z,
+                image);
         public void FillTriangle(
-            int x1, int y1,
-            float u1, float v1, float w1,
-            int x2, int y2,
-            float u2, float v2, float w2,
-            int x3, int y3,
-            float u3, float v3, float w3,
-            Image image
-            )
+            int x1, int y1, float u1, float v1, float w1,
+            int x2, int y2, float u2, float v2, float w2,
+            int x3, int y3, float u3, float v3, float w3,
+            Image image)
         {
             // sort the points vertically
             if (y2 < y1)
@@ -489,7 +438,9 @@ namespace ConsoleGame
 
                         if (this.IsVisible(j, i) && (DepthBuffer == null || texW > DepthBuffer[j, i]))
                         {
-                            this[j, i] = Color.ToCharacterShaded(image.NormalizedSample(texU / texW, texV / texW));
+                            Color c = image.NormalizedSample(texU / texW, texV / texW);
+                            this[j, i] = Color.ToCharacterShaded(c);
+                            // BloomBlur[j, i] = c;
                             if (DepthBuffer != null) DepthBuffer[j, i] = texW;
                         }
 
@@ -551,7 +502,9 @@ namespace ConsoleGame
 
                         if (this.IsVisible(j, i) && (DepthBuffer == null || texW > DepthBuffer[j, i]))
                         {
-                            this[j, i] = Color.ToCharacterShaded(image.NormalizedSample(texU / texW, texV / texW));
+                            Color c = image.NormalizedSample(texU / texW, texV / texW);
+                            this[j, i] = Color.ToCharacterShaded(c);
+                            // BloomBlur[j, i] = c;
                             if (DepthBuffer != null) DepthBuffer[j, i] = texW;
                         }
 
@@ -585,7 +538,9 @@ namespace ConsoleGame
                 {
                     VectorInt point = new(x_ + position.X, y_ + position.Y);
                     if (!IsVisible(point)) continue;
-                    this[point] = new CharInfo(' ', ByteColor.Black, Color.To4bitIRGB(image[fixWidth ? x_ / 2 : x_, y_]));
+                    Color c = image[fixWidth ? x_ / 2 : x_, y_];
+                    this[point] = new CharInfo(' ', ByteColor.Black, Color.To4bitIRGB(c));
+                    // BloomBlur[point] = c;
                 }
             }
         }
@@ -606,6 +561,7 @@ namespace ConsoleGame
                     Color alreadyThere = Color.FromCharacter(this[point]);
                     Color newColor = color.Blend(alreadyThere);
                     this[point] = new CharInfo(' ', ByteColor.Black, Color.To4bitIRGB(newColor));
+                    // BloomBlur[point] = newColor;
                 }
             }
         }
@@ -718,6 +674,7 @@ namespace ConsoleGame
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
                     this[point] = Color.ToCharacterColored(pixel);
+                    // BloomBlur[point] = pixel;
                 }
             }
         }
@@ -738,6 +695,7 @@ namespace ConsoleGame
                     Color pixel = image[imageCoord.X, imageCoord.Y];
                     byte convertedPixel = Color.To4bitIRGB(pixel);
                     this[point] = new CharInfo(' ', ByteColor.Black, convertedPixel);
+                    // BloomBlur[point] = pixel;
                 }
             }
         }
@@ -804,7 +762,9 @@ namespace ConsoleGame
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
                     Color alreadyThere = Color.FromCharacter(this[point]);
-                    this[point] = Color.ToCharacterColored(pixel.Blend(alreadyThere));
+                    Color c = pixel.Blend(alreadyThere);
+                    this[point] = Color.ToCharacterColored(c);
+                    // BloomBlur[point] = c;
                 }
             }
         }
@@ -825,8 +785,10 @@ namespace ConsoleGame
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
                     Color alreadyThere = Color.FromCharacter(this[point]);
-                    byte convertedPixel = Color.To4bitIRGB(pixel.Blend(alreadyThere));
+                    Color c = pixel.Blend(alreadyThere);
+                    byte convertedPixel = Color.To4bitIRGB(c);
                     this[point] = new CharInfo(' ', ByteColor.Black, convertedPixel);
+                    // BloomBlur[point] = c;
                 }
             }
         }
@@ -845,6 +807,9 @@ namespace ConsoleGame
             base.Resize();
 
             DepthBuffer?.Resize();
+            // BloomBlur?.Resize();
+
+            OnResized?.Invoke();
 
             return true;
         }

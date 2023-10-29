@@ -6,10 +6,11 @@ namespace ConsoleGame
 {
     public class Obj
     {
-        /// <exception cref="Exception"/>
+        /// <exception cref="FileNotFoundException"/>
+        /// <exception cref="ParsingException"/>
         public static Mesh LoadFile(string file)
         {
-            if (!File.Exists(file)) throw new Exception($"Object file \"{file}\" not found");
+            if (!File.Exists(file)) throw new FileNotFoundException($"Object file \"{file}\" not found");
             string text = File.ReadAllText(file, Encoding.ASCII);
             string[] lines = text.Replace('\r', '\n').Split('\n');
 
@@ -18,7 +19,7 @@ namespace ConsoleGame
 
             List<TriangleEx> triangles = new();
 
-            Dictionary<string, Mtl.Material> materials = new();
+            Dictionary<string, Material> materials = new();
 
             // Not supported :(
             bool smoothShading = false;
@@ -53,7 +54,7 @@ namespace ConsoleGame
                     case "v":
                         {
                             if (!Vector3.TryParse(line, out Vector3 vertex))
-                            { throw new Exception($"Failed to parse {nameof(Vector3)} (at line {i})"); }
+                            { throw new ParsingException($"Failed to parse {nameof(Vector3)} (at line {i})"); }
 
                             vertices.Add(vertex);
                             break;
@@ -61,7 +62,7 @@ namespace ConsoleGame
                     case "vt":
                         {
                             if (!Vector.TryParse(line, out Vector tex))
-                            { throw new Exception($"Failed to parse {nameof(Vector)} (at line {i})"); }
+                            { throw new ParsingException($"Failed to parse {nameof(Vector)} (at line {i})"); }
 
                             texs.Add(tex);
                             break;
@@ -78,8 +79,8 @@ namespace ConsoleGame
                                 break;
                             }
                             string mtlFile = Path.Combine(dir, line);
-                            Dictionary<string, Mtl.Material> newMaterials = Mtl.LoadFile(mtlFile);
-                            foreach (KeyValuePair<string, Mtl.Material> newMaterial in newMaterials)
+                            Dictionary<string, Material> newMaterials = Mtl.LoadFile(mtlFile);
+                            foreach (KeyValuePair<string, Material> newMaterial in newMaterials)
                             {
                                 if (materials.ContainsKey(newMaterial.Key))
                                 { materials[newMaterial.Key] = newMaterial.Value; }
@@ -109,7 +110,8 @@ namespace ConsoleGame
                 }
             }
 
-            Mtl.Material? currentMaterial = null;
+            int currentMaterialI = -1;
+            List<Material> usedMaterials = new();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -122,8 +124,17 @@ namespace ConsoleGame
 
                 if (kind == "usemtl")
                 {
-                    if (!materials.TryGetValue(line, out currentMaterial))
-                    { currentMaterial = null; }
+                    if (!materials.TryGetValue(line, out Material? currentMaterial))
+                    { currentMaterialI = -1; }
+                    else
+                    {
+                        currentMaterialI = usedMaterials.IndexOf(currentMaterial);
+                        if (currentMaterialI == -1)
+                        {
+                            usedMaterials.Add(currentMaterial);
+                            currentMaterialI = usedMaterials.Count - 1;
+                        }
+                    }
                     continue;
                 }
 
@@ -132,52 +143,52 @@ namespace ConsoleGame
                 string[] parts = line.Split(' ');
                 if (parts.Length != 3)
                 { continue; }
-                // { throw new Exception($"Expected 3 values as a face (at line {i})"); }
+                // { throw new ParsingException($"Expected 3 values as a face (at line {i})"); }
 
                 TriangleEx newTri;
 
                 if (!TryParseIndexes(parts[0], out int[] partA))
                 {
-                    TryParseIndexes(parts[0], out _);
-                    throw new Exception($"Failed to parse indexes (at line {i})");
+                    _ = TryParseIndexes(parts[0], out _);
+                    throw new ParsingException($"Failed to parse indexes (at line {i})");
                 }
 
                 if (!TryParseIndexes(parts[1], out int[] partB))
                 {
-                    TryParseIndexes(parts[1], out _);
-                    throw new Exception($"Failed to parse indexes (at line {i})");
+                    _ = TryParseIndexes(parts[1], out _);
+                    throw new ParsingException($"Failed to parse indexes (at line {i})");
                 }
 
                 if (!TryParseIndexes(parts[2], out int[] partC))
                 {
-                    TryParseIndexes(parts[2], out _);
-                    throw new Exception($"Failed to parse indexes (at line {i})");
+                    _ = TryParseIndexes(parts[2], out _);
+                    throw new ParsingException($"Failed to parse indexes (at line {i})");
                 }
 
                 if (partA.Length != partB.Length || partA.Length != partC.Length)
-                { throw new Exception($"Inconsistent face informations (at line {i})"); }
+                { throw new ParsingException($"Inconsistent face informations (at line {i})"); }
 
                 if (partA.Length == 3)
                 {
                     Vector3 va, vb, vc;
 
                     if (partA[0] <= 0 || partA[0] > vertices.Count)
-                    { throw new Exception($"Vertex index A out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index A out of range (at line {i})"); }
 
                     if (partB[0] <= 0 || partB[0] > vertices.Count)
-                    { throw new Exception($"Vertex index B out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index B out of range (at line {i})"); }
 
                     if (partC[0] <= 0 || partC[0] > vertices.Count)
-                    { throw new Exception($"Vertex index C out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index C out of range (at line {i})"); }
 
                     if (partA[1] != -1 && (partA[1] <= 0 || partA[1] > texs.Count))
-                    { throw new Exception($"Texture coord index A out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index A out of range (at line {i})"); }
 
                     if (partB[1] != -1 && (partC[1] <= 0 || partB[1] > texs.Count))
-                    { throw new Exception($"Texture coord index B out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index B out of range (at line {i})"); }
 
                     if (partC[1] != -1 && (partC[1] <= 0 || partC[1] > texs.Count))
-                    { throw new Exception($"Texture coord index C out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index C out of range (at line {i})"); }
 
                     va = vertices[partA[0] - 1];
                     vb = vertices[partB[0] - 1];
@@ -200,42 +211,42 @@ namespace ConsoleGame
                 else if (partA.Length == 2)
                 {
                     if (!int.TryParse(parts[0].Split('/')[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int a))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     if (!int.TryParse(parts[1].Split('/')[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int b))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     if (!int.TryParse(parts[2].Split('/')[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int c))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     if (!int.TryParse(parts[0].Split('/')[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int ta))
-                    { throw new Exception($"Expected a number as a texture coord index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a texture coord index (at line {i})"); }
 
                     if (!int.TryParse(parts[1].Split('/')[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int tb))
-                    { throw new Exception($"Expected a number as a texture coord index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a texture coord index (at line {i})"); }
 
                     if (!int.TryParse(parts[2].Split('/')[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int tc))
-                    { throw new Exception($"Expected a number as a texture coord index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a texture coord index (at line {i})"); }
 
                     Vector3 va, vb, vc;
 
                     if (a <= 0 || a > vertices.Count)
-                    { throw new Exception($"Vertex index A out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index A out of range (at line {i})"); }
 
                     if (b <= 0 || b > vertices.Count)
-                    { throw new Exception($"Vertex index B out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index B out of range (at line {i})"); }
 
                     if (c <= 0 || c > vertices.Count)
-                    { throw new Exception($"Vertex index C out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index C out of range (at line {i})"); }
 
                     if (ta <= 0 || ta > texs.Count)
-                    { throw new Exception($"Texture coord index A out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index A out of range (at line {i})"); }
 
                     if (tb <= 0 || tb > texs.Count)
-                    { throw new Exception($"Texture coord index B out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index B out of range (at line {i})"); }
 
                     if (tc <= 0 || tc > texs.Count)
-                    { throw new Exception($"Texture coord index C out of range (at line {i})"); }
+                    { throw new ParsingException($"Texture coord index C out of range (at line {i})"); }
 
                     va = vertices[a - 1];
                     vb = vertices[b - 1];
@@ -251,24 +262,24 @@ namespace ConsoleGame
                 else if (partA.Length == 1)
                 {
                     if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int a))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int b))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     if (!int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int c))
-                    { throw new Exception($"Expected a number as a face vertex index (at line {i})"); }
+                    { throw new ParsingException($"Expected a number as a face vertex index (at line {i})"); }
 
                     Vector3 va, vb, vc;
 
                     if (a <= 0 || a > vertices.Count)
-                    { throw new Exception($"Vertex index A out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index A out of range (at line {i})"); }
 
                     if (b <= 0 || b > vertices.Count)
-                    { throw new Exception($"Vertex index B out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index B out of range (at line {i})"); }
 
                     if (c <= 0 || c > vertices.Count)
-                    { throw new Exception($"Vertex index C out of range (at line {i})"); }
+                    { throw new ParsingException($"Vertex index C out of range (at line {i})"); }
 
                     va = vertices[a - 1];
                     vb = vertices[b - 1];
@@ -279,20 +290,18 @@ namespace ConsoleGame
                 else
                 { continue; }
 
-                if (currentMaterial != null)
-                {
-                    newTri.DiffuseColor = currentMaterial.DiffuseColor;
-                    newTri.AmbientColor = currentMaterial.AmbientColor;
-                    newTri.SpecularExponent = currentMaterial.SpecularExponent;
-                }
+                newTri.MaterialIndex = currentMaterialI;
 
                 triangles.Add(newTri);
             }
 
-            return new Mesh()
-            {
-                Triangles = triangles,
-            };
+            Mesh result = new(triangles)
+            { Materials = usedMaterials.ToArray() };
+
+            if (usedMaterials.Count == 0)
+            { result.SetMaterial(new Material()); }
+
+            return result;
         }
     }
 }

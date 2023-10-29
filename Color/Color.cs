@@ -67,6 +67,19 @@ namespace ConsoleGame
         public static explicit operator byte(Color v) => Color.To4bitIRGB(v);
         public static explicit operator Color(byte v) => Color.From4bitIRGB(v);
 
+        public static explicit operator int(Color v)
+        {
+            (byte r, byte g, byte b) = Color.To24bitRGB(v);
+            return (r << 16) | (g << 8) | b;
+        }
+        public static explicit operator Color(int v)
+        {
+            int r = (v & 0xff0000) >> 16;
+            int g = (v & 0x00ff00) >> 8;
+            int b = v & 0x0000ff;
+            return Color.From24bitRGB(r, g, b);
+        }
+
         public override readonly string ToString() => $"({R:0.00}, {G:0.00}, {B:0.00})";
         readonly string GetDebuggerDisplay() => ToString();
 
