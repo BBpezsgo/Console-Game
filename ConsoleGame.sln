@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataUtilities", "..\DataUtilities\DataUtilities.csproj", "{5E8DEFE5-A26D-486B-9D07-4233B4EBE148}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebGame", "..\Ah\WebGame.csproj", "{2A1A4798-0281-49AD-912D-3BC2B9738D4E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{5E8DEFE5-A26D-486B-9D07-4233B4EBE148}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E8DEFE5-A26D-486B-9D07-4233B4EBE148}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E8DEFE5-A26D-486B-9D07-4233B4EBE148}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A1A4798-0281-49AD-912D-3BC2B9738D4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A1A4798-0281-49AD-912D-3BC2B9738D4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A1A4798-0281-49AD-912D-3BC2B9738D4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A1A4798-0281-49AD-912D-3BC2B9738D4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

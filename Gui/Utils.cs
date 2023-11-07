@@ -1,10 +1,10 @@
-﻿using Win32;
+﻿using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public static class GUI
     {
-        static ConsoleRenderer Renderer => Game.Renderer;
+        static IRenderer Renderer => Game.Renderer;
         static short Width => Game.Renderer.Width;
         static short Height => Game.Renderer.Height;
 

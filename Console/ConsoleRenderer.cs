@@ -12,11 +12,14 @@ namespace ConsoleGame
 
     public delegate void SimpleEventHandler();
 
-    public class ConsoleRenderer : Win32.Utilities.ConsoleRenderer
+    public class ConsoleRenderer : Win32.ConsoleRenderer, IRenderer
     {
         bool shouldResize;
 
         public readonly Buffer<float> DepthBuffer;
+
+        VectorInt IRenderer.Rect => Rect;
+
         // public readonly Buffer<Color> BloomBlur;
         public ref CharInfo this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
 

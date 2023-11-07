@@ -2,7 +2,7 @@
 using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
-using Win32.Utilities;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
@@ -47,7 +47,7 @@ namespace ConsoleGame
 
             renderer.ClearBuffer();
             depthBuffer.Clear();
-            if (renderer.Resize())
+            if (renderer is ConsoleRenderer consoleRenderer && consoleRenderer.Resize())
             { depthBuffer.Resize(); }
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));

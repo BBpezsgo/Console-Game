@@ -1,5 +1,5 @@
 ﻿using Win32;
-using Win32.Utilities;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
@@ -17,13 +17,13 @@ namespace ConsoleGame
             }
         }
 
-        protected readonly ConsoleRenderer Renderer;
+        protected readonly IRenderer Renderer;
         protected readonly MenuOption[] Options;
         public RectInt ContentRect;
 
         protected int Selected;
 
-        public Menu(ConsoleRenderer renderer, params (string, Action)[] options)
+        public Menu(IRenderer renderer, params (string, Action)[] options)
         {
             Renderer = renderer;
 

@@ -3,14 +3,14 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ConsoleGame
 {
-    readonly struct RequestKinds
+    public readonly struct RequestKinds
     {
         public const int OBJ_DETAILS_REQUEST = 1;
         public const int CLIENT_LIST = 1;
     }
 
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-    class Request : IEquatable<Request?>
+    public class Request : IEquatable<Request?>
     {
         public readonly double SentTime;
         public readonly int Kind;
@@ -49,7 +49,7 @@ namespace ConsoleGame
         string GetDebuggerDisplay() => ToString();
     }
 
-    class RequestManager
+    public class RequestManager
     {
         readonly List<Request> requests = new();
 

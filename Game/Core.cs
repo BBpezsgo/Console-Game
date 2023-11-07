@@ -2,7 +2,7 @@
 using ConsoleGame.Net;
 using Microsoft.Win32.SafeHandles;
 using Win32;
-using Win32.Utilities;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
@@ -10,7 +10,7 @@ namespace ConsoleGame
     {
         public Scene Scene;
         SafeFileHandle ConsoleHandle;
-        ConsoleRenderer renderer;
+        IRenderer renderer;
         Buffer<float> depthBuffer;
         float deltaTime;
         FpsCounter FpsCounter;
@@ -31,7 +31,7 @@ namespace ConsoleGame
         public PlayerData PlayerData;
 
         public static float DeltaTime => Instance.deltaTime;
-        public static ConsoleRenderer Renderer => Instance.renderer;
+        public static IRenderer Renderer => Instance.renderer;
         public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {
@@ -73,7 +73,7 @@ namespace ConsoleGame
             ConsoleListener.Start();
 
             fixed (char* fileNamePtr = "CONOUT$")
-            { ConsoleHandle = Kernel32.CreateFile(fileNamePtr, 0x40000000, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
+            { ConsoleHandle = Kernel32.CreateFileSafe(fileNamePtr, Rights.GENERIC_WRITE, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
             renderer = new ConsoleRenderer(ConsoleHandle, (short)Console.WindowWidth, (short)Console.WindowHeight);
             depthBuffer = new Buffer<float>(renderer);
 

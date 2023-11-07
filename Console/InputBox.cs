@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using Win32;
-using Win32.Utilities;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public class InputBox
     {
-        readonly ConsoleRenderer Renderer;
+        readonly IRenderer Renderer;
         readonly string Title;
         readonly Action OnOk;
         readonly Action OnCancel;
@@ -18,7 +18,7 @@ namespace ConsoleGame
 
         public StringBuilder Value;
 
-        public InputBox(ConsoleRenderer renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
+        public InputBox(IRenderer renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
         {
             Renderer = renderer;
             Title = title;

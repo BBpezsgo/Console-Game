@@ -1,6 +1,6 @@
 ﻿namespace ConsoleGame
 {
-    struct FpsCounter
+    public struct FpsCounter
     {
         int[] Samples;
         int[] Copy;

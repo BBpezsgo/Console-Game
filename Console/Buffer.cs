@@ -2,7 +2,7 @@
 {
     public partial class Buffer<T>
     {
-        readonly ConsoleRenderer Renderer;
+        readonly IRenderer Renderer;
 
         public short Width => Renderer.Width;
         public short Height => Renderer.Height;
@@ -18,7 +18,7 @@
         public ref T this[Vector position] => ref this[position.X, position.Y];
         public ref T this[VectorInt position] => ref this[position.X, position.Y];
 
-        public Buffer(ConsoleRenderer renderer)
+        public Buffer(IRenderer renderer)
         {
             Renderer = renderer;
             buffer = new T[renderer.Size];

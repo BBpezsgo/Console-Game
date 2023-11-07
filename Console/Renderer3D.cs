@@ -4,7 +4,7 @@
     {
         static readonly bool SimpleLightning = false;
 
-        unsafe public static void Render(ConsoleRenderer renderer, Mesh mesh, Camera camera, Image? image)
+        unsafe public static void Render(IRenderer renderer, Mesh mesh, Camera camera, Image? image)
         {
             List<TriangleEx> trianglesToDraw = new();
 
@@ -127,9 +127,9 @@
             */
         }
 
-        unsafe static void ClipAndDrawTriangles(ConsoleRenderer renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        unsafe static void ClipAndDrawTriangles(IRenderer renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
         {
-            Win32.Coord screenSize = renderer.Rect;
+            VectorInt screenSize = renderer.Rect;
             for (int i = 0; i < trianglesToDraw.Count; i++)
             {
                 TriangleEx tri = trianglesToDraw[i];
@@ -165,9 +165,9 @@
             }
         }
 
-        unsafe static void DrawTriangles(ConsoleRenderer renderer, TriangleEx[] triangles, Image? image)
+        unsafe static void DrawTriangles(IRenderer renderer, TriangleEx[] triangles, Image? image)
         {
-            Win32.Coord ScreenSize = renderer.Rect;
+            VectorInt ScreenSize = renderer.Rect;
             for (int i = 0; i < triangles.Length; i++)
             {
                 if (image.HasValue)

@@ -1,23 +1,24 @@
 ﻿using Win32;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public partial class Game
     {
-
         void OnBufferSize(WindowBufferSizeEvent e)
         {
-            renderer?.ShouldResize();
+            if (renderer is ConsoleRenderer consoleRenderer)
+            { consoleRenderer.ShouldResize(); }
         }
 
         void OnMouse(MouseEvent e)
         {
-            Win32.Utilities.Mouse.Feed(e);
+            Mouse.Feed(e);
         }
 
         void OnKey(KeyEvent e)
         {
-            Win32.Utilities.Keyboard.Feed(e);
+            Keyboard.Feed(e);
 
             if (e.VirtualKeyCode == VirtualKeyCodes.ESCAPE)
             {

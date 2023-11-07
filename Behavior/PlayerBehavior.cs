@@ -1,6 +1,6 @@
 using ConsoleGame.Behavior;
 using Win32;
-using Win32.Utilities;
+using Win32.LowLevel;
 
 namespace ConsoleGame
 {
