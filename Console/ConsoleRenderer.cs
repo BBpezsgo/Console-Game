@@ -25,7 +25,7 @@ namespace ConsoleGame
 
         public event SimpleEventHandler? OnResized;
 
-        public ConsoleRenderer(SafeFileHandle handle, short width, short height) : base(handle, width, height)
+        public ConsoleRenderer(short width, short height) : base(width, height)
         {
             DepthBuffer = new Buffer<float>(this);
             // BloomBlur = new Buffer<Color>(this);

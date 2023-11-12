@@ -72,9 +72,10 @@ namespace ConsoleGame
 
             ConsoleListener.Start();
 
-            fixed (char* fileNamePtr = "CONOUT$")
-            { ConsoleHandle = Kernel32.CreateFileSafe(fileNamePtr, Rights.GENERIC_WRITE, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
-            renderer = new ConsoleRenderer(ConsoleHandle, (short)Console.WindowWidth, (short)Console.WindowHeight);
+            // fixed (char* fileNamePtr = "CONOUT$")
+            // { ConsoleHandle = Kernel32.CreateFileSafe(fileNamePtr, Rights.GENERIC_WRITE, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
+            
+            renderer = new ConsoleRenderer((short)Console.WindowWidth, (short)Console.WindowHeight);
             depthBuffer = new Buffer<float>(renderer);
 
             double last = DateTime.Now.TimeOfDay.TotalSeconds;
