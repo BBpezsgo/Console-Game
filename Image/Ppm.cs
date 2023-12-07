@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace ConsoleGame
 {
@@ -85,9 +80,12 @@ namespace ConsoleGame
             return result;
         }
 
+        /// <exception cref="FileNotFoundException"/>
+        /// <exception cref="FormatException"/>
+        /// <exception cref="Exception"/>
         public static Image LoadFile(string file)
         {
-            if (!File.Exists(file)) throw new Exception($"File \"{file}\" not found");
+            if (!File.Exists(file)) throw new FileNotFoundException($"File not found", file);
             string data = File.ReadAllText(file, Encoding.ASCII);
             int i = 0;
 
@@ -100,8 +98,8 @@ namespace ConsoleGame
             int? maxRgbValue = ExpectInt(data, ref i) ?? 255;
             ConsumeJunk(data, ref i);
 
-            if (!width.HasValue) throw new Exception($"Invalid width value");
-            if (!height.HasValue) throw new Exception($"Invalid height value");
+            if (!width.HasValue) throw new FormatException($"Invalid width value");
+            if (!height.HasValue) throw new FormatException($"Invalid height value");
             if (maxRgbValue == 0) throw new Exception($"Invalid maxRgbValue value {maxRgbValue}");
 
             int width_ = width.Value;

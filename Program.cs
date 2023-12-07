@@ -134,7 +134,7 @@ namespace ConsoleGame
                 Game game = new();
                 game.Start();
             }
-            catch (WindowsException windowsException)
+            catch (Win32.Common.WindowsException windowsException)
             { windowsException.ShowMessageBox(); }
         }
     }

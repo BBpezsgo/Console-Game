@@ -14,7 +14,7 @@ namespace ConsoleGame
             public const byte filterMethod = 0;
             public byte interlaceMethod;
 
-            /// <exception cref="Exception"/>
+            /// <exception cref="NotImplementedException"/>
             public void Decode(ReadOnlySpan<byte> data, ref int i)
             {
                 this.width = GetInt(data, ref i);
@@ -24,19 +24,21 @@ namespace ConsoleGame
                 this.colorType = GetByte(data, ref i);
 
                 byte compressionMethod = GetByte(data, ref i);
-                if (compressionMethod != 0) throw new Exception($"Invalid compression method {compressionMethod}");
+                if (compressionMethod != 0)
+                { throw new NotImplementedException($"Invalid compression method {compressionMethod}"); }
 
                 byte filterMethod = GetByte(data, ref i);
-                if (filterMethod != 0) throw new Exception($"Invalid filter method {filterMethod}");
+                if (filterMethod != 0)
+                { throw new NotImplementedException($"Invalid filter method {filterMethod}"); }
 
                 this.interlaceMethod = GetByte(data, ref i);
 
                 if (colorType != 6)
-                    throw new Exception("We only support truecolor with alpha");
+                { throw new NotImplementedException("We only support true-color with alpha"); }
                 if (bitDepth != 8)
-                    throw new Exception("We only support a bit depth of 8");
+                { throw new NotImplementedException("We only support a bit depth of 8"); }
                 if (interlaceMethod != 0)
-                    throw new Exception("We only support no interlacing");
+                { throw new NotImplementedException("We only support no interlacing"); }
             }
         }
 
@@ -50,10 +52,10 @@ namespace ConsoleGame
             ((x & 0xff000000) >> 24);   // Fourth byte
 
         static ushort SwapEndianness(ushort x) => (ushort)(
-            ((x & 0x00ff) << 8) +  // First byte
-            ((x & 0xff00) >> 8));    // Second byte
+            ((x & 0x00ff) << 8) +       // First byte
+            ((x & 0xff00) >> 8));       // Second byte
 
-        bool DecodeHeader(byte[] data, ref int i)
+        static bool DecodeHeader(byte[] data, ref int i)
         {
             i++;
             string signatureText = System.Text.Encoding.ASCII.GetString(data, i, 3);
@@ -117,21 +119,22 @@ namespace ConsoleGame
             switch (type)
             {
                 case "IHDR":
-                    {
-                        int i = 0;
-                        Informations = new InformationChunk();
-                        Informations.Decode(data, ref i);
-                        return true;
-                    }
+                {
+                    int i = 0;
+                    Informations = new InformationChunk();
+                    Informations.Decode(data, ref i);
+                    return true;
+                }
                 case "IDAT":
-                    {
-                        Data.AddRange(data.ToArray());
-                        return true;
-                    }
+                {
+                    Data.AddRange(data.ToArray());
+                    return true;
+                }
                 default: return false;
             }
         }
-        int PaethPredictor(int a, int b, int c)
+
+        static int PaethPredictor(int a, int b, int c)
         {
             int p = a + b - c;
 
@@ -182,11 +185,20 @@ namespace ConsoleGame
 
             List<byte> reconstructed = new((int)Informations.height * stride);
 
-            int Recon_a(int r, int c) => c >= bytesPerPixel ? reconstructed[r * stride + c - bytesPerPixel] : 0;
+            int Recon_a(int r, int c)
+            {
+                return c >= bytesPerPixel ? reconstructed[r * stride + c - bytesPerPixel] : 0;
+            }
 
-            int Recon_b(int r, int c) => r > 0 ? reconstructed[(r - 1) * stride + c] : 0;
+            int Recon_b(int r, int c)
+            {
+                return r > 0 ? reconstructed[(r - 1) * stride + c] : 0;
+            }
 
-            int Recon_c(int r, int c) => (r > 0 && c >= bytesPerPixel) ? reconstructed[(r - 1) * stride + c - bytesPerPixel] : 0;
+            int Recon_c(int r, int c)
+            {
+                return (r > 0 && c >= bytesPerPixel) ? reconstructed[(r - 1) * stride + c - bytesPerPixel] : 0;
+            }
 
             pixelIndex = 0;
 
@@ -201,17 +213,17 @@ namespace ConsoleGame
                     pixelIndex += 1;
                     int reconstructedP;
                     if (filterType == 0) //  None
-                        reconstructedP = p;
+                    { reconstructedP = p; }
                     else if (filterType == 1) //  Sub
-                        reconstructedP = p + Recon_a(r, c);
+                    { reconstructedP = p + Recon_a(r, c); }
                     else if (filterType == 2) //  Up
-                        reconstructedP = p + Recon_b(r, c);
+                    { reconstructedP = p + Recon_b(r, c); }
                     else if (filterType == 3) //  Average
-                        reconstructedP = p + (Recon_a(r, c) + Recon_b(r, c));// 2
+                    { reconstructedP = p + (Recon_a(r, c) + Recon_b(r, c)); }// 2
                     else if (filterType == 4) //  Paeth
-                        reconstructedP = p + PaethPredictor(Recon_a(r, c), Recon_b(r, c), Recon_c(r, c));
+                    { reconstructedP = p + PaethPredictor(Recon_a(r, c), Recon_b(r, c), Recon_c(r, c)); }
                     else
-                        throw new Exception($"Unknown filter type {filterType}");
+                    { throw new NotImplementedException($"Unknown filter type {filterType}"); }
                     reconstructed.Add((byte)(reconstructedP & byte.MaxValue)); // truncation to byte
                 }
             }

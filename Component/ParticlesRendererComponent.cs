@@ -138,7 +138,7 @@
                 if (depth > Priority) continue;
                 depth = Priority;
 
-                ref Win32.CharInfo pixel = ref Game.Renderer[p];
+                ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
 
                 float v = particles[i].AgePercent;
 

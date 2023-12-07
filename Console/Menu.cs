@@ -17,13 +17,13 @@ namespace ConsoleGame
             }
         }
 
-        protected readonly IRenderer Renderer;
+        protected readonly IConsoleRenderer Renderer;
         protected readonly MenuOption[] Options;
         public RectInt ContentRect;
 
         protected int Selected;
 
-        public Menu(IRenderer renderer, params (string, Action)[] options)
+        public Menu(IConsoleRenderer renderer, params (string, Action)[] options)
         {
             Renderer = renderer;
 
@@ -35,7 +35,7 @@ namespace ConsoleGame
 
         public void Tick(RectInt contentRect)
         {
-            if (Keyboard.IsKeyDown('W') || Keyboard.IsKeyDown(VirtualKeyCodes.UP))
+            if (Keyboard.IsKeyDown('W') || Keyboard.IsKeyDown(VirtualKeyCode.UP))
             {
                 Selected--;
                 if (Selected < 0)
@@ -44,7 +44,7 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Keyboard.IsKeyDown('S') || Keyboard.IsKeyDown(VirtualKeyCodes.DOWN))
+            if (Keyboard.IsKeyDown('S') || Keyboard.IsKeyDown(VirtualKeyCode.DOWN))
             {
                 Selected++;
                 if (Selected < 0)
@@ -63,7 +63,7 @@ namespace ConsoleGame
             }
 
             int clicked = -1;
-            if (Keyboard.IsKeyDown(VirtualKeyCodes.RETURN))
+            if (Keyboard.IsKeyDown(VirtualKeyCode.RETURN))
             { clicked = Selected; }
 
             for (int i = 0; i < Options.Length; i++)
@@ -105,7 +105,7 @@ namespace ConsoleGame
         {
             for (int i = 0; i < Options.Length; i++)
             {
-                if (string.Equals(Options[i].Label, option))
+                if (string.Equals(Options[i].Label, option, StringComparison.Ordinal))
                 {
                     Select(i);
                     break;

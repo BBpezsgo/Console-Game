@@ -5,7 +5,7 @@ namespace ConsoleGame
 {
     public class Camera
     {
-        public const float fNear = 0.00001f;
+        public const float fNear = 0.000001f;
         public const float fFar = 1000.0f;
         public const float fFov = 90.0f;
         public static readonly float fFovRad = 1.0f / MathF.Tan(fFov * 0.5f / 180f * MathF.PI);
@@ -42,14 +42,14 @@ namespace ConsoleGame
             VectorInt mouseDelta = Mouse.Position - mousePosition;
             mousePosition = Mouse.Position;
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.LEFT))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
             { this.CameraPosition.X += Time.DeltaTime * CameraSpeed; }
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.RIGHT))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
             { this.CameraPosition.X -= Time.DeltaTime * CameraSpeed; }
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.UP))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.UP))
             { this.CameraPosition.Y += Time.DeltaTime * CameraSpeed; }
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.DOWN))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
             { this.CameraPosition.Y -= Time.DeltaTime * CameraSpeed; }
 
             if (Keyboard.IsKeyPressed('W'))
@@ -69,7 +69,7 @@ namespace ConsoleGame
                 this.CameraYaw += mouseDelta.X * MouseIntensity;
                 this.CameraBruh += mouseDelta.Y * MouseIntensity;
 
-                Mouse.Position = new Point(Game.width / 2, Game.height / 2);
+                Mouse.Position = new Win32.Common.Point(Game.width / 2, Game.height / 2);
 
                 VectorInt center = new(Game.width / 2, Game.height / 2);
 

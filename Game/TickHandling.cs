@@ -23,18 +23,18 @@ namespace ConsoleGame
         readonly Mesh MeshTeapot = Obj.LoadFile($"{AssetsRuntime}teapot.obj");
         readonly Mesh MeshAxis = Obj.LoadFile($"{AssetsRuntime}axis.obj");
         readonly Mesh MeshMountains = Obj.LoadFile($"{AssetsRuntime}mountains.obj");
-        readonly Mesh MeshTerrain = Obj.LoadFile($"{AssetsRuntime}uploads_files_3707747_landscape.obj");
+        readonly Mesh MeshTerrain = Obj.LoadFile($"{AssetsRuntime}uploads_files_3707747_landscape.obj").Scale(10f);
 
         readonly Image ImgUv = Ppm.LoadFile($"{AssetsRuntime}bruh.ppm");
 
-        Camera camera = new();
+        readonly Camera camera = new();
 
         VectorInt LastMousePosition;
 
         readonly Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
 
-        public static readonly int width = User32.GetSystemMetrics(0);
-        public static readonly int height = User32.GetSystemMetrics(1);
+        public static readonly int width = User32.GetSystemMetrics(SystemMetricsFlags.CXSCREEN);
+        public static readonly int height = User32.GetSystemMetrics(SystemMetricsFlags.CYSCREEN);
 
         bool LockCursor;
         const float MouseIntensity = 0.001f;
@@ -60,9 +60,18 @@ namespace ConsoleGame
                     { LockCursor = !LockCursor; }
 
                     camera.HandleInput(LockCursor, ref LastMousePosition);
-                    camera.DoMath(renderer.Rect, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix);
+                    camera.DoMath(renderer.Rect, out _, out _);
 
-                    Renderer3D.Render(renderer, MeshTerrain, camera, null);
+                    AnsiRenderer ansi = new();
+
+                    ansi.ClearBuffer();
+
+                    Renderer3D.Render(ansi, MeshTerrain, camera, null, (v) => v);
+
+                    ansi.Render();
+
+                    return;
+
                     /*
                     for (int y = 0; y < renderer.BloomBlur.Height; y++)
                     {
@@ -127,6 +136,7 @@ namespace ConsoleGame
                 }
             }
 
+            if (Scene != null)
             {
                 QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Game.ConsoleToWorld(Mouse.RecordedPosition));
 
@@ -198,7 +208,7 @@ namespace ConsoleGame
             for (int x = 0; x < renderer.Width; x++)
             {
                 if (3 >= renderer.Height) break;
-                ref CharInfo pixel = ref renderer[x, 3];
+                ref ConsoleChar pixel = ref renderer[x, 3];
                 pixel.Attributes = ByteColor.Silver;
                 pixel.Char = Ascii.BoxSides[0b_0010];
             }
@@ -234,7 +244,7 @@ namespace ConsoleGame
             ah = Math.Clamp(ah, 0, 255);
             */
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.TAB))
             { EntityHoverPopup.ShouldNotShow = true; }
 
             if (Scene != null)
@@ -301,7 +311,7 @@ namespace ConsoleGame
 
                     for (int x = 0; x < HealthBarWidth; x++)
                     {
-                        ref CharInfo pixel = ref renderer[x + 4, 1];
+                        ref ConsoleChar pixel = ref renderer[x + 4, 1];
                         pixel.Background = ByteColor.Gray;
                         pixel.Foreground = ByteColor.BrightRed;
                         if (health > x)
@@ -412,7 +422,7 @@ namespace ConsoleGame
                 stateBarX += GUI.Label(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
             }
 
-            if (Keyboard.IsKeyPressed(VirtualKeyCodes.TAB))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.TAB))
             { DrawClientListMenu(); }
         }
 

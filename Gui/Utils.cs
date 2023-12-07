@@ -4,7 +4,7 @@ namespace ConsoleGame
 {
     public static class GUI
     {
-        static IRenderer Renderer => Game.Renderer;
+        static IConsoleRenderer Renderer => Game.Renderer;
         static short Width => Game.Renderer.Width;
         static short Height => Game.Renderer.Height;
 

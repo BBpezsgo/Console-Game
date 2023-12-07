@@ -32,7 +32,7 @@
 
             depth = Priority;
 
-            ref Win32.CharInfo pixel = ref Game.Renderer[p];
+            ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
 
             pixel.Foreground = Color;
             pixel.Char = Character;

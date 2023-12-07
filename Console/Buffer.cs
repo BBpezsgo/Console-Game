@@ -41,7 +41,7 @@
 
         public static explicit operator T[](Buffer<T> v) => v.buffer;
 
-        public void Copy(ConsoleRenderer destination, Func<T, Win32.CharInfo> converter)
+        public void Copy(ConsoleRenderer destination, Func<T, Win32.ConsoleChar> converter)
         {
             for (int y = 0; y < this.Height; y++)
             {

@@ -12,7 +12,7 @@ namespace ConsoleGame
             Coins = deserializer.DeserializeInt32();
         }
 
-        public void Serialize(Serializer serializer)
+        public readonly void Serialize(Serializer serializer)
         {
             serializer.Serialize(Coins);
         }

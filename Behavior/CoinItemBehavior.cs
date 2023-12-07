@@ -51,7 +51,7 @@
 
             effect.AddComponent(new ParticlesRendererComponent(effect, new ParticlesConfig()
             {
-                Gradients = new Gradient[1] { new Gradient(Color.White, Color.Yellow) },
+                Gradients = new Gradient[1] { new(Color.White, Color.Yellow) },
                 Characters = new char[] { '○', '°', '⁰', '˚' },
                 ParticleCount = (3, 5),
                 ParticleLifetime = (.2f, .3f),

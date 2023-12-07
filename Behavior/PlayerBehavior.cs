@@ -58,29 +58,29 @@ namespace ConsoleGame
                 }
             }
 
-            if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCodes.UP))
+            if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCode.UP))
             {
                 Position.Y -= Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCodes.LEFT))
+            if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
             {
                 Position.X -= Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCodes.DOWN))
+            if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
             {
                 Position.Y += Game.DeltaTime * MaxSpeed;
             }
 
-            if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCodes.RIGHT))
+            if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
             {
                 Position.X += Game.DeltaTime * MaxSpeed;
             }
 
             WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
 
-            if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCodes.SPACE)))
+            if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCode.SPACE)))
             {
                 Shoot(Position, Vector.RotateByDeg((Game.ConsoleToWorld(Mouse.RecordedPosition) - Position).Normalized, Random.Float(-2f, 2f)));
             }

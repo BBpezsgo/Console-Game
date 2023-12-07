@@ -4,7 +4,7 @@
     {
         readonly string Title;
 
-        public MenuBoxed(IRenderer renderer, string title, params (string, Action)[] options)
+        public MenuBoxed(IConsoleRenderer renderer, string title, params (string, Action)[] options)
             : base(renderer, options)
         {
             Title = title;

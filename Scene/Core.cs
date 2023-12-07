@@ -18,7 +18,7 @@ namespace ConsoleGame
 
         public RectInt SizeR => new(VectorInt.Zero, Size);
 
-        public readonly CharInfo[,] BackgroundTexture;
+        public readonly ConsoleChar[,] BackgroundTexture;
 
         public readonly QuadTree<Entity?> QuadTree;
 
@@ -27,13 +27,13 @@ namespace ConsoleGame
             Entities = new List<Entity>();
             QuadTree = new QuadTree<Entity?>(SizeR);
 
-            BackgroundTexture = new CharInfo[Size.X, Size.Y];
+            BackgroundTexture = new ConsoleChar[Size.X, Size.Y];
 
             for (int y = 0; y < Size.Y; y++)
             {
                 for (int x = 0; x < Size.X; x++)
                 {
-                    ref CharInfo pixel = ref BackgroundTexture[x, y];
+                    ref ConsoleChar pixel = ref BackgroundTexture[x, y];
 
                     float v = Noise.Simplex(new Vector(x, y) * 0.25f);
                     if (v < .5f) continue;
@@ -119,7 +119,7 @@ namespace ConsoleGame
                 int bottom = b.Y;
                 int right = b.X;
 
-                IRenderer r = Game.Renderer;
+                IConsoleRenderer r = Game.Renderer;
 
                 const byte c = ByteColor.Silver;
 
@@ -130,14 +130,14 @@ namespace ConsoleGame
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
-                        ref CharInfo pixel = ref r[p1];
+                        ref ConsoleChar pixel = ref r[p1];
                         pixel.Attributes = c;
                         pixel.Char = '|';
                     }
 
                     if (r.IsVisible(p2) && !Game.IsOnGui(p2))
                     {
-                        ref CharInfo pixel = ref r[p2];
+                        ref ConsoleChar pixel = ref r[p2];
                         pixel.Attributes = c;
                         pixel.Char = '|';
                     }
@@ -150,14 +150,14 @@ namespace ConsoleGame
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
-                        ref CharInfo pixel = ref r[p1];
+                        ref ConsoleChar pixel = ref r[p1];
                         pixel.Attributes = c;
                         pixel.Char = '-';
                     }
 
                     if (r.IsVisible(p2) && !Game.IsOnGui(p2))
                     {
-                        ref CharInfo pixel = ref r[p2];
+                        ref ConsoleChar pixel = ref r[p2];
                         pixel.Attributes = c;
                         pixel.Char = '-';
                     }
@@ -170,25 +170,25 @@ namespace ConsoleGame
 
                 if (r.IsVisible(p3) && !Game.IsOnGui(p3))
                 {
-                    ref CharInfo pixel = ref r[p3];
+                    ref ConsoleChar pixel = ref r[p3];
                     pixel.Attributes = c;
                     pixel.Char = '+';
                 }
                 if (r.IsVisible(p4) && !Game.IsOnGui(p4))
                 {
-                    ref CharInfo pixel = ref r[p4];
+                    ref ConsoleChar pixel = ref r[p4];
                     pixel.Attributes = c;
                     pixel.Char = '+';
                 }
                 if (r.IsVisible(p5) && !Game.IsOnGui(p5))
                 {
-                    ref CharInfo pixel = ref r[p5];
+                    ref ConsoleChar pixel = ref r[p5];
                     pixel.Attributes = c;
                     pixel.Char = '+';
                 }
                 if (r.IsVisible(p6) && !Game.IsOnGui(p6))
                 {
-                    ref CharInfo pixel = ref r[p6];
+                    ref ConsoleChar pixel = ref r[p6];
                     pixel.Attributes = c;
                     pixel.Char = '+';
                 }

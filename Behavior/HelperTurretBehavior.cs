@@ -155,7 +155,7 @@ namespace ConsoleGame
 
             for (int x = 0; x < content.Width - 4; x++)
             {
-                ref CharInfo pixel = ref Game.Renderer[x + content.X + 3, content.Y + 1];
+                ref ConsoleChar pixel = ref Game.Renderer[x + content.X + 3, content.Y + 1];
                 pixel.Background = ByteColor.Gray;
                 pixel.Foreground = ByteColor.BrightRed;
                 if (health > x)

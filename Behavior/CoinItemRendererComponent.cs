@@ -29,7 +29,7 @@
 
             depth = Priority;
 
-            ref Win32.CharInfo pixel = ref Game.Renderer[p];
+            ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
 
             int i1 = (int)((Time.UtcNow - SpawnedTime) * 3f) % 2;
             int i2 = Math.Clamp(Item.Amount, 0, 20);

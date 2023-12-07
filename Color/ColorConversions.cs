@@ -253,9 +253,9 @@
             ( '▓', .75f ),
         };
 
-        public static Win32.CharInfo ToCharacterShaded(Color color)
+        public static Win32.ConsoleChar ToCharacterShaded(Color color)
         {
-            Win32.CharInfo result = new(' ', 0);
+            Win32.ConsoleChar result = new(' ');
 
             float shade = color.Intensity;
 
@@ -265,14 +265,14 @@
             byte c = Color.To4bitIRGB(color);
             
             if (shade >= 1f)
-            { return new Win32.CharInfo(' ', (ushort)(c << 4)); }
+            { return new Win32.ConsoleChar(' ', (ushort)(c << 4)); }
 
-            return new Win32.CharInfo(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
+            return new Win32.ConsoleChar(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
         }
 
-        public static Win32.CharInfo ToCharacterColored(Color color)
+        public static Win32.ConsoleChar ToCharacterColored(Color color)
         {
-            Win32.CharInfo result = new(' ', 0);
+            Win32.ConsoleChar result = new(' ');
             float smallestDist = float.PositiveInfinity;
 
             for (byte c1 = 0; c1 <= ByteColor.White; c1++)
@@ -284,7 +284,7 @@
                     if (smallestDist > dist)
                     {
                         smallestDist = dist;
-                        result = new Win32.CharInfo(' ', 0, c1);
+                        result = new Win32.ConsoleChar(' ', 0, c1);
                     }
                     if (dist <= float.Epsilon) return result;
                 }
@@ -300,7 +300,7 @@
                         if (smallestDist > dist)
                         {
                             smallestDist = dist;
-                            result = new Win32.CharInfo(ShadeCharacters[i].Character, c1, c2);
+                            result = new Win32.ConsoleChar(ShadeCharacters[i].Character, c1, c2);
                         }
                         if (dist <= float.Epsilon) return result;
                     }
@@ -310,7 +310,7 @@
             return result;
         }
 
-        public static Color FromCharacter(Win32.CharInfo character)
+        public static Color FromCharacter(Win32.ConsoleChar character)
         {
             float shade = character.Char switch
             {

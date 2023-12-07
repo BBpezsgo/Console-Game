@@ -45,7 +45,7 @@ namespace ConsoleGame
 
                 depth = Priority;
 
-                ref CharInfo pixel = ref Game.Renderer[conPos];
+                ref ConsoleChar pixel = ref Game.Renderer[conPos];
 
                 pixel.Background = ByteColor.Black;
                 pixel.Foreground = ByteColor.Silver;

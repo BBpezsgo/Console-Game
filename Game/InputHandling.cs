@@ -20,7 +20,7 @@ namespace ConsoleGame
         {
             Keyboard.Feed(e);
 
-            if (e.VirtualKeyCode == VirtualKeyCodes.ESCAPE)
+            if (e.VirtualKeyCode == VirtualKeyCode.ESCAPE)
             {
                 Exit();
                 return;

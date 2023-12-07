@@ -21,7 +21,7 @@
 
             depth = Priority;
 
-            ref Win32.CharInfo pixel = ref Game.Renderer[p];
+            ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
             pixel.Char = Character;
 
             float lastDamagedInterval = Time.UtcNow - LastDamaged;

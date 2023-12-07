@@ -1,16 +1,13 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using ConsoleGame.Net;
-using Microsoft.Win32.SafeHandles;
 using Win32;
-using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public partial class Game
     {
         public Scene Scene;
-        SafeFileHandle ConsoleHandle;
-        IRenderer renderer;
+        IConsoleRenderer renderer;
         Buffer<float> depthBuffer;
         float deltaTime;
         FpsCounter FpsCounter;
@@ -26,12 +23,12 @@ namespace ConsoleGame
         Menu Menu_YouDied;
         int CurrentMenu = 1;
 
-        List<ITimer> Timers = new();
+        readonly List<ITimer> Timers = new();
 
         public PlayerData PlayerData;
 
         public static float DeltaTime => Instance.deltaTime;
-        public static IRenderer Renderer => Instance.renderer;
+        public static IConsoleRenderer Renderer => Instance.renderer;
         public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {
@@ -64,7 +61,7 @@ namespace ConsoleGame
             // ConsoleUtils.Reset();
 
             ConsoleHandler.Setup();
-            ConsoleHandler.SetFont("Consolas", 8);
+            // ConsoleHandler.SetFont("Consolas", 8);
 
             ConsoleListener.KeyEvent += OnKey;
             ConsoleListener.MouseEvent += OnMouse;
@@ -72,9 +69,6 @@ namespace ConsoleGame
 
             ConsoleListener.Start();
 
-            // fixed (char* fileNamePtr = "CONOUT$")
-            // { ConsoleHandle = Kernel32.CreateFileSafe(fileNamePtr, Rights.GENERIC_WRITE, 2, null, (uint)FileMode.Open, 0, IntPtr.Zero); }
-            
             renderer = new ConsoleRenderer((short)Console.WindowWidth, (short)Console.WindowHeight);
             depthBuffer = new Buffer<float>(renderer);
 
@@ -99,7 +93,7 @@ namespace ConsoleGame
                 PlayerData = savedPlayerData;
             }
 
-            MainMenu.Select("Offline");
+            // MainMenu.Select("Offline");
 
             while (isRunning)
             {
@@ -121,8 +115,6 @@ namespace ConsoleGame
 
             connection?.Close();
             ConsoleListener.Stop();
-            ConsoleHandle.Close();
-            ConsoleHandle.Dispose();
             ConsoleHandler.Restore();
         }
 

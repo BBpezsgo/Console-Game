@@ -6,7 +6,7 @@ namespace ConsoleGame
 {
     public class InputBox
     {
-        readonly IRenderer Renderer;
+        readonly IConsoleRenderer Renderer;
         readonly string Title;
         readonly Action OnOk;
         readonly Action OnCancel;
@@ -18,7 +18,7 @@ namespace ConsoleGame
 
         public StringBuilder Value;
 
-        public InputBox(IRenderer renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
+        public InputBox(IConsoleRenderer renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
         {
             Renderer = renderer;
             Title = title;
@@ -66,7 +66,7 @@ namespace ConsoleGame
 
             if (Selected == 0)
             {
-                if (Keyboard.IsKeyDown(VirtualKeyCodes.BACK))
+                if (Keyboard.IsKeyDown(VirtualKeyCode.BACK))
                 {
                     if (Value.Length > 0 && CursorPosition > 0)
                     {
@@ -74,7 +74,7 @@ namespace ConsoleGame
                         CursorPosition--;
                     }
                 }
-                else if (Keyboard.IsKeyDown(VirtualKeyCodes.DELETE))
+                else if (Keyboard.IsKeyDown(VirtualKeyCode.DELETE))
                 {
                     if (Value.Length > 0 && CursorPosition < Value.Length - 1)
                     {
@@ -90,7 +90,7 @@ namespace ConsoleGame
                     {
                         if (Keyboard.IsKeyDown(keys[i]))
                         {
-                            if (Keyboard.IsKeyPressed(VirtualKeyCodes.SHIFT))
+                            if (Keyboard.IsKeyPressed(VirtualKeyCode.SHIFT))
                             {
                                 Value.Insert(CursorPosition, shiftedChars[i]);
                             }
@@ -103,12 +103,12 @@ namespace ConsoleGame
                     }
                 }
 
-                if (Keyboard.IsKeyDown(VirtualKeyCodes.LEFT))
+                if (Keyboard.IsKeyDown(VirtualKeyCode.LEFT))
                 {
                     CursorPosition = Math.Clamp(CursorPosition - 1, 0, Value.Length);
                 }
 
-                if (Keyboard.IsKeyDown(VirtualKeyCodes.RIGHT))
+                if (Keyboard.IsKeyDown(VirtualKeyCode.RIGHT))
                 {
                     CursorPosition = Math.Clamp(CursorPosition + 1, 0, Value.Length);
                 }
@@ -144,7 +144,7 @@ namespace ConsoleGame
 
             borderRect.Top += 2;
 
-            if (Keyboard.IsKeyDown('W') || Keyboard.IsKeyDown(VirtualKeyCodes.UP))
+            if (Keyboard.IsKeyDown('W') || Keyboard.IsKeyDown(VirtualKeyCode.UP))
             {
                 Selected--;
                 if (Selected < 0)
@@ -153,7 +153,7 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Keyboard.IsKeyDown('S') || Keyboard.IsKeyDown(VirtualKeyCodes.DOWN))
+            if (Keyboard.IsKeyDown('S') || Keyboard.IsKeyDown(VirtualKeyCode.DOWN))
             {
                 Selected++;
                 if (Selected < 0)
@@ -172,7 +172,7 @@ namespace ConsoleGame
             }
 
             int clicked = -1;
-            if (Selected != 0 && Keyboard.IsKeyDown(VirtualKeyCodes.RETURN))
+            if (Selected != 0 && Keyboard.IsKeyDown(VirtualKeyCode.RETURN))
             { clicked = Selected; }
 
             const string LabelOk = "Ok";

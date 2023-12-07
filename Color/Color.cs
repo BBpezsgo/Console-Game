@@ -14,6 +14,19 @@ namespace ConsoleGame
         public readonly bool Overflow => R > 1f || G > 1f || B > 1f;
         public readonly float Intensity => MathF.Sqrt((R * R) + (G * G) + (B * B));
 
+        public float Saturation
+        {
+            readonly get => Color.ToHsl(this).S;
+            set
+            {
+                (float h, _, float l) = Color.ToHsl(this);
+                Color newColor = Color.FromHSL(h, value, l);
+                this.R = newColor.R;
+                this.G = newColor.G;
+                this.B = newColor.B;
+            }
+        }
+
         public Color(float r, float g, float b)
         {
             R = r;

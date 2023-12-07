@@ -24,5 +24,27 @@ namespace ConsoleGame
             { Triangles[i].MaterialIndex = 0; }
             return this;
         }
+
+        public Mesh Scale(Vector3 scale)
+        {
+            for (int i = 0; i < Triangles.Length; i++)
+            {
+                Triangles[i].PointA *= scale;
+                Triangles[i].PointB *= scale;
+                Triangles[i].PointC *= scale;
+            }
+            return this;
+        }
+
+        public Mesh Scale(float scale)
+        {
+            for (int i = 0; i < Triangles.Length; i++)
+            {
+                Triangles[i].PointA *= scale;
+                Triangles[i].PointB *= scale;
+                Triangles[i].PointC *= scale;
+            }
+            return this;
+        }
     }
 }

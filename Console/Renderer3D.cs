@@ -4,7 +4,7 @@
     {
         static readonly bool SimpleLightning = false;
 
-        unsafe public static void Render(IRenderer renderer, Mesh mesh, Camera camera, Image? image)
+        unsafe public static void Render<T>(IRenderer<T> renderer, Mesh mesh, Camera camera, Image? image, Func<Color, T> converter)
         {
             List<TriangleEx> trianglesToDraw = new();
 
@@ -12,7 +12,7 @@
 
             DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
 
-            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image);
+            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image, converter);
         }
 
         unsafe static void DoMathWithTriangles(TriangleEx[] triangles, Material[] materials, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
@@ -67,6 +67,8 @@
 
                     tri.Color = (ambientComponent + diffuse + specular);
                 }
+
+                tri.Color.Saturation *= 2f;
 
                 tri.PointA *= camera.ViewMatrix;
                 tri.PointB *= camera.ViewMatrix;
@@ -127,7 +129,7 @@
             */
         }
 
-        unsafe static void ClipAndDrawTriangles(IRenderer renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        unsafe static void ClipAndDrawTriangles<T>(IRenderer<T> renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image, Func<Color, T> converter)
         {
             VectorInt screenSize = renderer.Rect;
             for (int i = 0; i < trianglesToDraw.Count; i++)
@@ -161,11 +163,11 @@
                     newTriangles = triangles.Count;
                 }
 
-                DrawTriangles(renderer, triangles.ToArray(), image);
+                DrawTriangles(renderer, triangles.ToArray(), image, converter);
             }
         }
 
-        unsafe static void DrawTriangles(IRenderer renderer, TriangleEx[] triangles, Image? image)
+        unsafe static void DrawTriangles<T>(IRenderer<T> renderer, TriangleEx[] triangles, Image? image, Func<Color, T> converter)
         {
             VectorInt ScreenSize = renderer.Rect;
             for (int i = 0; i < triangles.Length; i++)
@@ -176,15 +178,16 @@
                         ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
                         ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
                         ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
-                        image.Value);
+                        image.Value, converter);
                 }
                 else
                 {
+                    T character = converter(triangles[i].Color);
                     renderer.FillTriangle(
                         ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA.Z,
                         ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
                         ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
-                        Color.ToCharacterShaded(triangles[i].Color));
+                        character);
                 }
 
                 /*
