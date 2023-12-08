@@ -134,24 +134,6 @@
 
         #endregion
 
-        #region 24bit RGB
-
-        public static Color From24bitRGB(int r, int g, int b) => new(
-            (float)r / (float)byte.MaxValue,
-            (float)g / (float)byte.MaxValue,
-            (float)b / (float)byte.MaxValue);
-
-        public static (byte R, byte G, byte B) To24bitRGB(Color color)
-        {
-            Color clamped = color.Clamped;
-            byte r = (byte)MathF.Round(clamped.R * byte.MaxValue);
-            byte g = (byte)MathF.Round(clamped.G * byte.MaxValue);
-            byte b = (byte)MathF.Round(clamped.B * byte.MaxValue);
-            return (r, g, b);
-        }
-
-        #endregion
-
         #region 8bit RGB
 
         /// <summary>
@@ -159,48 +141,28 @@
         /// </summary>
         public static byte To8bitRGB(Color color)
         {
-            (byte r, byte g, byte b) = Color.To24bitRGB(color);
-            return (byte)(((r / 32) << 5) + ((g / 32) << 2) + (b / 64));
+            Color24 c24 = (Color24)color;
+            return (byte)(((c24.R / 32) << 5) + ((c24.G / 32) << 2) + (c24.B / 64));
         }
 
         /// <summary>
         /// Source: <see href="https://stackoverflow.com/questions/41420215/single-byte-to-rgb-and-rgb-to-single-byte"/>
         /// </summary>
-        public static Color From8bitRGB(byte color)
+        public static Color24 From8bitRGB(byte color)
         {
             byte R = (byte)((color & 0b_111_000_00) >> 5);
             byte G = (byte)((color & 0b_000_111_00) >> 2);
             byte B = (byte)(color & 0b_000_000_11);
-            return Color.From24bitRGB(R, G, B);
+            return new Color24(R, G, B);
         }
 
         #endregion
 
         #region 4bit IRGB
 
-        static readonly Color[] Irgb4bitColors = new Color[0b_1_0000]
-        {
-            Color.From24bitRGB(0, 0, 0), // 0b_0000
-            Color.From24bitRGB(0, 0, 128), // 0b_0001
-            Color.From24bitRGB(0, 128, 0), // 0b_0010
-            Color.From24bitRGB(0, 128, 128), // 0b_0011
-            Color.From24bitRGB(128, 0, 0), // 0b_0100
-            Color.From24bitRGB(128, 0, 128), // 0b_0101
-            Color.From24bitRGB(128, 128, 0), // 0b_0110
-            Color.From24bitRGB(192, 192, 192), // 0b_0111
-            Color.From24bitRGB(128, 128, 128), // 0b_1000
-            Color.From24bitRGB(0, 0, 255), // 0b_1001
-            Color.From24bitRGB(0, 255, 0), // 0b_1010
-            Color.From24bitRGB(0, 255, 255), // 0b_1011
-            Color.From24bitRGB(255, 0, 0), // 0b_1100
-            Color.From24bitRGB(255, 0, 255), // 0b_1101
-            Color.From24bitRGB(255, 255, 0), // 0b_1110
-            Color.From24bitRGB(255, 255, 255), // 0b_1111
-        };
-
         public static Color From4bitIRGB(byte irgb)
         {
-            return Irgb4bitColors[irgb];
+            return Color24.Irgb4bitColors[irgb];
             /*
             if (irgb == 0b_0111)
             { return Color.FromRGB(192, 192, 192); }

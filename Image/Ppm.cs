@@ -157,13 +157,13 @@ namespace ConsoleGame
             {
                 for (int x = 0; x < image_.Width; x++)
                 {
-                    (byte r, byte g, byte b) = Color.To24bitRGB(image_[x, y]);
+                    Color24 color = (Color24)image_[x, y];
 
-                    builder.Append(r.ToString(ic));
+                    builder.Append(color.R.ToString(ic));
                     builder.Append(' ');
-                    builder.Append(g.ToString(ic));
+                    builder.Append(color.G.ToString(ic));
                     builder.Append(' ');
-                    builder.Append(b.ToString(ic));
+                    builder.Append(color.B.ToString(ic));
                     builder.Append(EOL);
                 }
             }

@@ -65,10 +65,8 @@
                         specular = material.SpecularColor * specularConstant * SpecularIntensity;
                     }
 
-                    tri.Color = (ambientComponent + diffuse + specular);
+                    tri.Color = (ambientComponent + diffuse + specular) * 5f;
                 }
-
-                tri.Color.Saturation *= 2f;
 
                 tri.PointA *= camera.ViewMatrix;
                 tri.PointB *= camera.ViewMatrix;

@@ -270,7 +270,7 @@ namespace ConsoleGame
                 float alpha = (float)a / (float)byte.MaxValue;
                 alpha = Math.Clamp(alpha, byte.MinValue, byte.MaxValue);
 
-                Color color = Color.From24bitRGB(r, g, b) * alpha;
+                Color color = new Color24(r, g, b) * alpha;
                 Color backgroundColor_ = background * (1f - alpha);
                 pixels.Add(color + backgroundColor_);
             }

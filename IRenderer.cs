@@ -1,18 +1,17 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace ConsoleGame
+﻿namespace ConsoleGame
 {
     public interface IRenderer
     {
-        public Buffer<float> DepthBuffer { get; }
+        Buffer<float> DepthBuffer { get; }
 
-        public short Width { get; }
-        public short Height { get; }
-        public int Size => Width * Height;
+        short Width { get; }
+        short Height { get; }
+        int Size => Width * Height;
 
         VectorInt Rect { get; }
 
-        bool IsVisible(VectorInt position);
+        bool IsVisible(int x, int y);
+        bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
     }
 
     public interface IRenderer<T> : IRenderer

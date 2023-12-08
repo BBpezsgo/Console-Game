@@ -66,11 +66,9 @@ namespace ConsoleGame
 
                     ansi.ClearBuffer();
 
-                    Renderer3D.Render(ansi, MeshTerrain, camera, null, (v) => v);
+                    Renderer3D.Render(ansi, MeshMountains, camera, null, (v) => v);
 
                     ansi.Render();
-
-                    return;
 
                     /*
                     for (int y = 0; y < renderer.BloomBlur.Height; y++)
@@ -111,14 +109,16 @@ namespace ConsoleGame
                     { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
 
                     GUI.Label(0, 0, $"FPS: {FpsCounter.Value}");
+
+                    renderer.Render();
                 }
             }
             else
             {
                 TickWrapped();
-            }
 
-            renderer.Render();
+                renderer.Render();
+            }
         }
         float ah2 = .5f;
 
