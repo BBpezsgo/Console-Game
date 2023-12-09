@@ -9,66 +9,34 @@
         /// </summary>
         public static Color FromHSL(float h, float sl, float l)
         {
-            float v;
-            float r, g, b;
+            float v = (l <= 0.5f) ? (l * (1f + sl)) : (l + sl - (l * sl));
 
-            r = l; // default to gray
-            g = l;
+            if (v <= 0f)
+            { return new Color(l, l, l); }
 
-            b = l;
-            v = (l <= 0.5f) ? (l * (1.0f + sl)) : (l + sl - (l * sl));
+            float m;
+            float sv;
+            int sextant;
+            float fract, vsf, mid1, mid2;
 
-            if (v > 0)
+            m = l + l - v;
+            sv = (v - m) / v;
+            h *= 6f;
+            sextant = (int)h;
+            fract = h - sextant;
+            vsf = v * sv * fract;
+            mid1 = m + vsf;
+            mid2 = v - vsf;
+            return sextant switch
             {
-                float m;
-                float sv;
-                int sextant;
-                float fract, vsf, mid1, mid2;
-
-                m = l + l - v;
-                sv = (v - m) / v;
-                h *= 6.0f;
-                sextant = (int)h;
-                fract = h - sextant;
-                vsf = v * sv * fract;
-                mid1 = m + vsf;
-                mid2 = v - vsf;
-                switch (sextant)
-                {
-                    case 0:
-                        r = v;
-                        g = mid1;
-                        b = m;
-                        break;
-                    case 1:
-                        r = mid2;
-                        g = v;
-                        b = m;
-                        break;
-                    case 2:
-                        r = m;
-                        g = v;
-                        b = mid1;
-                        break;
-                    case 3:
-                        r = m;
-                        g = mid2;
-                        b = v;
-                        break;
-                    case 4:
-                        r = mid1;
-                        g = m;
-                        b = v;
-                        break;
-                    case 5:
-                        r = v;
-                        g = m;
-                        b = mid2;
-                        break;
-                }
-            }
-
-            return new Color(r, g, b);
+                0 => new Color(v, mid1, m),
+                1 => new Color(mid2, v, m),
+                2 => new Color(m, v, mid1),
+                3 => new Color(m, mid2, v),
+                4 => new Color(mid1, m, v),
+                5 => new Color(v, m, mid2),
+                _ => default,
+            };
         }
 
         /// <summary>
@@ -134,205 +102,31 @@
 
         #endregion
 
-        #region 8bit RGB
-
-        /// <summary>
-        /// Source: <see href="https://stackoverflow.com/questions/41420215/single-byte-to-rgb-and-rgb-to-single-byte"/>
-        /// </summary>
-        public static byte To8bitRGB(Color color)
-        {
-            Color24 c24 = (Color24)color;
-            return (byte)(((c24.R / 32) << 5) + ((c24.G / 32) << 2) + (c24.B / 64));
-        }
-
-        /// <summary>
-        /// Source: <see href="https://stackoverflow.com/questions/41420215/single-byte-to-rgb-and-rgb-to-single-byte"/>
-        /// </summary>
-        public static Color24 From8bitRGB(byte color)
-        {
-            byte R = (byte)((color & 0b_111_000_00) >> 5);
-            byte G = (byte)((color & 0b_000_111_00) >> 2);
-            byte B = (byte)(color & 0b_000_000_11);
-            return new Color24(R, G, B);
-        }
-
-        #endregion
-
         #region 4bit IRGB
 
-        public static Color From4bitIRGB(byte irgb)
+        public static readonly Color[] Irgb4bitColors = new Color[0b_1_0000]
         {
-            return Color24.Irgb4bitColors[irgb];
-            /*
-            if (irgb == 0b_0111)
-            { return Color.FromRGB(192, 192, 192); }
-
-            if (irgb == 0b_1000)
-            { return Color.FromRGB(128, 128, 128); }
-
-            int intensity = (irgb & 0b_1000) >> 3;
-            int r = (irgb & 0b_0100) >> 2;
-            int g = (irgb & 0b_0010) >> 1;
-            int b = (irgb & 0b_0001) >> 0;
-
-            if (intensity == 0)
-            { return new Color(r, g, b) * Ratio1; }
-            else
-            { return new Color(r, g, b); }
-            */
-        }
-
-        public static Color From4bitIRGB(byte r, byte g, byte b, byte i)
-            => Color.From4bitIRGB((byte)((i << 3) | (r << 2) | (g << 1) | (b)));
-
-        public static byte To4bitIRGB(Color color)
-        {
-            return RgbiApprox(color);
-            /*
-            byte result = 0b_0000;
-
-            // if (color.Luminance > .3f)
-            if (color.R > Ratio1 && color.G > Ratio1 || color.B > Ratio1)
-            { result |= 0b_1000; }
-
-            if (color.R > Ratio2)
-            { result |= 0b_0100; }
-
-            if (color.G > Ratio2)
-            { result |= 0b_0010; }
-
-            if (color.B > Ratio2)
-            { result |= 0b_0001; }
-
-            return result;
-            */
-        }
-
-        static readonly (char Character, float Intensity)[] ShadeCharacters = new (char Character, float Intensity)[]
-        {
-            ( '░', .25f ),
-            ( '▒', .50f ),
-            ( '▓', .75f ),
+            (Color)(new Color24(0, 0, 0)),          // 0b_0000
+            (Color)(new Color24(0, 0, 128)),        // 0b_0001
+            (Color)(new Color24(0, 128, 0)),        // 0b_0010
+            (Color)(new Color24(0, 128, 128)),      // 0b_0011
+            (Color)(new Color24(128, 0, 0)),        // 0b_0100
+            (Color)(new Color24(128, 0, 128)),      // 0b_0101
+            (Color)(new Color24(128, 128, 0)),      // 0b_0110
+            (Color)(new Color24(192, 192, 192)),    // 0b_0111
+            (Color)(new Color24(128, 128, 128)),    // 0b_1000
+            (Color)(new Color24(0, 0, 255)),        // 0b_1001
+            (Color)(new Color24(0, 255, 0)),        // 0b_1010
+            (Color)(new Color24(0, 255, 255)),      // 0b_1011
+            (Color)(new Color24(255, 0, 0)),        // 0b_1100
+            (Color)(new Color24(255, 0, 255)),      // 0b_1101
+            (Color)(new Color24(255, 255, 0)),      // 0b_1110
+            (Color)(new Color24(255, 255, 255)),    // 0b_1111
         };
 
-        public static Win32.ConsoleChar ToCharacterShaded(Color color)
-        {
-            Win32.ConsoleChar result = new(' ');
+        public static Color From4bitIRGB(byte irgb) => Irgb4bitColors[irgb];
 
-            float shade = color.Intensity;
-
-            if (shade <= float.Epsilon)
-            { return result; }
-
-            byte c = Color.To4bitIRGB(color);
-            
-            if (shade >= 1f)
-            { return new Win32.ConsoleChar(' ', (ushort)(c << 4)); }
-
-            return new Win32.ConsoleChar(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
-        }
-
-        public static Win32.ConsoleChar ToCharacterColored(Color color)
-        {
-            Win32.ConsoleChar result = new(' ');
-            float smallestDist = float.PositiveInfinity;
-
-            for (byte c1 = 0; c1 <= ByteColor.White; c1++)
-            {
-                Color c1a = Color.From4bitIRGB(c1);
-                
-                {
-                    float dist = Color.Distance(c1a, color);
-                    if (smallestDist > dist)
-                    {
-                        smallestDist = dist;
-                        result = new Win32.ConsoleChar(' ', 0, c1);
-                    }
-                    if (dist <= float.Epsilon) return result;
-                }
-
-                for (byte c2 = (byte)(c1 + 1); c2 <= ByteColor.White; c2++)
-                {
-                    Color c2a = Color.From4bitIRGB(c2);
-                    for (int i = 0; i < ShadeCharacters.Length; i++)
-                    {
-                        float shade = ShadeCharacters[i].Intensity;
-                        Color shadedColor = (c1a * shade) + (c2a * (1f - shade));
-                        float dist = Color.Distance(shadedColor, color);
-                        if (smallestDist > dist)
-                        {
-                            smallestDist = dist;
-                            result = new Win32.ConsoleChar(ShadeCharacters[i].Character, c1, c2);
-                        }
-                        if (dist <= float.Epsilon) return result;
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public static Color FromCharacter(Win32.ConsoleChar character)
-        {
-            float shade = character.Char switch
-            {
-                '░' => .25f,
-                '▒' => .50f,
-                '▓' => .75f,
-                ' ' => 0f,
-                _ => .5f,
-            };
-
-            Color bg = Color.From4bitIRGB(character.Background);
-            Color fg = Color.From4bitIRGB(character.Foreground);
-
-            return (bg * (1f - shade)) + (fg * shade);
-        }
-
-        // const float Ratio1 = 128f / byte.MaxValue;
-        // const float Ratio2 = 64f / byte.MaxValue;
-
-        public static byte To4bitIRGB_BruteForce(Color color)
-        {
-            byte closest = 0b_0000;
-            float closestDistance = float.PositiveInfinity;
-
-            for (byte irgb = 0b_0000; irgb <= 0b_1111; irgb++)
-            {
-                Color rgb = Color.From4bitIRGB(irgb);
-                float distance = Color.Distance(rgb, color);
-
-                if (distance <= 0.05f)
-                {
-                    return irgb;
-                }
-
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closest = irgb;
-                }
-            }
-
-            return closest;
-        }
-
-        /// <summary>
-        /// <para>
-        /// Find the closest RGBx approximation of a 24-bit RGB color, for x = 0 or 1
-        /// </para>
-        /// <para>
-        /// Source: <see href="https://stackoverflow.com/questions/41644778/convert-24-bit-color-to-4-bit-rgbi"/>
-        /// </para>
-        /// </summary>
-        static (byte R, byte G, byte B) RgbxApprox(Color color, byte x)
-        {
-            float threshold = (x + 1f) / 3f;
-            byte r = (byte)(color.R > threshold ? 1 : 0);
-            byte g = (byte)(color.G > threshold ? 1 : 0);
-            byte b = (byte)(color.B > threshold ? 1 : 0);
-            return (r, g, b);
-        }
+        public static Color From4bitIRGB(byte r, byte g, byte b, byte i) => Irgb4bitColors[((i & 1) << 3) | ((r & 1) << 2) | ((g & 1) << 1) | (b & 1)];
 
         /// <summary>
         /// <para>
@@ -342,11 +136,23 @@
         /// Source: <see href="https://stackoverflow.com/questions/41644778/convert-24-bit-color-to-4-bit-rgbi"/>
         /// </para>
         /// </summary>
-        static byte RgbiApprox(Color color)
+        public static byte To4bitIRGB(Color color)
         {
+            /// <summary>
+            /// Find the closest RGBx approximation of a 24-bit RGB color, for x = 0 or 1
+            /// </summary>
+            static (byte R, byte G, byte B) RgbxApprox(Color color, byte x)
+            {
+                float threshold = (x + 1f) / 3f;
+                byte r = color.R > threshold ? (byte)1 : (byte)0;
+                byte g = color.G > threshold ? (byte)1 : (byte)0;
+                byte b = color.B > threshold ? (byte)1 : (byte)0;
+                return (r, g, b);
+            }
+
             // find best RGB0 and RGB1 approximations:
-            (byte r0, byte g0, byte b0) = Color.RgbxApprox(color, 0);
-            (byte r1, byte g1, byte b1) = Color.RgbxApprox(color, 1);
+            (byte r0, byte g0, byte b0) = RgbxApprox(color, 0);
+            (byte r1, byte g1, byte b1) = RgbxApprox(color, 1);
 
             // convert them back to 24-bit RGB:
             Color color1 = Color.From4bitIRGB(r0, g0, b0, 0);
@@ -380,6 +186,114 @@
             }
 
             return result;
+        }
+
+        static readonly (char Character, float Intensity)[] ShadeCharacters = new (char Character, float Intensity)[]
+        {
+            ( '░', .25f ),
+            ( '▒', .50f ),
+            ( '▓', .75f ),
+        };
+
+        public static Win32.ConsoleChar ToCharacterShaded(Color color)
+        {
+            float shade = color.MaxChannel;
+
+            if (shade < .125f)
+            { return Win32.ConsoleChar.Empty; }
+
+            byte c = Color.To4bitIRGB(color);
+
+            if (shade > .875f)
+            { return new Win32.ConsoleChar(' ', (ushort)(c << 4)); }
+
+            return new Win32.ConsoleChar(Ascii.BlockShade[(int)MathF.Round(shade * (Ascii.BlockShade.Length - 1))], c);
+        }
+
+        public static Win32.ConsoleChar ToCharacterColored(Color color)
+        {
+            Win32.ConsoleChar result = Win32.ConsoleChar.Empty;
+            float smallestDist = float.PositiveInfinity;
+            Color fgC, bgC;
+            float dist;
+            float shade;
+            byte fg, bg;
+
+            for (fg = 0; fg <= ByteColor.White; fg++)
+            {
+                fgC = Irgb4bitColors[fg];
+
+                {
+                    dist = Color.Distance(fgC, color);
+                    if (smallestDist > dist)
+                    {
+                        smallestDist = dist;
+                        result = new Win32.ConsoleChar(' ', 0, fg);
+                    }
+                    if (dist <= float.Epsilon) return result;
+                }
+
+                for (bg = (byte)(fg + 1); bg <= ByteColor.White; bg++)
+                {
+                    bgC = Irgb4bitColors[bg];
+
+                    for (int i = 0; i < ShadeCharacters.Length; i++)
+                    {
+                        shade = ShadeCharacters[i].Intensity;
+                        dist = Color.Distance((fgC * shade) + (bgC * (1f - shade)), color);
+                        if (smallestDist > dist)
+                        {
+                            smallestDist = dist;
+                            result = new Win32.ConsoleChar(ShadeCharacters[i].Character, fg, bg);
+                        }
+                        if (dist <= float.Epsilon) return result;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static Color FromCharacter(Win32.ConsoleChar character)
+        {
+            float shade = character.Char switch
+            {
+                '░' => .25f,
+                '▒' => .50f,
+                '▓' => .75f,
+                ' ' => 0f,
+                _ => .5f,
+            };
+
+            Color bg = Color.From4bitIRGB(character.Background);
+            Color fg = Color.From4bitIRGB(character.Foreground);
+
+            return (bg * (1f - shade)) + (fg * shade);
+        }
+
+        public static byte To4bitIRGB_BruteForce(Color color)
+        {
+            byte closest = 0b_0000;
+            float closestDistance = float.PositiveInfinity;
+
+            for (byte irgb = 0b_0000; irgb <= 0b_1111; irgb++)
+            {
+                Color rgb = Color.From4bitIRGB(irgb);
+                float distance = Color.Distance(rgb, color);
+
+                if (distance <= 0.05f)
+                {
+                    return irgb;
+                }
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closest = irgb;
+                }
+            }
+
+            return closest;
         }
 
         #endregion

@@ -2,26 +2,28 @@
 {
     public interface IRenderer
     {
-        Buffer<float> DepthBuffer { get; }
+        public Buffer<float> DepthBuffer { get; }
+        public short Width { get; }
+        public short Height { get; }
+        public int Size => Width * Height;
 
-        short Width { get; }
-        short Height { get; }
-        int Size => Width * Height;
+        public VectorInt Rect => new(Width, Height);
 
-        VectorInt Rect { get; }
+        public bool IsVisible(int x, int y);
+        public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
 
-        bool IsVisible(int x, int y);
-        bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
+        public void ClearBuffer();
+        public void Render();
+        public bool Resize();
     }
 
     public interface IRenderer<T> : IRenderer
     {
+        public T[] Buffer { get; }
+
         public ref T this[int x, int y] => ref this[x + y * Width];
         public ref T this[VectorInt point] => ref this[point.X + point.Y * Width];
         public ref T this[int i] { get; }
-
-        public void ClearBuffer();
-        public void Render();
     }
 
     public static class RendererExtensions
@@ -31,6 +33,13 @@
             T temp = b;
             b = a;
             a = temp;
+        }
+
+        public static void ApplyBloom(
+            this IRenderer<Color> renderer,
+            int radius)
+        {
+            ColorUtils.Bloom(renderer.Buffer, renderer.Width, renderer.Height, radius);
         }
 
         public static void FillTriangle<T>(

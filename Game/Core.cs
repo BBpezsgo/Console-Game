@@ -7,7 +7,7 @@ namespace ConsoleGame
     public partial class Game
     {
         public Scene Scene;
-        IConsoleRenderer renderer;
+        IRenderer<ConsoleChar> renderer;
         Buffer<float> depthBuffer;
         float deltaTime;
         FpsCounter FpsCounter;
@@ -28,7 +28,7 @@ namespace ConsoleGame
         public PlayerData PlayerData;
 
         public static float DeltaTime => Instance.deltaTime;
-        public static IConsoleRenderer Renderer => Instance.renderer;
+        public static IRenderer<ConsoleChar> Renderer => Instance.renderer;
         public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {
@@ -50,7 +50,7 @@ namespace ConsoleGame
         {
             Instance = this;
             networkMode = NetworkMode.Offline;
-            FpsCounter = new FpsCounter(32);
+            FpsCounter = new FpsCounter(8);
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 

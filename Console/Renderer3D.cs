@@ -15,6 +15,17 @@
             ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image, converter);
         }
 
+        unsafe public static void Render(IRenderer<Color> renderer, Mesh mesh, Camera camera, Image? image)
+        {
+            List<TriangleEx> trianglesToDraw = new();
+
+            TriangleEx* clipped = stackalloc TriangleEx[2];
+
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
+
+            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image);
+        }
+
         unsafe static void DoMathWithTriangles(TriangleEx[] triangles, Material[] materials, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
         {
             for (int i = 0; i < triangles.Length; i++)
@@ -51,7 +62,7 @@
                 {
                     const float AmbientIntensity = 0.2f;
                     const float DiffuseIntensity = 1.0f;
-                    const float SpecularIntensity = 1.0f;
+                    const float SpecularIntensity = 5.0f;
 
                     Color ambientComponent = AmbientIntensity * material.AmbientColor;
 
@@ -65,7 +76,7 @@
                         specular = material.SpecularColor * specularConstant * SpecularIntensity;
                     }
 
-                    tri.Color = (ambientComponent + diffuse + specular) * 5f;
+                    tri.Color = (ambientComponent + diffuse + specular);
                 }
 
                 tri.PointA *= camera.ViewMatrix;
@@ -165,6 +176,44 @@
             }
         }
 
+        unsafe static void ClipAndDrawTriangles(IRenderer<Color> renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        {
+            VectorInt screenSize = renderer.Rect;
+            for (int i = 0; i < trianglesToDraw.Count; i++)
+            {
+                TriangleEx tri = trianglesToDraw[i];
+
+                Queue<TriangleEx> triangles = new();
+                triangles.Enqueue(tri);
+                int newTriangles = 1;
+
+                for (int p = 0; p < 4; p++)
+                {
+                    int trisToAdd = 0;
+                    while (newTriangles > 0)
+                    {
+                        TriangleEx test = triangles.Dequeue();
+                        newTriangles--;
+
+                        switch (p)
+                        {
+                            case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Y - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.X - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            default: break;
+                        }
+
+                        for (int w = 0; w < trisToAdd; w++)
+                            triangles.Enqueue(clipped[w]);
+                    }
+                    newTriangles = triangles.Count;
+                }
+
+                DrawTriangles(renderer, triangles.ToArray(), image);
+            }
+        }
+
         unsafe static void DrawTriangles<T>(IRenderer<T> renderer, TriangleEx[] triangles, Image? image, Func<Color, T> converter)
         {
             VectorInt ScreenSize = renderer.Rect;
@@ -186,6 +235,47 @@
                         ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
                         ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
                         character);
+                }
+
+                /*
+                Renderer.FillTriangle(
+                    ((Vector.One - (Vector)triangles_[j].PointA) * ScreenSize).Round(),
+                    ((Vector.One - (Vector)triangles_[j].PointB) * ScreenSize).Round(),
+                    ((Vector.One - (Vector)triangles_[j].PointC) * ScreenSize).Round(),
+                    Color.ToCharacterShaded(triangles_[j].Color));
+                */
+
+                /*
+                renderer.DrawLines(new VectorInt[]
+                {
+                    ((Vector.One - (Vector)tri.A) * screenSize).Round(),
+                    ((Vector.One - (Vector)tri.B) * screenSize).Round(),
+                    ((Vector.One - (Vector)tri.C) * screenSize).Round(),
+                }, ByteColor.Magenta << 4, ' ', true);
+                */
+            }
+        }
+
+        unsafe static void DrawTriangles(IRenderer<Color> renderer, TriangleEx[] triangles, Image? image)
+        {
+            VectorInt ScreenSize = renderer.Rect;
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                if (image.HasValue)
+                {
+                    renderer.FillTriangle(
+                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
+                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
+                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
+                        image.Value, v => v);
+                }
+                else
+                {
+                    renderer.FillTriangle(
+                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA.Z,
+                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
+                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
+                        triangles[i].Color);
                 }
 
                 /*

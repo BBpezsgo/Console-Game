@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using Win32;
-
-namespace ConsoleGame
+﻿namespace ConsoleGame
 {
     internal class Program
     {

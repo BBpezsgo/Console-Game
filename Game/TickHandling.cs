@@ -9,6 +9,7 @@ namespace ConsoleGame
     public partial class Game
     {
         float ah = .5f;
+        int RendererMode = 1;
 
         float LastEnemySpawn = Time.UtcNow;
         float LastItemSpawn = Time.UtcNow;
@@ -47,70 +48,68 @@ namespace ConsoleGame
 
             renderer.ClearBuffer();
             depthBuffer.Clear();
-            if (renderer is ConsoleRenderer consoleRenderer && consoleRenderer.Resize())
+            if (renderer.Resize())
             { depthBuffer.Resize(); }
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
             if (Test3D)
             {
+                if (Keyboard.IsKeyDown('Q'))
+                {
+                    RendererMode++;
+                    RendererMode %= 5;
+                }
+
                 if (true)
                 {
-                    if (Keyboard.IsKeyDown('C'))
-                    { LockCursor = !LockCursor; }
-
-                    camera.HandleInput(LockCursor, ref LastMousePosition);
-                    camera.DoMath(renderer.Rect, out _, out _);
-
-                    AnsiRenderer ansi = new();
-
-                    ansi.ClearBuffer();
-
-                    Renderer3D.Render(ansi, MeshMountains, camera, null, (v) => v);
-
-                    ansi.Render();
-
-                    /*
-                    for (int y = 0; y < renderer.BloomBlur.Height; y++)
+                    if (RendererMode == 0)
                     {
-                        for (int x = 0; x < renderer.BloomBlur.Width; x++)
-                        {
-                            renderer.BloomBlur[x, y] -= Color.White;
-                        }
+                        Do3DStuff(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
                     }
-                    Renderer3D.FastBlur((Color[])renderer.BloomBlur, renderer.BloomBlur.Width, renderer.BloomBlur.Height, 3);
-                    for (int y = 0; y < renderer.BloomBlur.Height; y++)
+                    else if (RendererMode == 1)
                     {
-                        for (int x = 0; x < renderer.BloomBlur.Width; x++)
-                        {
-                            renderer.BloomBlur[x, y] += Color.FromCharacter(renderer[x, y]);
-                            renderer.BloomBlur[x, y].Clamp();
-                        }
+                        Do3DStuff(this.renderer, Color.ToCharacterShaded);
                     }
-                    renderer.BloomBlur.Copy(renderer, Color.ToCharacterShaded);
-                    */
+                    else if (RendererMode == 2)
+                    {
+                        Do3DStuff(this.renderer, Color.ToCharacterColored);
+                    }
+                    else if (RendererMode == 3)
+                    {
+                        Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
+                        { ColorType = AnsiColorType.Extended });
+                    }
+                    else
+                    {
+                        Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
+                        { ColorType = AnsiColorType.TrueColor });
+                    }
                 }
                 else
                 {
-                    for (int y = 0; y < renderer.Height; y++)
+                    if (RendererMode == 0)
                     {
-                        for (int x = 0; x < renderer.Width; x++)
-                        {
-                            float vx = (float)x / (float)renderer.Width;
-                            float vy = (float)y / (float)renderer.Height;
-                            Color c = Color.FromHSL(vx, vy, ah2);
-                            renderer[x, y] = Color.ToCharacterColored(c);
-                        }
+                        DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
                     }
-
-                    if (Keyboard.IsKeyDown('W'))
-                    { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
-                    if (Keyboard.IsKeyDown('S'))
-                    { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
-
-                    GUI.Label(0, 0, $"FPS: {FpsCounter.Value}");
-
-                    renderer.Render();
+                    else if (RendererMode == 1)
+                    {
+                        DoColorTest(this.renderer, Color.ToCharacterShaded);
+                    }
+                    else if (RendererMode == 2)
+                    {
+                        DoColorTest(this.renderer, Color.ToCharacterColored);
+                    }
+                    else if (RendererMode == 3)
+                    {
+                        DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
+                        { ColorType = AnsiColorType.Extended });
+                    }
+                    else
+                    {
+                        DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
+                        { ColorType = AnsiColorType.TrueColor });
+                    }
                 }
             }
             else
@@ -120,6 +119,81 @@ namespace ConsoleGame
                 renderer.Render();
             }
         }
+
+        void Do3DStuff<T>(IRenderer<T> renderer, Func<Color, T> converter)
+        {
+            if (Keyboard.IsKeyDown('C'))
+            { LockCursor = !LockCursor; }
+
+            camera.HandleInput(LockCursor, ref LastMousePosition);
+            camera.DoMath(renderer.Rect, out _, out _);
+
+            Renderer3D.Render(renderer, MeshTerrain, camera, null, converter);
+
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+
+            renderer.Render();
+        }
+        void Do3DStuff(IRenderer<Color> renderer)
+        {
+            if (Keyboard.IsKeyDown('C'))
+            { LockCursor = !LockCursor; }
+
+            camera.HandleInput(LockCursor, ref LastMousePosition);
+            camera.DoMath(renderer.Rect, out _, out _);
+
+            Renderer3D.Render(renderer, MeshTerrain, camera, null);
+
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+
+            renderer.Render();
+        }
+
+        void DoColorTest<T>(IRenderer<T> renderer, Func<Color, T> converter)
+        {
+            for (int y = 0; y < renderer.Height; y++)
+            {
+                for (int x = 0; x < renderer.Width; x++)
+                {
+                    float vx = (float)x / (float)renderer.Width;
+                    float vy = (float)y / (float)renderer.Height;
+                    Color c = Color.FromHSL(vx, vy, ah2);
+                    renderer[x, y] = converter.Invoke(c);
+                }
+            }
+
+            if (Keyboard.IsKeyDown('W'))
+            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
+            if (Keyboard.IsKeyDown('S'))
+            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
+
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+
+            renderer.Render();
+        }
+        void DoColorTest(IRenderer<Color> renderer)
+        {
+            for (int y = 0; y < renderer.Height; y++)
+            {
+                for (int x = 0; x < renderer.Width; x++)
+                {
+                    float vx = (float)x / (float)renderer.Width;
+                    float vy = (float)y / (float)renderer.Height;
+                    Color c = Color.FromHSL(vx, vy, ah2);
+                    renderer[x, y] = c;
+                }
+            }
+
+            if (Keyboard.IsKeyDown('W'))
+            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
+            if (Keyboard.IsKeyDown('S'))
+            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
+
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+
+            renderer.Render();
+        }
+
         float ah2 = .5f;
 
         void TickWrapped()
@@ -371,22 +445,22 @@ namespace ConsoleGame
                 switch (CurrentMenu)
                 {
                     case 1:
-                        {
-                            MainMenu.Tick(40);
-                            break;
-                        }
+                    {
+                        MainMenu.Tick(40);
+                        break;
+                    }
 
                     case 2:
-                        {
-                            InputBox_ConnectAddress.Tick(30);
-                            break;
-                        }
+                    {
+                        InputBox_ConnectAddress.Tick(30);
+                        break;
+                    }
 
                     case 3:
-                        {
-                            InputBox_HostAddress.Tick(30);
-                            break;
-                        }
+                    {
+                        InputBox_HostAddress.Tick(30);
+                        break;
+                    }
 
                     default: break;
                 }

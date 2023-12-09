@@ -1,10 +1,12 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     public class MenuBoxed : Menu
     {
         readonly string Title;
 
-        public MenuBoxed(IConsoleRenderer renderer, string title, params (string, Action)[] options)
+        public MenuBoxed(IRenderer<ConsoleChar> renderer, string title, params (string, Action)[] options)
             : base(renderer, options)
         {
             Title = title;

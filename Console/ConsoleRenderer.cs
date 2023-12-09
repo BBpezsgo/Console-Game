@@ -11,15 +11,15 @@ namespace ConsoleGame
 
     public delegate void SimpleEventHandler();
 
-    public class ConsoleRenderer : Win32.ConsoleRenderer, IConsoleRenderer
+    public class ConsoleRenderer : Win32.ConsoleRenderer, IRenderer<ConsoleChar>
     {
         bool shouldResize;
 
+        public bool IsBloomEnabled;
+
         public Buffer<float> DepthBuffer { get; }
-
-        VectorInt IRenderer.Rect => base.Rect;
-
-        // public readonly Buffer<Color> BloomBlur;
+        public ConsoleChar[] Buffer => ConsoleBuffer;
+        
         public ref ConsoleChar this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
 
         public event SimpleEventHandler? OnResized;
@@ -27,7 +27,6 @@ namespace ConsoleGame
         public ConsoleRenderer(short width, short height) : base(width, height)
         {
             DepthBuffer = new Buffer<float>(this);
-            // BloomBlur = new Buffer<Color>(this);
             shouldResize = true;
         }
 
@@ -35,7 +34,6 @@ namespace ConsoleGame
         {
             base.ClearBuffer();
             DepthBuffer.Clear();
-            // BloomBlur.Clear();
         }
 
         public void DrawImage(TransparentImage image, RectInt rect, ImageRenderMode mode)
@@ -272,21 +270,23 @@ namespace ConsoleGame
 
         public void ShouldResize() => shouldResize = true;
 
-        public new bool Resize()
+        public bool Resize()
         {
             if (!shouldResize) return false;
             shouldResize = false;
 
             Console.Clear();
 
-            base.Resize();
+            base.RefreshBufferSize();
 
-            DepthBuffer?.Resize();
-            // BloomBlur?.Resize();
+            DepthBuffer.Resize();
 
             OnResized?.Invoke();
 
             return true;
         }
+
+        public static ConsoleChar ConvertTo(Color v) => Color.ToCharacterShaded(v);
+        public static Color ConvertTo(ConsoleChar v) => Color.FromCharacter(v);
     }
 }

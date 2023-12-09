@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace ConsoleGame
@@ -12,22 +13,6 @@ namespace ConsoleGame
             if (!File.Exists(file)) throw new FileNotFoundException($"Object file \"{file}\" not found");
             string text = File.ReadAllText(file, Encoding.ASCII);
             string[] lines = text.Replace('\r', '\n').Split('\n');
-
-            static bool TryParseIndexes(string text, out int[] indexes)
-            {
-                text = text.Trim();
-                string[] parts = text.Split('/');
-                indexes = new int[parts.Length];
-                for (int i = 0; i < parts.Length; i++)
-                {
-                    string part = parts[i].Trim();
-                    if (part.Length == 0)
-                    { indexes[i] = -1; }
-                    else if (!int.TryParse(part, out indexes[i]))
-                    { return false; }
-                }
-                return true;
-            }
 
             string? currentMaterialName = null;
             Material? currentMaterial = null;
@@ -62,21 +47,21 @@ namespace ConsoleGame
 
                     case "Ka":
                         {
-                            if (!Color.TryParse(line, out currentMaterial.AmbientColor))
+                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.AmbientColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
                         }
                     case "Kd":
                         {
-                            if (!Color.TryParse(line, out currentMaterial.DiffuseColor))
+                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.DiffuseColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
                         }
                     case "Ks":
                         {
-                            if (!Color.TryParse(line, out currentMaterial.SpecularColor))
+                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.SpecularColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
@@ -114,7 +99,7 @@ namespace ConsoleGame
                     case "Ke":
                     case "map_Ke":
                         {
-                            if (!Color.TryParse(line, out currentMaterial.EmissionColor))
+                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.EmissionColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
@@ -146,7 +131,7 @@ namespace ConsoleGame
                     #endregion
 
                     default:
-                        // Debug.WriteLine($"Unsupported mtl line kind \"{kind}\" (\"{line}\") (at line {i})");
+                        Debug.WriteLine($"Unsupported mtl line kind \"{kind}\" (\"{line}\") (at line {i})");
                         break;
                 }
             }

@@ -21,8 +21,7 @@ namespace ConsoleGame
 
             Dictionary<string, Material> materials = new();
 
-            // Not supported :(
-            bool smoothShading = false;
+            // bool smoothShading = false; // Not supported :(
 
             static bool TryParseIndexes(string text, out int[] indexes)
             {
@@ -91,14 +90,14 @@ namespace ConsoleGame
                         }
                     case "s":
                         {
-                            switch (line)
-                            {
-                                case "1": smoothShading = true; break;
-                                case "0": smoothShading = false; break;
-                                case "on": smoothShading = true; break;
-                                case "off": smoothShading = false; break;
-                                default: break;
-                            }
+                            // switch (line)
+                            // {
+                            //     case "1": smoothShading = true; break;
+                            //     case "0": smoothShading = false; break;
+                            //     case "on": smoothShading = true; break;
+                            //     case "off": smoothShading = false; break;
+                            //     default: break;
+                            // }
                             break;
                         }
                     case "l": break;

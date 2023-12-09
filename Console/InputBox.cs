@@ -6,7 +6,7 @@ namespace ConsoleGame
 {
     public class InputBox
     {
-        readonly IConsoleRenderer Renderer;
+        readonly IRenderer<ConsoleChar> Renderer;
         readonly string Title;
         readonly Action OnOk;
         readonly Action OnCancel;
@@ -18,7 +18,7 @@ namespace ConsoleGame
 
         public StringBuilder Value;
 
-        public InputBox(IConsoleRenderer renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
+        public InputBox(IRenderer<ConsoleChar> renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
         {
             Renderer = renderer;
             Title = title;
