@@ -55,7 +55,7 @@
                 }
             }
 
-            Velocity += Velocity.Normalized * Acceleration * Game.DeltaTime;
+            Velocity += Velocity.Normalized * Acceleration * Time.DeltaTime;
 
             Vector lastPosition = Position;
 
@@ -72,7 +72,7 @@
                 }
             }
 
-            Position += Velocity * Game.DeltaTime;
+            Position += Velocity * Time.DeltaTime;
 
             if (IsDestroyed) return;
 

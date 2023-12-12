@@ -36,7 +36,7 @@ namespace ConsoleGame
                 if ((Position - NetPosition).SqrMagnitude > MinTeleportDistance * MinTeleportDistance)
                 { Position = NetPosition; }
                 else
-                { Position += Vector.MoveTowards(Position, NetPosition, Speed * Game.DeltaTime); }
+                { Position += Vector.MoveTowards(Position, NetPosition, Speed * Time.DeltaTime); }
             }
         }
 

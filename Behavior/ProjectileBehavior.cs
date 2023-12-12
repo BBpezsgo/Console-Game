@@ -15,7 +15,7 @@ namespace ConsoleGame
         public override void Update()
         {
             Vector lastPosition = Position;
-            Position += Velocity * Game.DeltaTime;
+            Position += Velocity * Time.DeltaTime;
 
             bool bounced = WorldBorders.Bounce(Game.Instance.Scene.SizeR, ref Position, ref Velocity);
             if (bounced)

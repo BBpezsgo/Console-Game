@@ -60,22 +60,22 @@ namespace ConsoleGame
 
             if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCode.UP))
             {
-                Position.Y -= Game.DeltaTime * MaxSpeed;
+                Position.Y -= Time.DeltaTime * MaxSpeed;
             }
 
             if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
             {
-                Position.X -= Game.DeltaTime * MaxSpeed;
+                Position.X -= Time.DeltaTime * MaxSpeed;
             }
 
             if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
             {
-                Position.Y += Game.DeltaTime * MaxSpeed;
+                Position.Y += Time.DeltaTime * MaxSpeed;
             }
 
             if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
             {
-                Position.X += Game.DeltaTime * MaxSpeed;
+                Position.X += Time.DeltaTime * MaxSpeed;
             }
 
             WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
@@ -131,10 +131,10 @@ namespace ConsoleGame
             }
 
             if (Reload > 0f)
-            { Reload -= Game.DeltaTime; }
+            { Reload -= Time.DeltaTime; }
 
             if (GranateReload > 0f)
-            { GranateReload -= Game.DeltaTime; }
+            { GranateReload -= Time.DeltaTime; }
         }
 
         void Shoot(Vector origin, Vector direction)

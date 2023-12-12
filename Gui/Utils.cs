@@ -1,13 +1,27 @@
-﻿using Win32;
+﻿using System.Diagnostics.CodeAnalysis;
+using Win32;
 using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public static class GUI
     {
-        static IRenderer<ConsoleChar> Renderer => Game.Renderer;
-        static short Width => Game.Renderer.Width;
-        static short Height => Game.Renderer.Height;
+        static IRenderer<ConsoleChar>? _renderer;
+        [NotNull]
+        public static IRenderer<ConsoleChar>? Renderer
+        {
+            get
+            {
+                if (_renderer is null) throw new NullReferenceException($"{nameof(_renderer)} is null");
+                return _renderer;
+            }
+            set
+            {
+                _renderer = value;
+            }
+        }
+        static short Width => Renderer.Width;
+        static short Height => Renderer.Height;
 
         #region Label
 

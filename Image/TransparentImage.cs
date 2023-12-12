@@ -24,6 +24,20 @@
             Height = height;
         }
 
+        public TransparentImage(Color[] data, int width, int height)
+        {
+            Data = new TransparentColor[data.Length];
+            for (int i = 0; i < data.Length; i++)
+            {
+                Data[i] = (TransparentColor)data[i];
+            }
+            Width = width;
+            Height = height;
+        }
+
+        public static explicit operator TransparentImage(Image image) => new(image.Data, image.Width, image.Height);
+        public static explicit operator Image(TransparentImage image) => new(image.Data, image.Width, image.Height);
+
         public TransparentImage Duplicate()
         {
             TransparentColor[] data = new TransparentColor[Data.Length];

@@ -69,9 +69,9 @@ namespace ConsoleGame
                 this.CameraYaw += mouseDelta.X * MouseIntensity;
                 this.CameraBruh += mouseDelta.Y * MouseIntensity;
 
-                Mouse.Position = new Win32.Common.Point(Game.width / 2, Game.height / 2);
+                Mouse.Position = new Win32.Common.Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
-                VectorInt center = new(Game.width / 2, Game.height / 2);
+                VectorInt center = new(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
                 mousePosition = center;
             }

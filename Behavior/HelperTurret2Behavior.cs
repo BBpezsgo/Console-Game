@@ -104,7 +104,7 @@ namespace ConsoleGame
             if (Ammo <= 0 && Renderer != null) Renderer.Color = ByteColor.Silver;
 
             if (Reload > 0f)
-            { Reload -= Game.DeltaTime; }
+            { Reload -= Time.DeltaTime; }
         }
 
         void Shoot(Vector origin, Vector direction, float speed)

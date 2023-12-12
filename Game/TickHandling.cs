@@ -9,38 +9,13 @@ namespace ConsoleGame
     public partial class Game
     {
         float ah = .5f;
-        int RendererMode = 1;
 
         float LastEnemySpawn = Time.UtcNow;
         float LastItemSpawn = Time.UtcNow;
 
         int EnemyWave = 5;
 
-        static readonly string AssetsProject = @$"C:\Users\{Environment.UserName}\source\repos\ConsoleGame\Assets\";
-        static readonly string AssetsRuntime = @$"{Path.Combine(Directory.GetCurrentDirectory(), "Assets").TrimEnd('\\')}\";
-
-        readonly Mesh MeshCube = Mesh.MakeCube();
-        readonly Mesh MeshSpaceship = Obj.LoadFile($"{AssetsRuntime}VideoShip.obj");
-        readonly Mesh MeshTeapot = Obj.LoadFile($"{AssetsRuntime}teapot.obj");
-        readonly Mesh MeshAxis = Obj.LoadFile($"{AssetsRuntime}axis.obj");
-        readonly Mesh MeshMountains = Obj.LoadFile($"{AssetsRuntime}mountains.obj");
-        readonly Mesh MeshTerrain = Obj.LoadFile($"{AssetsRuntime}uploads_files_3707747_landscape.obj").Scale(10f);
-
-        readonly Image ImgUv = Ppm.LoadFile($"{AssetsRuntime}bruh.ppm");
-
-        readonly Camera camera = new();
-
-        VectorInt LastMousePosition;
-
         readonly Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
-
-        public static readonly int width = User32.GetSystemMetrics(SystemMetricsFlags.CXSCREEN);
-        public static readonly int height = User32.GetSystemMetrics(SystemMetricsFlags.CYSCREEN);
-
-        bool LockCursor;
-        const float MouseIntensity = 0.001f;
-
-        const bool Test3D = true;
 
         unsafe void Tick()
         {
@@ -53,143 +28,7 @@ namespace ConsoleGame
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
-            if (Test3D)
-            {
-                if (Keyboard.IsKeyDown('Q'))
-                {
-                    RendererMode++;
-                    RendererMode %= 5;
-                }
-
-                if (true)
-                {
-                    if (RendererMode == 0)
-                    {
-                        Do3DStuff(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
-                    }
-                    else if (RendererMode == 1)
-                    {
-                        Do3DStuff(this.renderer, Color.ToCharacterShaded);
-                    }
-                    else if (RendererMode == 2)
-                    {
-                        Do3DStuff(this.renderer, Color.ToCharacterColored);
-                    }
-                    else if (RendererMode == 3)
-                    {
-                        Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                        { ColorType = AnsiColorType.Extended });
-                    }
-                    else
-                    {
-                        Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                        { ColorType = AnsiColorType.TrueColor });
-                    }
-                }
-                else
-                {
-                    if (RendererMode == 0)
-                    {
-                        DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
-                    }
-                    else if (RendererMode == 1)
-                    {
-                        DoColorTest(this.renderer, Color.ToCharacterShaded);
-                    }
-                    else if (RendererMode == 2)
-                    {
-                        DoColorTest(this.renderer, Color.ToCharacterColored);
-                    }
-                    else if (RendererMode == 3)
-                    {
-                        DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                        { ColorType = AnsiColorType.Extended });
-                    }
-                    else
-                    {
-                        DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                        { ColorType = AnsiColorType.TrueColor });
-                    }
-                }
-            }
-            else
-            {
-                TickWrapped();
-
-                renderer.Render();
-            }
-        }
-
-        void Do3DStuff<T>(IRenderer<T> renderer, Func<Color, T> converter)
-        {
-            if (Keyboard.IsKeyDown('C'))
-            { LockCursor = !LockCursor; }
-
-            camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Rect, out _, out _);
-
-            Renderer3D.Render(renderer, MeshTerrain, camera, null, converter);
-
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
-
-            renderer.Render();
-        }
-        void Do3DStuff(IRenderer<Color> renderer)
-        {
-            if (Keyboard.IsKeyDown('C'))
-            { LockCursor = !LockCursor; }
-
-            camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Rect, out _, out _);
-
-            Renderer3D.Render(renderer, MeshTerrain, camera, null);
-
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
-
-            renderer.Render();
-        }
-
-        void DoColorTest<T>(IRenderer<T> renderer, Func<Color, T> converter)
-        {
-            for (int y = 0; y < renderer.Height; y++)
-            {
-                for (int x = 0; x < renderer.Width; x++)
-                {
-                    float vx = (float)x / (float)renderer.Width;
-                    float vy = (float)y / (float)renderer.Height;
-                    Color c = Color.FromHSL(vx, vy, ah2);
-                    renderer[x, y] = converter.Invoke(c);
-                }
-            }
-
-            if (Keyboard.IsKeyDown('W'))
-            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
-            if (Keyboard.IsKeyDown('S'))
-            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
-
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
-
-            renderer.Render();
-        }
-        void DoColorTest(IRenderer<Color> renderer)
-        {
-            for (int y = 0; y < renderer.Height; y++)
-            {
-                for (int x = 0; x < renderer.Width; x++)
-                {
-                    float vx = (float)x / (float)renderer.Width;
-                    float vy = (float)y / (float)renderer.Height;
-                    Color c = Color.FromHSL(vx, vy, ah2);
-                    renderer[x, y] = c;
-                }
-            }
-
-            if (Keyboard.IsKeyDown('W'))
-            { ah2 = Math.Clamp(ah2 + .1f, 0f, 1f); }
-            if (Keyboard.IsKeyDown('S'))
-            { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
-
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+            TickWrapped();
 
             renderer.Render();
         }

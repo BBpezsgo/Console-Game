@@ -4,7 +4,7 @@ using Win32;
 
 namespace ConsoleGame
 {
-    public partial class Game
+    public partial class Game : ITimeProvider
     {
         public Scene Scene;
         IRenderer<ConsoleChar> renderer;
@@ -27,7 +27,7 @@ namespace ConsoleGame
 
         public PlayerData PlayerData;
 
-        public static float DeltaTime => Instance.deltaTime;
+        public float DeltaTime => deltaTime;
         public static IRenderer<ConsoleChar> Renderer => Instance.renderer;
         public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
@@ -51,6 +51,7 @@ namespace ConsoleGame
             Instance = this;
             networkMode = NetworkMode.Offline;
             FpsCounter = new FpsCounter(8);
+            Time.Provider = this;
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -71,6 +72,7 @@ namespace ConsoleGame
 
             renderer = new ConsoleRenderer((short)Console.WindowWidth, (short)Console.WindowHeight);
             depthBuffer = new Buffer<float>(renderer);
+            GUI.Renderer = renderer;
 
             double last = DateTime.Now.TimeOfDay.TotalSeconds;
             double now;
@@ -116,6 +118,8 @@ namespace ConsoleGame
             connection?.Close();
             ConsoleListener.Stop();
             ConsoleHandler.Restore();
+            GUI.Renderer = null;
+            Time.Provider = null;
         }
 
         void MainMenuHandler_Offline()

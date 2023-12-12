@@ -2,6 +2,19 @@
 {
     internal class Program
     {
+        // static string AssetsProject => @$"C:\Users\{Environment.UserName}\source\repos\ConsoleGame\Assets\";
+        // static string AssetsRuntime => @$"{Path.Combine(Directory.GetCurrentDirectory(), "Assets").TrimEnd('\\')}\";
+        // 
+        // static Mesh MeshCube => Mesh.MakeCube();
+        // static Mesh MeshSpaceship => Obj.LoadFile($"{AssetsRuntime}VideoShip.obj");
+        // static Mesh MeshTeapot => Obj.LoadFile($"{AssetsRuntime}teapot.obj");
+        // static Mesh MeshAxis => Obj.LoadFile($"{AssetsRuntime}axis.obj");
+        // static Mesh MeshMountains => Obj.LoadFile($"{AssetsRuntime}mountains.obj");
+        // static Mesh MeshTerrain => Obj.LoadFile($"{AssetsRuntime}uploads_files_3707747_landscape.obj").Scale(10f);
+        // static Mesh MeshYeah => Obj.LoadFile(@"C:\Users\bazsi\Desktop\yeah.obj");
+        // 
+        // static Image ImgUv => Ppm.LoadFile($"{AssetsRuntime}bruh.ppm");
+
         static void Main(string[] args)
         {
             /*
@@ -126,10 +139,61 @@
             return;
             */
 
+            args = new string[]
+            {
+                "-3D",
+                @"C:\Users\bazsi\Desktop\yeah.obj",
+            };
+
+            args = ArgumentNormalizer.NormalizeArgs(args);
+
             try
             {
-                Game game = new();
-                game.Start();
+                if (args.Length == 0)
+                {
+                    Game game = new();
+                    game.Start();
+                }
+                else if (args.Length is 2 or 3)
+                {
+                    if (args[0].ToLowerInvariant() != "-3d")
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"Unexpected argument \"{args[0]}\" at {0}.");
+                        Console.ResetColor();
+                        return;
+                    }
+
+                    string objFilePath = args[1];
+
+                    if (!File.Exists(objFilePath))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"File \"{objFilePath}\" does not exists");
+                        Console.ResetColor();
+                        return;
+                    }
+
+                    string? imgFilePath = (args.Length == 3) ? args[2] : null;
+
+                    if (imgFilePath != null && !File.Exists(imgFilePath))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine($"File \"{imgFilePath}\" does not exists");
+                        Console.ResetColor();
+                        return;
+                    }
+
+                    MeshRenderer meshRenderer = new(objFilePath, imgFilePath);
+                    meshRenderer.Start();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"Wrong number of arguments passed. Expected 0, 2 or 3, got {args.Length}.");
+                    Console.ResetColor();
+                    return;
+                }
             }
             catch (Win32.Common.WindowsException windowsException)
             { windowsException.ShowMessageBox(); }
