@@ -378,12 +378,21 @@ namespace ConsoleGame
             this.DepthBuffer = new Buffer<float>(this);
             this.shouldResize = true;
             this.ColorType = AnsiColorType.TrueColor;
+            this.IsBloomEnabled = true;
+        }
+
+        public static void Initialize()
+        {
+            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+            {
+                const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+                Win32.ConsoleHandler.OutputFlags |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            }
         }
 
         public static void RenderExtended(Color[] buffer, int width, int height)
         {
             StringBuilder builder = new(width * height);
-            TextWriter o = Console.Out;
             byte prevColor = default;
             for (int y = 0; y < height; y++)
             {
@@ -402,14 +411,13 @@ namespace ConsoleGame
                     builder.Append(' ');
                 }
             }
-            o.Write(builder);
+            Console.Out.Write(builder);
             Console.SetCursorPosition(0, 0);
         }
 
         public static void RenderTrueColor(Color[] buffer, int width, int height)
         {
             StringBuilder builder = new(width * height);
-            TextWriter o = Console.Out;
             Color24 prevColor = default;
             for (int y = 0; y < height; y++)
             {
@@ -427,7 +435,7 @@ namespace ConsoleGame
                     builder.Append(' ');
                 }
             }
-            o.Write(builder);
+            Console.Out.Write(builder);
             Console.SetCursorPosition(0, 0);
         }
 
