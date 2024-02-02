@@ -38,7 +38,7 @@ namespace ConsoleGame
         {
             RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            GUI.Box(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, CharColor.Black, CharColor.White, Ascii.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {
@@ -54,7 +54,7 @@ namespace ConsoleGame
 
             if (Mouse.IsPressed(MouseButton.Left))
             {
-                if (Mouse.RecordedPosition.Y == borderRect.Y && borderRect.Contains(Mouse.RecordedPosition))
+                if (Mouse.RecordedConsolePosition.Y == borderRect.Y && borderRect.Contains(Mouse.RecordedConsolePosition))
                 {
                     Selected = 0;
                 }
@@ -114,31 +114,31 @@ namespace ConsoleGame
                 }
             }
 
-            GUI.Label(borderRect.X, borderRect.Y, Value.ToString(), ByteColor.Black, Selected == 0 ? ByteColor.BrightCyan : ByteColor.White);
+            GUI.Label(borderRect.X, borderRect.Y, Value.ToString(), CharColor.Black, Selected == 0 ? CharColor.BrightCyan : CharColor.White);
 
             if (Selected == 0 && (int)(Time.UtcNow * 2f) % 2 == 1)
             {
                 if (CursorPosition < Value.Length)
                 {
-                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Background = ByteColor.White;
-                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = ByteColor.Black;
+                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Background = CharColor.White;
+                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = CharColor.Black;
                 }
                 else
                 {
                     Renderer[borderRect.X + CursorPosition, borderRect.Y].Char = '_';
-                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = ByteColor.White;
+                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = CharColor.White;
                 }
             }
             else
             {
                 if (CursorPosition < Value.Length)
                 {
-                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Background = ByteColor.Black;
+                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Background = CharColor.Black;
                 }
                 else
                 {
                     Renderer[borderRect.X + CursorPosition, borderRect.Y].Char = ' ';
-                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = ByteColor.Black;
+                    Renderer[borderRect.X + CursorPosition, borderRect.Y].Foreground = CharColor.Black;
                 }
             }
 
@@ -162,12 +162,12 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Mouse.IsPressed(MouseButton.Left) && borderRect.Contains(Mouse.RecordedPosition))
+            if (Mouse.IsPressed(MouseButton.Left) && borderRect.Contains(Mouse.RecordedConsolePosition))
             {
-                int i = Mouse.RecordedPosition.Y;
+                int i = Mouse.RecordedConsolePosition.Y;
                 i -= borderRect.Y;
 
-                if (i >= 0 && i <= 1)
+                if (i is >= 0 and <= 1)
                 { Selected = i + 1; }
             }
 
@@ -184,20 +184,20 @@ namespace ConsoleGame
                 if (1 == clicked)
                 {
                     label = $"> {LabelOk}";
-                    color = ByteColor.BrightYellow;
+                    color = CharColor.BrightYellow;
                 }
                 else if (1 == Selected)
                 {
                     label = $"> {LabelOk}";
-                    color = ByteColor.BrightCyan;
+                    color = CharColor.BrightCyan;
                 }
                 else
                 {
                     label = $"  {LabelOk}";
-                    color = ByteColor.White;
+                    color = CharColor.White;
                 }
 
-                GUI.Label(borderRect.X, borderRect.Y + 0, label, ByteColor.Black, color);
+                GUI.Label(borderRect.X, borderRect.Y + 0, label, CharColor.Black, color);
             }
 
             {
@@ -206,20 +206,20 @@ namespace ConsoleGame
                 if (2 == clicked)
                 {
                     label = $"> {LabelCancel}";
-                    color = ByteColor.BrightYellow;
+                    color = CharColor.BrightYellow;
                 }
                 else if (2 == Selected)
                 {
                     label = $"> {LabelCancel}";
-                    color = ByteColor.BrightCyan;
+                    color = CharColor.BrightCyan;
                 }
                 else
                 {
                     label = $"  {LabelCancel}";
-                    color = ByteColor.White;
+                    color = CharColor.White;
                 }
 
-                GUI.Label(borderRect.X, borderRect.Y + 1, label, ByteColor.Black, color);
+                GUI.Label(borderRect.X, borderRect.Y + 1, label, CharColor.Black, color);
             }
 
             if (Selected != 0 && clicked != -1)

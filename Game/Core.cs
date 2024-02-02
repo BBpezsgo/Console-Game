@@ -111,7 +111,7 @@ namespace ConsoleGame
 
             if (ClearOnExit)
             {
-                renderer.ClearBuffer();
+                renderer.Clear();
                 renderer.Render();
             }
 

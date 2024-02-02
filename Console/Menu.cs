@@ -53,9 +53,9 @@ namespace ConsoleGame
                 { Selected = 0; }
             }
 
-            if (Mouse.IsPressed(MouseButton.Left) && contentRect.Contains(Mouse.RecordedPosition))
+            if (Mouse.IsPressed(MouseButton.Left) && contentRect.Contains(Mouse.RecordedConsolePosition))
             {
-                int i = Mouse.RecordedPosition.Y;
+                int i = Mouse.RecordedConsolePosition.Y;
                 i -= contentRect.Y;
 
                 if (i >= 0 && i < Options.Length)
@@ -75,20 +75,20 @@ namespace ConsoleGame
                 if (i == clicked)
                 {
                     label = $"> {option.Label}";
-                    color = ByteColor.BrightYellow;
+                    color = CharColor.BrightYellow;
                 }
                 else if (i == Selected)
                 {
                     label = $"> {option.Label}";
-                    color = ByteColor.BrightCyan;
+                    color = CharColor.BrightCyan;
                 }
                 else
                 {
                     label = $"  {option.Label}";
-                    color = ByteColor.White;
+                    color = CharColor.White;
                 }
 
-                GUI.Label(contentRect.X, contentRect.Y + i, label, ByteColor.Black, color);
+                GUI.Label(contentRect.X, contentRect.Y + i, label, CharColor.Black, color);
             }
 
             if (clicked != -1)

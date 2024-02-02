@@ -39,8 +39,8 @@ namespace ConsoleGame
 
         public void HandleInput(bool lockMouse, ref VectorInt mousePosition)
         {
-            VectorInt mouseDelta = Mouse.Position - mousePosition;
-            mousePosition = Mouse.Position;
+            VectorInt mouseDelta = Mouse.ScreenPosition - mousePosition;
+            mousePosition = Mouse.ScreenPosition;
 
             if (Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
             { this.CameraPosition.X += Time.DeltaTime * CameraSpeed; }
@@ -69,7 +69,7 @@ namespace ConsoleGame
                 this.CameraYaw += mouseDelta.X * MouseIntensity;
                 this.CameraBruh += mouseDelta.Y * MouseIntensity;
 
-                Mouse.Position = new Win32.Common.Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
+                Mouse.ScreenPosition = new Win32.Common.Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
                 VectorInt center = new(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 

@@ -48,13 +48,13 @@ namespace ConsoleGame
             {
                 for (int y = 4; y < Game.Renderer.Height; y++)
                 {
-                    Game.Renderer[0, y].Background = ByteColor.Red;
-                    Game.Renderer[Game.Renderer.Width - 1, y].Background = ByteColor.Red;
+                    Game.Renderer[0, y].Background = CharColor.Red;
+                    Game.Renderer[Game.Renderer.Width - 1, y].Background = CharColor.Red;
                 }
                 for (int x = 0; x < Game.Renderer.Width; x++)
                 {
-                    Game.Renderer[x, 4].Background = ByteColor.Red;
-                    Game.Renderer[x, Game.Renderer.Height - 1].Background = ByteColor.Red;
+                    Game.Renderer[x, 4].Background = CharColor.Red;
+                    Game.Renderer[x, Game.Renderer.Height - 1].Background = CharColor.Red;
                 }
             }
 
@@ -82,7 +82,7 @@ namespace ConsoleGame
 
             if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCode.SPACE)))
             {
-                Shoot(Position, Vector.RotateByDeg((Game.ConsoleToWorld(Mouse.RecordedPosition) - Position).Normalized, Random.Float(-2f, 2f)));
+                Shoot(Position, Vector.RotateByDeg((Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position).Normalized, Random.Float(-2f, 2f)));
             }
 
             if (Keyboard.IsKeyDown('X'))
@@ -145,7 +145,7 @@ namespace ConsoleGame
             projectile.SetComponents(
                     new RendererComponent(projectile)
                     {
-                        Color = ByteColor.BrightYellow,
+                        Color = CharColor.BrightYellow,
                         Character = '.',
                         Priority = Depths.PROJECTILE,
                     },

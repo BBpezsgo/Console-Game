@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     public partial struct Color
     {
@@ -219,7 +221,7 @@
             float shade;
             byte fg, bg;
 
-            for (fg = 0; fg <= ByteColor.White; fg++)
+            for (fg = 0; fg <= CharColor.White; fg++)
             {
                 fgC = Irgb4bitColors[fg];
 
@@ -233,7 +235,7 @@
                     if (dist <= float.Epsilon) return result;
                 }
 
-                for (bg = (byte)(fg + 1); bg <= ByteColor.White; bg++)
+                for (bg = (byte)(fg + 1); bg <= CharColor.White; bg++)
                 {
                     bgC = Irgb4bitColors[bg];
 

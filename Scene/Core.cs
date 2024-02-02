@@ -38,7 +38,7 @@ namespace ConsoleGame
                     float v = Noise.Simplex(new Vector(x, y) * 0.25f);
                     if (v < .5f) continue;
 
-                    pixel.Foreground = v < .75f ? ByteColor.Gray : ByteColor.Silver;
+                    pixel.Foreground = v < .75f ? CharColor.Gray : CharColor.Silver;
                     pixel.Char = '░';
                 }
             }
@@ -121,7 +121,7 @@ namespace ConsoleGame
 
                 IRenderer<ConsoleChar> r = Game.Renderer;
 
-                const byte c = ByteColor.Silver;
+                const byte c = CharColor.Silver;
 
                 for (int y = top + 1; y <= bottom - 1; y++)
                 {
@@ -130,16 +130,12 @@ namespace ConsoleGame
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
-                        ref ConsoleChar pixel = ref r[p1];
-                        pixel.Attributes = c;
-                        pixel.Char = '|';
+                        r[p1] = new ConsoleChar('|', c);
                     }
 
                     if (r.IsVisible(p2) && !Game.IsOnGui(p2))
                     {
-                        ref ConsoleChar pixel = ref r[p2];
-                        pixel.Attributes = c;
-                        pixel.Char = '|';
+                        r[p2] = new ConsoleChar('|', c);
                     }
                 }
 
@@ -150,16 +146,12 @@ namespace ConsoleGame
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
-                        ref ConsoleChar pixel = ref r[p1];
-                        pixel.Attributes = c;
-                        pixel.Char = '-';
+                        r[p1] = new ConsoleChar('-', c);
                     }
 
                     if (r.IsVisible(p2) && !Game.IsOnGui(p2))
                     {
-                        ref ConsoleChar pixel = ref r[p2];
-                        pixel.Attributes = c;
-                        pixel.Char = '-';
+                        r[p2] = new ConsoleChar('-', c);
                     }
                 }
 

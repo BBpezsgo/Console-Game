@@ -35,7 +35,7 @@ namespace ConsoleGame
 
             Game.DepthBuffer.SetRect(box, Depths.GUI);
 
-            GUI.Box(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(box, CharColor.Black, CharColor.White, Ascii.BoxSides);
             box.Expand(-1);
 
             for (int i = 0; i < DrawerComponents.Length; i++)
@@ -52,7 +52,7 @@ namespace ConsoleGame
                 return;
             }
 
-            float dist = (Game.ConsoleToWorld(Mouse.RecordedPosition) - Position).SqrMagnitude;
+            float dist = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position).SqrMagnitude;
             bool shouldShown = dist <= (DistanceToShow * DistanceToShow);
 
             if (!shouldShown)
@@ -63,7 +63,7 @@ namespace ConsoleGame
 
             if (AlreadyShown != null)
             {
-                float dist2 = (Game.ConsoleToWorld(Mouse.RecordedPosition) - AlreadyShown.Position).SqrMagnitude;
+                float dist2 = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - AlreadyShown.Position).SqrMagnitude;
                 if (dist2 < dist)
                 {
                     IsShown = false;

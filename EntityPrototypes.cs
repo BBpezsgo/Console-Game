@@ -1,4 +1,5 @@
 ﻿using ConsoleGame.Behavior;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -24,7 +25,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'O',
-                        Color = ByteColor.Magenta,
+                        Color = CharColor.Magenta,
                         Priority = Depths.PLAYER,
                     });
                     newEntity.AddComponent(new PlayerBehavior(newEntity));
@@ -46,7 +47,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = '@',
-                        Color = ByteColor.BrightRed,
+                        Color = CharColor.BrightRed,
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new EnemyBehavior(newEntity));
@@ -68,7 +69,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'A',
-                        Color = ByteColor.BrightRed,
+                        Color = CharColor.BrightRed,
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new SimpleDestroyableThing(newEntity, 25f));
@@ -92,7 +93,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'X',
-                        Color = ByteColor.BrightBlue,
+                        Color = CharColor.BrightBlue,
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new HelperTurretBehavior(newEntity));
@@ -116,7 +117,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'V',
-                        Color = ByteColor.BrightBlue,
+                        Color = CharColor.BrightBlue,
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new HelperTurret2Behavior(newEntity));
@@ -139,7 +140,7 @@ namespace ConsoleGame
                     newEntity.AddComponent(new DamageableRendererComponent(newEntity)
                     {
                         Character = 'O',
-                        Color = ByteColor.BrightBlue,
+                        Color = CharColor.BrightBlue,
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new HelperThingyBehavior(newEntity));

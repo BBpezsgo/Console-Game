@@ -10,15 +10,8 @@ namespace ConsoleGame
         [NotNull]
         public static IRenderer<ConsoleChar>? Renderer
         {
-            get
-            {
-                if (_renderer is null) throw new NullReferenceException($"{nameof(_renderer)} is null");
-                return _renderer;
-            }
-            set
-            {
-                _renderer = value;
-            }
+            get => _renderer ?? throw new NullReferenceException($"{nameof(_renderer)} is null");
+            set => _renderer = value;
         }
         static short Width => Renderer.Width;
         static short Height => Renderer.Height;
@@ -43,32 +36,17 @@ namespace ConsoleGame
         }
 
         public static int Label(VectorInt pos, string text, ushort attributes) => Label(pos.X, pos.Y, text, attributes);
-        public static int Label(int x, int y, string text, ushort attributes)
-        {
-            int w = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                int _x = x + i;
+        public static int Label(int x, int y, string text, ushort attributes) => Renderer.DrawText(x, y, text, attributes);
 
-                if (_x >= Width) break;
-                if (y >= Height) break;
-
-                Renderer[_x, y].Char = text[i];
-                Renderer[_x, y].Attributes = attributes;
-                w++;
-            }
-            return w;
-        }
-
-        public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharInfoAttribute.Make(background, foreground));
-        public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, CharInfoAttribute.Make(background, foreground));
+        public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharColor.Make(background, foreground));
+        public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, CharColor.Make(background, foreground));
 
         #endregion
 
         #region Box
 
         public static void Box(RectInt box) => Box(box, Ascii.BoxSides);
-        public static void Box(RectInt box, byte background, byte foreground) => Box(box, CharInfoAttribute.Make(background, foreground));
+        public static void Box(RectInt box, byte background, byte foreground) => Box(box, CharColor.Make(background, foreground));
         public static void Box(RectInt box, ushort attributes) => Box(box, attributes, Ascii.BoxSides);
         
         public static void Box(RectInt box, char[] sideCharacters)
@@ -97,7 +75,7 @@ namespace ConsoleGame
                 }
             }
         }
-        public static void Box(RectInt box, byte background, byte foreground, char[] sideCharacters) => Box(box, CharInfoAttribute.Make(background, foreground), sideCharacters);
+        public static void Box(RectInt box, byte background, byte foreground, char[] sideCharacters) => Box(box, CharColor.Make(background, foreground), sideCharacters);
         public static void Box(RectInt box, ushort attributes, char[] sideCharacters)
         {
             for (int _y = 0; _y < box.Height; _y++)

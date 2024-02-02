@@ -1,3 +1,5 @@
+using Win32;
+
 namespace ConsoleGame
 {
     public struct BitUtils
@@ -55,8 +57,8 @@ namespace ConsoleGame
             {
                 bool isSet = (segment & (1 << i)) != 0;
                 renderer[position.Y * renderer.Width + position.X + i].Char = isSet ? '1' : '0';
-                renderer[position.Y * renderer.Width + position.X + i].Background = ByteColor.Black;
-                renderer[position.Y * renderer.Width + position.X + i].Foreground = isSet ? ByteColor.BrightBlue : ByteColor.Blue;
+                renderer[position.Y * renderer.Width + position.X + i].Background = CharColor.Black;
+                renderer[position.Y * renderer.Width + position.X + i].Foreground = isSet ? CharColor.BrightBlue : CharColor.Blue;
             }
         }
     }

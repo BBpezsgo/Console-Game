@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame.Behavior
+﻿using Win32;
+
+namespace ConsoleGame.Behavior
 {
     internal class GranateBehavior : Component
     {
@@ -47,11 +49,11 @@
                 float t2 = Math.Clamp(t / TimeToExplode, 0f, 1f) * 4f;
                 if ((int)(ShotTime + (t2 * t2)) % 2 == 0)
                 {
-                    Renderer.Color = ByteColor.Gray;
+                    Renderer.Color = CharColor.Gray;
                 }
                 else
                 {
-                    Renderer.Color = ByteColor.BrightRed;
+                    Renderer.Color = CharColor.BrightRed;
                 }
             }
 

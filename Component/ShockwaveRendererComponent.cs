@@ -47,8 +47,8 @@ namespace ConsoleGame
 
                 ref ConsoleChar pixel = ref Game.Renderer[conPos];
 
-                pixel.Background = ByteColor.Black;
-                pixel.Foreground = ByteColor.Silver;
+                pixel.Background = CharColor.Black;
+                pixel.Foreground = CharColor.Silver;
                 pixel.Char = Ascii.BlockShade[0];
             }
         }

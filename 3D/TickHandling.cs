@@ -18,7 +18,7 @@ namespace ConsoleGame
 
             Keyboard.Tick();
 
-            renderer.ClearBuffer();
+            renderer.Clear();
             renderer.Resize();
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
@@ -91,7 +91,7 @@ namespace ConsoleGame
 
             Renderer3D.Render(renderer, MeshToRender, camera, ImageToRender, converter);
 
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
             renderer.Render();
         }
@@ -102,7 +102,7 @@ namespace ConsoleGame
 
             Renderer3D.Render(renderer, MeshToRender, camera, ImageToRender);
 
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
             renderer.Render();
         }
@@ -126,7 +126,7 @@ namespace ConsoleGame
             if (Keyboard.IsKeyDown('S'))
             { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
 
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
             renderer.Render();
         }
@@ -148,7 +148,7 @@ namespace ConsoleGame
             if (Keyboard.IsKeyDown('S'))
             { ah2 = Math.Clamp(ah2 - .1f, 0f, 1f); }
 
-            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", ByteColor.Silver);
+            GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
             renderer.Render();
         }

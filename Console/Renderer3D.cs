@@ -251,7 +251,7 @@
                     ((Vector.One - (Vector)tri.A) * screenSize).Round(),
                     ((Vector.One - (Vector)tri.B) * screenSize).Round(),
                     ((Vector.One - (Vector)tri.C) * screenSize).Round(),
-                }, ByteColor.Magenta << 4, ' ', true);
+                }, CharColor.Magenta << 4, ' ', true);
                 */
             }
         }
@@ -292,7 +292,7 @@
                     ((Vector.One - (Vector)tri.A) * screenSize).Round(),
                     ((Vector.One - (Vector)tri.B) * screenSize).Round(),
                     ((Vector.One - (Vector)tri.C) * screenSize).Round(),
-                }, ByteColor.Magenta << 4, ' ', true);
+                }, CharColor.Magenta << 4, ' ', true);
                 */
             }
         }

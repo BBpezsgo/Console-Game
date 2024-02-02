@@ -12,14 +12,14 @@
         public bool IsVisible(int x, int y);
         public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
 
-        public void ClearBuffer();
+        public void Clear();
         public void Render();
         public bool Resize();
     }
 
     public interface IRenderer<T> : IRenderer
     {
-        public T[] Buffer { get; }
+        public Span<T> Buffer { get; }
 
         public ref T this[int x, int y] => ref this[x + y * Width];
         public ref T this[VectorInt point] => ref this[point.X + point.Y * Width];
@@ -39,7 +39,7 @@
             this IRenderer<Color> renderer,
             int radius)
         {
-            ColorUtils.Bloom(renderer.Buffer, renderer.Width, renderer.Height, radius);
+            ColorUtils.Bloom(renderer.Buffer.ToArray(), renderer.Width, renderer.Height, radius);
         }
 
         public static void FillTriangle<T>(
@@ -582,7 +582,7 @@
                     VectorInt point = new(x_ + position.X, y_ + position.Y);
                     if (!renderer.IsVisible(point)) continue;
                     Color c = image[fixWidth ? x_ / 2 : x_, y_];
-                    renderer[point] = converter.Invoke(c); // new ConsoleChar(' ', ByteColor.Black, Color.To4bitIRGB(c));
+                    renderer[point] = converter.Invoke(c); // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(c));
                 }
             }
         }
@@ -608,7 +608,7 @@
                     TransparentColor color = image[fixWidth ? x_ / 2 : x_, y_];
                     ref T alreadyThere = ref renderer[point];
                     T newColor = blender.Invoke(alreadyThere, color);
-                    renderer[point] = newColor; // new ConsoleChar(' ', ByteColor.Black, Color.To4bitIRGB(newColor));
+                    renderer[point] = newColor; // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(newColor));
                 }
             }
         }

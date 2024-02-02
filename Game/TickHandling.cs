@@ -15,13 +15,11 @@ namespace ConsoleGame
 
         int EnemyWave = 5;
 
-        readonly Window ConsoleWindow = new(Kernel32.GetConsoleWindow());
-
         unsafe void Tick()
         {
             Keyboard.Tick();
 
-            renderer.ClearBuffer();
+            renderer.Clear();
             depthBuffer.Clear();
             if (renderer.Resize())
             { depthBuffer.Resize(); }
@@ -51,14 +49,14 @@ namespace ConsoleGame
 
             if (Scene != null)
             {
-                QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Game.ConsoleToWorld(Mouse.RecordedPosition));
+                QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Game.ConsoleToWorld(Mouse.RecordedConsolePosition));
 
                 for (int i = 0; i < branches.Length; i++)
                 {
                     QuadTree<Entity?> branch = branches[i];
                     RectInt conRect = Game.WorldToConsole(branch.Rect).Expand(0);
                     conRect.Position += VectorInt.One;
-                    GUI.Box(conRect, ByteColor.White, Ascii.BoxSides);
+                    GUI.Box(conRect, CharColor.White, Ascii.BoxSides);
 
                     for (int j = 0; j < branch.Container.Count; j++)
                     {
@@ -67,7 +65,7 @@ namespace ConsoleGame
 
                         VectorInt conPos = Game.WorldToConsole(entity.Position);
                         if (!renderer.IsVisible(conPos)) continue;
-                        renderer[conPos].Background = ByteColor.Magenta;
+                        renderer[conPos].Background = CharColor.Magenta;
                     }
                 }
             }
@@ -89,26 +87,26 @@ namespace ConsoleGame
                 bool isHold = Keyboard.IsKeyHold(i);
                 bool isUp = Keyboard.IsKeyUp(i);
 
-                byte bg = ByteColor.Black;
+                byte bg = CharColor.Black;
 
                 if (isDown)
                 {
-                    bg = ByteColor.Red;
+                    bg = CharColor.Red;
                 }
 
                 if (isHold)
                 {
-                    bg = ByteColor.Green;
+                    bg = CharColor.Green;
                 }
 
                 if (isUp)
                 {
-                    bg = ByteColor.Blue;
+                    bg = CharColor.Blue;
                 }
 
                 if (isPressed)
                 {
-                    renderer.DrawLabel(0, 0, i.ToString(), ByteColor.Black, ByteColor.White);
+                    renderer.DrawLabel(0, 0, i.ToString(), CharColor.Black, CharColor.White);
                 }
 
                 renderer[i].Background = bg;
@@ -122,7 +120,7 @@ namespace ConsoleGame
             {
                 if (3 >= renderer.Height) break;
                 ref ConsoleChar pixel = ref renderer[x, 3];
-                pixel.Attributes = ByteColor.Silver;
+                pixel.Attributes = CharColor.Silver;
                 pixel.Char = Ascii.BoxSides[0b_0010];
             }
 
@@ -131,9 +129,9 @@ namespace ConsoleGame
             stateBarX += GUI.Label(
                 stateBarX, 0,
                 $"FPS: {FpsCounter.Value,4}",
-                ByteColor.Black, ByteColor.Gray);
+                CharColor.Black, CharColor.Gray);
 
-            stateBarX += GUI.Label(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+            stateBarX += GUI.Label(stateBarX, 0, $" | ", CharColor.Black, CharColor.Gray);
 
             /*
             int width = renderer.Width;
@@ -187,11 +185,11 @@ namespace ConsoleGame
                 if (player == null && (connection == null || connection.IsDone))
                 {
                     RectInt box = GUI.GetCenteredBox(30, 8);
-                    GUI.Box(box, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    GUI.Box(box, CharColor.Black, CharColor.White, Ascii.BoxSides);
                     box.Expand(-1);
                     VectorInt labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
                     labelPos.Y = box.Y + 1;
-                    GUI.Label(labelPos, "YOU DIED", ByteColor.Black, ByteColor.BrightRed);
+                    GUI.Label(labelPos, "YOU DIED", CharColor.Black, CharColor.BrightRed);
 
                     box.Top += 3;
 
@@ -213,9 +211,9 @@ namespace ConsoleGame
 
                     PlayerBehavior playerBehavior = player.GetComponent<PlayerBehavior>();
 
-                    renderer[1, 1].Attributes = ByteColor.Silver;
+                    renderer[1, 1].Attributes = CharColor.Silver;
                     renderer[1, 1].Char = '♥';
-                    renderer[2, 1].Attributes = ByteColor.Silver;
+                    renderer[2, 1].Attributes = CharColor.Silver;
                     renderer[2, 1].Char = ':';
 
                     const int HealthBarWidth = 10;
@@ -225,8 +223,8 @@ namespace ConsoleGame
                     for (int x = 0; x < HealthBarWidth; x++)
                     {
                         ref ConsoleChar pixel = ref renderer[x + 4, 1];
-                        pixel.Background = ByteColor.Gray;
-                        pixel.Foreground = ByteColor.BrightRed;
+                        pixel.Background = CharColor.Gray;
+                        pixel.Foreground = CharColor.BrightRed;
                         if (health > x)
                         {
                             pixel.Char = Ascii.Blocks.Full;
@@ -237,16 +235,16 @@ namespace ConsoleGame
                         }
                     }
 
-                    renderer[15, 1].Attributes = ByteColor.Gray;
+                    renderer[15, 1].Attributes = CharColor.Gray;
                     renderer[15, 1].Char = '|';
 
-                    renderer[17, 1].Attributes = ByteColor.Silver;
+                    renderer[17, 1].Attributes = CharColor.Silver;
                     renderer[17, 1].Char = 'C';
 
-                    renderer[18, 1].Attributes = ByteColor.Silver;
+                    renderer[18, 1].Attributes = CharColor.Silver;
                     renderer[18, 1].Char = ':';
 
-                    GUI.Label(20, 1, PlayerData.Coins.ToString(), ByteColor.BrightYellow);
+                    GUI.Label(20, 1, PlayerData.Coins.ToString(), CharColor.BrightYellow);
 
                 }
 
@@ -310,20 +308,20 @@ namespace ConsoleGame
                 if (!connection.IsDone)
                 {
                     RectInt menu = GUI.GetCenteredBox(30, 3);
-                    GUI.Box(menu, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+                    GUI.Box(menu, CharColor.Black, CharColor.White, Ascii.BoxSides);
                     menu.Expand(-1);
 
                     string text = connection.StatusText;
 
                     VectorInt labelPos = Layout.MakeCenteredLabel(menu, text);
 
-                    GUI.Label(labelPos, text, ByteColor.Black, ByteColor.White);
+                    GUI.Label(labelPos, text, CharColor.Black, CharColor.White);
                 }
 
                 string statusText = connection.StatusText;
-                stateBarX += GUI.Label(stateBarX, 0, statusText, ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, statusText, CharColor.Black, CharColor.Gray);
 
-                stateBarX += GUI.Label(stateBarX, 0, $" | ", ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, $" | ", CharColor.Black, CharColor.Gray);
 
                 string modeText = networkMode switch
                 {
@@ -332,7 +330,7 @@ namespace ConsoleGame
                     NetworkMode.Client => $"Client on {connection?.ServerEndPoint.Simplify()}",
                     _ => $"Unknown",
                 };
-                stateBarX += GUI.Label(stateBarX, 0, modeText, ByteColor.Black, ByteColor.Gray);
+                stateBarX += GUI.Label(stateBarX, 0, modeText, CharColor.Black, CharColor.Gray);
             }
 
             if (Keyboard.IsKeyPressed(VirtualKeyCode.TAB))
@@ -345,7 +343,7 @@ namespace ConsoleGame
 
             RectInt menuBox = GUI.GetCenteredBox(40, 10);
 
-            GUI.Box(menuBox, ByteColor.Black, ByteColor.White);
+            GUI.Box(menuBox, CharColor.Black, CharColor.White);
 
             menuBox.Expand(-1);
 
@@ -361,30 +359,30 @@ namespace ConsoleGame
 
                 int clientCount = Clients.Length;
                 Socket server = connection.ServerEndPoint;
-                GUI.Label(menuBox.X, menuBox.Y, $"{server} (server)", ByteColor.Black, ByteColor.White);
+                GUI.Label(menuBox.X, menuBox.Y, $"{server} (server)", CharColor.Black, CharColor.White);
 
                 for (int i = 0; i < clientCount; i++)
                 {
                     Socket client = Clients[i];
                     if (client == connection.LocalEndPoint)
                     {
-                        GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", ByteColor.Black, ByteColor.White);
+                        GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client} (you)", CharColor.Black, CharColor.White);
                     }
                     else
                     {
-                        GUI.Label(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                        GUI.Label(menuBox.X + 1, menuBox.Y + 1 + i, $"{client}", CharColor.Black, CharColor.White);
                     }
                 }
             }
             else if (networkMode == NetworkMode.Server)
             {
-                GUI.Label(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", ByteColor.Black, ByteColor.White);
+                GUI.Label(menuBox.X, menuBox.Y, $"{connection.LocalEndPoint} (you) (server)", CharColor.Black, CharColor.White);
 
                 int clientCount = connection.Clients.Length;
                 for (int i = 0; i < clientCount; i++)
                 {
                     Socket client = connection.Clients[i];
-                    GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client}", ByteColor.Black, ByteColor.White);
+                    GUI.Label(menuBox.X, menuBox.Y + 1 + i, $"{client}", CharColor.Black, CharColor.White);
                 }
             }
         }
@@ -415,7 +413,7 @@ namespace ConsoleGame
             entity.AddComponent(new RendererComponent(entity)
             {
                 Character = 'P',
-                Color = ByteColor.BrightGreen,
+                Color = CharColor.BrightGreen,
             });
             entity.AddComponent(item = new ItemBehavior(entity)
             {
@@ -439,7 +437,7 @@ namespace ConsoleGame
             entity.AddComponent(new CoinItemRendererComponent(entity)
             {
                 Character = Ascii.CircleNumbersOutline[0],
-                Color = ByteColor.BrightYellow,
+                Color = CharColor.BrightYellow,
             });
 
             entity.Position = position;

@@ -18,7 +18,7 @@ namespace ConsoleGame
         {
             RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            GUI.Box(borderRect, ByteColor.Black, ByteColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, CharColor.Black, CharColor.White, Ascii.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {

@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Runtime.Versioning;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -11,6 +12,7 @@ namespace ConsoleGame
 
     public delegate void SimpleEventHandler();
 
+    [SupportedOSPlatform("windows")]
     public class ConsoleRenderer : Win32.ConsoleRenderer, IRenderer<ConsoleChar>
     {
         bool shouldResize;
@@ -18,8 +20,7 @@ namespace ConsoleGame
         public bool IsBloomEnabled;
 
         public Buffer<float> DepthBuffer { get; }
-        public ConsoleChar[] Buffer => ConsoleBuffer;
-        
+
         public ref ConsoleChar this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
 
         public event SimpleEventHandler? OnResized;
@@ -30,9 +31,9 @@ namespace ConsoleGame
             shouldResize = true;
         }
 
-        public override void ClearBuffer()
+        public override void Clear()
         {
-            base.ClearBuffer();
+            base.Clear();
             DepthBuffer.Clear();
         }
 
@@ -167,7 +168,7 @@ namespace ConsoleGame
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
                     byte convertedPixel = Color.To4bitIRGB(pixel);
-                    this[point] = new ConsoleChar(' ', ByteColor.Black, convertedPixel);
+                    this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = pixel;
                 }
             }
@@ -260,7 +261,7 @@ namespace ConsoleGame
                     Color alreadyThere = Color.FromCharacter(this[point]);
                     Color c = pixel.Blend(alreadyThere);
                     byte convertedPixel = Color.To4bitIRGB(c);
-                    this[point] = new ConsoleChar(' ', ByteColor.Black, convertedPixel);
+                    this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = c;
                 }
             }

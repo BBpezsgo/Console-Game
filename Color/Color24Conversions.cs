@@ -99,6 +99,11 @@
             return new Color24((byte)r, (byte)g, (byte)b);
         }
 
+        public static implicit operator System.Drawing.Color(Color24 color)
+            => System.Drawing.Color.FromArgb(color.R, color.G, color.B);
+        public static implicit operator Color24(System.Drawing.Color color)
+            => new(color.R, color.G, color.B);
+
         #endregion
 
         #region 4bit IRGB

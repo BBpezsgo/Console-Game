@@ -88,7 +88,7 @@ namespace ConsoleGame
             // if (!Entity.HandleCollisions())
             // Position += Vector.MoveTowards(Position, Mouse.WorldPosition, MaxSpeed * Time.DeltaTime);
 
-            if (Ammo <= 0 && Renderer != null) Renderer.Color = ByteColor.Silver;
+            if (Ammo <= 0 && Renderer != null) Renderer.Color = CharColor.Silver;
 
             if (Reload > 0f)
             { Reload -= Time.DeltaTime; }
@@ -193,7 +193,7 @@ namespace ConsoleGame
             projectile.SetComponents(
                     new RendererComponent(projectile)
                     {
-                        Color = ByteColor.BrightYellow,
+                        Color = CharColor.BrightYellow,
                         Character = '.',
                         Priority = Depths.PROJECTILE,
                     },
@@ -232,15 +232,15 @@ namespace ConsoleGame
 
         public void RenderHoverPopup(RectInt content)
         {
-            GUI.Label(content.X, content.Y, "Helper", ByteColor.Black, ByteColor.Silver);
-            GUI.Label(content.X, content.Y + 1, "♥:", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y, "Helper", CharColor.Black, CharColor.Silver);
+            GUI.Label(content.X, content.Y + 1, "♥:", CharColor.Black, CharColor.Silver);
             float health = (Health / MaxHealth) * (content.Width - 4);
 
             for (int x = 0; x < content.Width - 4; x++)
             {
                 ref ConsoleChar pixel = ref Game.Renderer[x + content.X + 3, content.Y + 1];
-                pixel.Background = ByteColor.Gray;
-                pixel.Foreground = ByteColor.BrightRed;
+                pixel.Background = CharColor.Gray;
+                pixel.Foreground = CharColor.BrightRed;
                 if (health > x)
                 {
                     pixel.Char = Ascii.Blocks.Full;
@@ -251,9 +251,9 @@ namespace ConsoleGame
                 }
             }
 
-            GUI.Label(content.X, content.Y + 2, "∆:", ByteColor.Black, ByteColor.Silver);
+            GUI.Label(content.X, content.Y + 2, "∆:", CharColor.Black, CharColor.Silver);
 
-            GUI.Label(content.X + 3, content.Y + 2, Ammo.ToString(), ByteColor.Black, ByteColor.White);
+            GUI.Label(content.X + 3, content.Y + 2, Ammo.ToString(), CharColor.Black, CharColor.White);
         }
 
         public void OnItemPickedUp(ItemBehavior.ItemKind kind, float amount)

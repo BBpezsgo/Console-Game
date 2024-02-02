@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     internal class DamageableRendererComponent : RendererComponent
     {
@@ -21,18 +23,14 @@
 
             depth = Priority;
 
-            ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
+            ref ConsoleChar pixel = ref Game.Renderer[p];
             pixel.Char = Character;
 
             float lastDamagedInterval = Time.UtcNow - LastDamaged;
             if (lastDamagedInterval < BlinkingDuration && (int)(lastDamagedInterval * BlinkPerSec) % 2 == 0)
-            {
-                pixel.Foreground = ByteColor.White;
-            }
+            { pixel.Attributes = CharColor.White; }
             else
-            {
-                pixel.Foreground = Color;
-            }
+            { pixel.Attributes = Color; }
         }
 
         public void OnDamage() => LastDamaged = Time.UtcNow;

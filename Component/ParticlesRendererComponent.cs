@@ -138,8 +138,6 @@
                 if (depth > Priority) continue;
                 depth = Priority;
 
-                ref Win32.ConsoleChar pixel = ref Game.Renderer[p];
-
                 float v = particles[i].AgePercent;
 
                 if (v >= 1f) return;
@@ -153,8 +151,7 @@
                 };
                 if (charIndex < 0 || charIndex >= Characters.Length) return;
 
-                pixel.Foreground = (byte)Gradients[particles[i].Kind].Get(v);
-                pixel.Char = Characters[charIndex];
+                Game.Renderer[p] = new Win32.ConsoleChar(Characters[charIndex], (byte)Gradients[particles[i].Kind].Get(v));
             }
         }
     }
