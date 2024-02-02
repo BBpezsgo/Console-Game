@@ -1,13 +1,15 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
     public partial class Buffer<T>
     {
-        readonly IRenderer Renderer;
+        readonly Renderer Renderer;
 
         public short Width => Renderer.Width;
         public short Height => Renderer.Height;
 
-        public int Size => Renderer.Size;
+        public int Size => Renderer.Size.Width * Renderer.Size.Height;
 
         T[] buffer;
 
@@ -18,14 +20,15 @@
         public ref T this[Vector position] => ref this[position.X, position.Y];
         public ref T this[VectorInt position] => ref this[position.X, position.Y];
 
-        public Buffer(IRenderer renderer)
+        public Buffer(Renderer renderer)
         {
             Renderer = renderer;
-            buffer = new T[renderer.Size];
+            buffer = new T[Renderer.Size.Width * Renderer.Size.Height];
         }
 
         public void Clear() => Array.Clear(buffer);
-        public void Resize() => buffer = new T[Renderer.Size];
+
+        public void Resize() => buffer = new T[Renderer.Size.Width * Renderer.Size.Height];
 
         public void SetRect(RectInt rect, T value)
         {
@@ -41,7 +44,7 @@
 
         public static explicit operator T[](Buffer<T> v) => v.buffer;
 
-        public void Copy(ConsoleRenderer destination, Func<T, Win32.ConsoleChar> converter)
+        public void Copy(ConsoleRenderer destination, Func<T, ConsoleChar> converter)
         {
             for (int y = 0; y < this.Height; y++)
             {

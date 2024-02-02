@@ -150,6 +150,8 @@ namespace ConsoleGame.Behavior
                 }
             }
 
+            Sound.Play(Assets.GetAsset("explosion.wav"));
+
             Entity effect1 = new("Explosion Particles")
             { Position = Position };
             effect1.SetComponents(new ParticlesRendererComponent(effect1, PredefinedEffects.LargeExplosion) { Priority = Depths.EFFECT });

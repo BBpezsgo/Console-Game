@@ -38,6 +38,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
+
+            Sound.Play(Assets.GetAsset("explosion.wav"));
+
             Entity newEntity = new("Death Explosion Particles")
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });

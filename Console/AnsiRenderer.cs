@@ -1,73 +1,16 @@
 ﻿using System.Text;
 using Win32;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
-    [Flags]
-    public enum AnsiGraphicsModes : uint
-    {
-        #region Foreground Colors
-        ForegroundRed = 30 + 0b_0001,
-        ForegroundGreen = 30 + 0b_0010,
-        ForegroundBlue = 30 + 0b_0100,
-
-        ForegroundYellow = 30 + 0b_0011,
-        ForegroundMagenta = 30 + 0b_0101,
-        ForegroundCyan = 30 + 0b_0110,
-
-        ForegroundBlack = 30 + 0b_0000,
-        ForegroundWhite = 30 + 0b_0111,
-        ForegroundDefault = 39,
-        #endregion
-
-        #region Background Colors
-        BackgroundRed = 40 + 0b_0001,
-        BackgroundGreen = 40 + 0b_0010,
-        BackgroundBlue = 40 + 0b_0100,
-
-        BackgroundYellow = 40 + 0b_0011,
-        BackgroundMagenta = 40 + 0b_0101,
-        BackgroundCyan = 40 + 0b_0110,
-
-        BackgroundBlack = 40 + 0b_0000,
-        BackgroundWhite = 40 + 0b_0111,
-        BackgroundDefault = 49,
-        #endregion
-
-        #region Foreground Bright Colors
-        ForegroundBrightRed = 90 + 0b_0001,
-        ForegroundBrightGreen = 90 + 0b_0010,
-        ForegroundBrightBlue = 90 + 0b_0100,
-
-        ForegroundBrightYellow = 90 + 0b_0011,
-        ForegroundBrightMagenta = 90 + 0b_0101,
-        ForegroundBrightCyan = 90 + 0b_0110,
-
-        ForegroundBrightBlack = 90 + 0b_0000,
-        ForegroundBrightWhite = 90 + 0b_0111,
-        #endregion
-
-        #region Background Bright Colors
-        BackgroundBrightRed = 100 + 0b_0001,
-        BackgroundBrightGreen = 100 + 0b_0010,
-        BackgroundBrightBlue = 100 + 0b_0100,
-
-        BackgroundBrightYellow = 100 + 0b_0011,
-        BackgroundBrightMagenta = 100 + 0b_0101,
-        BackgroundBrightCyan = 100 + 0b_0110,
-
-        BackgroundBrightBlack = 100 + 0b_0000,
-        BackgroundBrightWhite = 100 + 0b_0111,
-        #endregion
-    }
-
     public enum AnsiColorType
     {
         Extended,
         TrueColor,
     }
 
-    public class AnsiRenderer : IRenderer<Color>
+    public class AnsiRenderer : BufferedRenderer<Color>
     {
         Color[] buffer;
         int width;
@@ -78,12 +21,12 @@ namespace ConsoleGame
         public bool IsBloomEnabled;
 
         public Buffer<float> DepthBuffer { get; }
-        public Span<Color> Buffer => buffer;
+        public override Span<Color> Buffer => buffer;
 
-        public short Width => (short)width;
-        public short Height => (short)height;
+        public override short Width => (short)width;
+        public override short Height => (short)height;
 
-        public ref Color this[int i] => ref buffer[i];
+        public override ref Color this[int i] => ref buffer[i];
 
         public event SimpleEventHandler? OnResized;
 
@@ -108,7 +51,7 @@ namespace ConsoleGame
                 {
                     int i = y * width + x;
                     Color24 color = (Color24)buffer[i];
-                    byte bruh = Color24.ToAnsi256(color);
+                    byte bruh = Ansi.ToAnsi256(color.R, color.G, color.B);
 
                     if ((x == 0 && y == 0) || prevColor != bruh)
                     {
@@ -136,7 +79,7 @@ namespace ConsoleGame
 
                     if ((x == 0 && y == 0) || prevColor != color)
                     {
-                        Ansi.SetBackgroundColor(builder, (System.Drawing.Color)color);
+                        Ansi.SetBackgroundColor(builder, color.R, color.G, color.B);
                         prevColor = color;
                     }
 
@@ -147,15 +90,13 @@ namespace ConsoleGame
             Console.SetCursorPosition(0, 0);
         }
 
-        public void Clear()
+        public override void Clear()
         {
             Array.Clear(buffer);
             DepthBuffer.Clear();
         }
 
-        public bool IsVisible(int x, int y) => x >= 0 && y >= 0 && x < width && y < height;
-
-        public void Render()
+        public override void Render()
         {
             if (IsBloomEnabled)
             { ColorUtils.Bloom(buffer, width, height, 5); }
@@ -175,9 +116,9 @@ namespace ConsoleGame
 
         public void ShouldResize() => shouldResize = true;
 
-        public bool Resize()
+        public override void RefreshBufferSize()
         {
-            if (!shouldResize) return false;
+            if (!shouldResize) return;
             shouldResize = false;
 
             Console.Clear();
@@ -190,8 +131,6 @@ namespace ConsoleGame
             DepthBuffer.Resize();
 
             OnResized?.Invoke();
-
-            return true;
         }
     }
 }

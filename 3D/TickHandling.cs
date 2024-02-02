@@ -19,7 +19,7 @@ namespace ConsoleGame
             Keyboard.Tick();
 
             renderer.Clear();
-            renderer.Resize();
+            renderer.RefreshBufferSize();
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
@@ -36,40 +36,42 @@ namespace ConsoleGame
 
                 if (RendererMode == 0)
                 {
-                    Do3DStuff(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor(v)));
                 }
                 else if (RendererMode == 1)
                 {
-                    Do3DStuff(this.renderer, Color.ToCharacterShaded);
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterShaded(v));
                 }
                 else if (RendererMode == 2)
                 {
-                    Do3DStuff(this.renderer, Color.ToCharacterColored);
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterColored(v));
                 }
                 else if (RendererMode == 3)
                 {
-                    Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                    { ColorType = AnsiColorType.Extended });
+                    AnsiRenderer renderer = new(Console.WindowWidth, Console.WindowHeight)
+                    { ColorType = AnsiColorType.Extended };
+                    Do3DStuff(renderer, renderer.DepthBuffer);
                 }
                 else
                 {
-                    Do3DStuff(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                    { ColorType = AnsiColorType.TrueColor });
+                    AnsiRenderer renderer = new(Console.WindowWidth, Console.WindowHeight)
+                    { ColorType = AnsiColorType.TrueColor };
+                    Do3DStuff(renderer, renderer.DepthBuffer);
                 }
             }
             else
             {
                 if (RendererMode == 0)
                 {
-                    DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, Color.To4bitIRGB(v)));
+                    DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor(v)));
                 }
                 else if (RendererMode == 1)
                 {
-                    DoColorTest(this.renderer, Color.ToCharacterShaded);
+                    DoColorTest(this.renderer, v => CharColor.ToCharacterShaded(v));
                 }
                 else if (RendererMode == 2)
                 {
-                    DoColorTest(this.renderer, Color.ToCharacterColored);
+                    DoColorTest(this.renderer, v => CharColor.ToCharacterColored(v));
                 }
                 else if (RendererMode == 3)
                 {
@@ -84,23 +86,23 @@ namespace ConsoleGame
             }
         }
 
-        void Do3DStuff<T>(IRenderer<T> renderer, Func<Color, T> converter)
+        void Do3DStuff<T>(Renderer<T> renderer, Buffer<float>? depth, Func<Color, T> converter)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Rect, out _, out _);
+            camera.DoMath(renderer.Size, out _, out _);
 
-            Renderer3D.Render(renderer, MeshToRender, camera, ImageToRender, converter);
+            Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender, converter);
 
             GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
             renderer.Render();
         }
-        void Do3DStuff(IRenderer<Color> renderer)
+        void Do3DStuff(Renderer<Color> renderer, Buffer<float>? depth)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Rect, out _, out _);
+            camera.DoMath(renderer.Size, out _, out _);
 
-            Renderer3D.Render(renderer, MeshToRender, camera, ImageToRender);
+            Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender);
 
             GUI.Label(0, 0, $"FPS: {FpsCounter.Value}", CharColor.Silver);
 
@@ -108,7 +110,7 @@ namespace ConsoleGame
         }
 
         float ah2 = .5f;
-        void DoColorTest<T>(IRenderer<T> renderer, Func<Color, T> converter)
+        void DoColorTest<T>(Renderer<T> renderer, Func<Color, T> converter)
         {
             for (int y = 0; y < renderer.Height; y++)
             {
@@ -130,7 +132,7 @@ namespace ConsoleGame
 
             renderer.Render();
         }
-        void DoColorTest(IRenderer<Color> renderer)
+        void DoColorTest(Renderer<Color> renderer)
         {
             for (int y = 0; y < renderer.Height; y++)
             {

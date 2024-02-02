@@ -1,4 +1,5 @@
 using Win32;
+using Win32.Common;
 using Win32.LowLevel;
 
 namespace ConsoleGame
@@ -39,7 +40,7 @@ namespace ConsoleGame
 
         public void HandleInput(bool lockMouse, ref VectorInt mousePosition)
         {
-            VectorInt mouseDelta = Mouse.ScreenPosition - mousePosition;
+            VectorInt mouseDelta = (VectorInt)Mouse.ScreenPosition - mousePosition;
             mousePosition = Mouse.ScreenPosition;
 
             if (Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
@@ -85,9 +86,9 @@ namespace ConsoleGame
             }
         }
 
-        public void DoMath(VectorInt screenSize, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix)
+        public void DoMath(SmallSize screenSize, out Matrix4x4 projectionMatrix, out Matrix4x4 viewMatrix)
         {
-            Matrix4x4.MakeProjection(ref this.ProjectionMatrix, (float)screenSize.Y / (float)screenSize.X, Camera.fFovRad, Camera.fFar, Camera.fNear);
+            Matrix4x4.MakeProjection(ref this.ProjectionMatrix, (float)screenSize.Height / (float)screenSize.Width, Camera.fFovRad, Camera.fFar, Camera.fNear);
 
             Vector3 target = new(0f, 0f, 1f);
 

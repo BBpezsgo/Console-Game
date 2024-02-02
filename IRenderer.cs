@@ -1,31 +1,7 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+
+namespace ConsoleGame
 {
-    public interface IRenderer
-    {
-        public Buffer<float> DepthBuffer { get; }
-        public short Width { get; }
-        public short Height { get; }
-        public int Size => Width * Height;
-
-        public VectorInt Rect => new(Width, Height);
-
-        public bool IsVisible(int x, int y);
-        public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
-
-        public void Clear();
-        public void Render();
-        public bool Resize();
-    }
-
-    public interface IRenderer<T> : IRenderer
-    {
-        public Span<T> Buffer { get; }
-
-        public ref T this[int x, int y] => ref this[x + y * Width];
-        public ref T this[VectorInt point] => ref this[point.X + point.Y * Width];
-        public ref T this[int i] { get; }
-    }
-
     public static class RendererExtensions
     {
         static void Swap<T>(ref T a, ref T b)
@@ -36,14 +12,11 @@
         }
 
         public static void ApplyBloom(
-            this IRenderer<Color> renderer,
-            int radius)
-        {
-            ColorUtils.Bloom(renderer.Buffer.ToArray(), renderer.Width, renderer.Height, radius);
-        }
+            this BufferedRenderer<Color> renderer,
+            int radius) => ColorUtils.Bloom(renderer.Buffer.ToArray(), renderer.Width, renderer.Height, radius);
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             VectorInt a,
             VectorInt b,
             VectorInt c,
@@ -55,31 +28,36 @@
                 color);
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
+            Buffer<float>? depth,
             VectorInt a, float depthA,
             VectorInt b, float depthB,
             VectorInt c, float depthC,
             T color)
             => renderer.FillTriangle<T>(
+                depth,
                 a.X, a.Y, depthA,
                 b.X, b.Y, depthB,
                 c.X, c.Y, depthC,
                 color);
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
+            Buffer<float>? depth,
             VectorInt a, Vector3 texA,
             VectorInt b, Vector3 texB,
             VectorInt c, Vector3 texC,
             Image image, Func<Color, T> converter)
             => renderer.FillTriangle<T>(
+                depth,
                 a.X, a.Y, texA.X, texA.Y, texA.Z,
                 b.X, b.Y, texB.X, texB.Y, texB.Z,
                 c.X, c.Y, texC.X, texC.Y, texC.Z,
                 image, converter);
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
+            Buffer<float>? depth,
             int x1, int y1, float u1, float v1, float w1,
             int x2, int y2, float u2, float v2, float w2,
             int x3, int y3, float u3, float v3, float w3,
@@ -183,12 +161,12 @@
                         texV = (1f - t) * texSv + t * texEv;
                         texW = (1f - t) * texSw + t * texEw;
 
-                        if (renderer.IsVisible(new VectorInt(j, i)) && (renderer.DepthBuffer == null || texW > renderer.DepthBuffer[j, i]))
+                        if (renderer.IsVisible(j, i) && (depth is null || texW > depth[j, i]))
                         {
                             Color c = image.NormalizedSample(texU / texW, texV / texW);
                             renderer[j, i] = converter.Invoke(c);
                             // BloomBlur[j, i] = c;
-                            if (renderer.DepthBuffer != null) renderer.DepthBuffer[j, i] = texW;
+                            if (depth is not null) depth[j, i] = texW;
                         }
 
                         t += tStep;
@@ -247,12 +225,12 @@
                         texV = (1f - t) * texSv + t * texEv;
                         texW = (1f - t) * texSw + t * texEw;
 
-                        if (renderer.IsVisible(new VectorInt(j, i)) && (renderer.DepthBuffer == null || texW > renderer.DepthBuffer[j, i]))
+                        if (renderer.IsVisible(j, i) && (depth is null || texW > depth[j, i]))
                         {
                             Color c = image.NormalizedSample(texU / texW, texV / texW);
                             renderer[j, i] = converter.Invoke(c);
                             // BloomBlur[j, i] = c;
-                            if (renderer.DepthBuffer != null) renderer.DepthBuffer[j, i] = texW;
+                            if (depth is not null) depth[j, i] = texW;
                         }
 
                         t += tStep;
@@ -262,7 +240,7 @@
         }
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             int x0, int y0,
             int x1, int y1,
             int x2, int y2,
@@ -300,13 +278,13 @@
                     for (int x = (xf > 0 ? Convert.ToInt32(xf) : 0);
                          x <= (xt < width ? xt : width - 1); x++)
                     {
-                        if (!renderer.IsVisible(new VectorInt(x, y))) continue;
+                        if (!renderer.IsVisible(x, y)) continue;
                         renderer[Convert.ToInt32(x + y * width)] = color;
                     }
                     for (int x = (xf < width ? Convert.ToInt32(xf) : width - 1);
                          x >= (xt > 0 ? xt : 0); x--)
                     {
-                        if (!renderer.IsVisible(new VectorInt(x, y))) continue;
+                        if (!renderer.IsVisible(x, y)) continue;
                         renderer[Convert.ToInt32(x + y * width)] = color;
                     }
                 }
@@ -319,7 +297,8 @@
         }
 
         public static void FillTriangle<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
+            Buffer<float>? depth,
             int x1, int y1, float w1,
             int x2, int y2, float w2,
             int x3, int y3, float w3,
@@ -393,10 +372,10 @@
                     {
                         w = (1f - t) * sw + t * ew;
 
-                        if (renderer.IsVisible(new VectorInt(j, i)) && (renderer.DepthBuffer == null || w > renderer.DepthBuffer[j, i]))
+                        if (renderer.IsVisible(j, i) && (depth is null || w > depth[j, i]))
                         {
                             renderer[j, i] = color;
-                            if (renderer.DepthBuffer != null) renderer.DepthBuffer[j, i] = w;
+                            if (depth is not null) depth[j, i] = w;
                         }
 
                         t += tStep;
@@ -437,10 +416,10 @@
                     {
                         w = (1f - t) * sw + t * ew;
 
-                        if (renderer.IsVisible(new VectorInt(j, i)) && (renderer.DepthBuffer == null || w > renderer.DepthBuffer[j, i]))
+                        if (renderer.IsVisible(j, i) && (depth is null || w > depth[j, i]))
                         {
                             renderer[j, i] = color;
-                            if (renderer.DepthBuffer != null) renderer.DepthBuffer[j, i] = w;
+                            if (depth is not null) depth[j, i] = w;
                         }
 
                         t += tStep;
@@ -450,7 +429,7 @@
         }
 
         public static void DrawLines<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             VectorInt[] points,
             T c,
             bool connectEnd = false)
@@ -485,7 +464,7 @@
         /// Source: <see href="https://stackoverflow.com/a/32252934">StackOverflow</see>
         /// </summary>
         public static void DrawLine<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             VectorInt a,
             VectorInt b,
             T c)
@@ -494,7 +473,7 @@
         /// Source: <see href="https://stackoverflow.com/a/32252934">StackOverflow</see>
         /// </summary>
         public static void DrawLine<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             int x1, int y1,
             int x2, int y2,
             T c)
@@ -543,7 +522,7 @@
         }
 
         public static void DrawImage<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             Image? image,
             VectorInt position,
             bool fixWidth,
@@ -553,7 +532,7 @@
             DrawImage(renderer, image.Value, position, fixWidth, converter);
         }
         public static void DrawImage<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             TransparentImage? image,
             VectorInt position,
             bool fixWidth,
@@ -564,7 +543,7 @@
         }
 
         public static void DrawImage<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             Image image,
             VectorInt position,
             bool fixWidth,
@@ -580,15 +559,15 @@
                 for (int x_ = 0; x_ < w; x_++)
                 {
                     VectorInt point = new(x_ + position.X, y_ + position.Y);
-                    if (!renderer.IsVisible(point)) continue;
+                    if (!renderer.IsVisible(point.X, point.Y)) continue;
                     Color c = image[fixWidth ? x_ / 2 : x_, y_];
-                    renderer[point] = converter.Invoke(c); // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(c));
+                    renderer[point.X, point.Y] = converter.Invoke(c); // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(c));
                 }
             }
         }
 
         public static void DrawImage<T>(
-            this IRenderer<T> renderer,
+            this Renderer<T> renderer,
             TransparentImage image,
             VectorInt position,
             bool fixWidth,
@@ -604,11 +583,11 @@
                 for (int x_ = 0; x_ < w; x_++)
                 {
                     VectorInt point = new(x_ + position.X, y_ + position.Y);
-                    if (!renderer.IsVisible(point)) continue;
+                    if (!renderer.IsVisible(point.X, point.Y)) continue;
                     TransparentColor color = image[fixWidth ? x_ / 2 : x_, y_];
-                    ref T alreadyThere = ref renderer[point];
+                    ref T alreadyThere = ref renderer[point.X, point.Y];
                     T newColor = blender.Invoke(alreadyThere, color);
-                    renderer[point] = newColor; // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(newColor));
+                    renderer[point.X, point.Y] = newColor; // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(newColor));
                 }
             }
         }

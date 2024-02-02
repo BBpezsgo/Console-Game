@@ -92,6 +92,31 @@
             }
             return result;
         }
+        public Entity? ClosestObject(Vector position, int tags, float radius, Func<Entity, bool> condition)
+        {
+            float sqrRadius = radius * radius;
+
+            Entity? result = null;
+            float closestSqrDistance = float.PositiveInfinity;
+
+            for (int i = Entities.Count - 1; i >= 0; i--)
+            {
+                Entity obj = Entities[i];
+                if (obj.IsDestroyed) continue;
+                if ((obj.Tags & tags) == 0) continue;
+
+                float sqrDistance = (Entities[i].Position - position).SqrMagnitude;
+                if (sqrDistance >= sqrRadius) continue;
+
+                if (sqrDistance < closestSqrDistance &&
+                    condition.Invoke(obj))
+                {
+                    result = obj;
+                    closestSqrDistance = sqrDistance;
+                }
+            }
+            return result;
+        }
 
         public Entity? ClosestObject(Vector position)
         {

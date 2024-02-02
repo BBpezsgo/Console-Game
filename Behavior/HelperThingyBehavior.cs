@@ -41,6 +41,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
+
+            Sound.Play(Assets.GetAsset("explosion.wav"));
+
             Entity newEntity = new("Death Explosion Particles")
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });
@@ -188,6 +191,8 @@ namespace ConsoleGame
         void Shoot(Vector origin, Vector direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot(origin, direction));
+
+            Sound.Play(Assets.GetAsset("laserShoot.wav"));
 
             Entity projectile = new("Helper Thingy Projectile");
             projectile.SetComponents(

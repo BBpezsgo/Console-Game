@@ -140,9 +140,6 @@ namespace ConsoleGame
 
         public static Color operator *(float a, Color b) => new(a * b.R, a * b.G, a * b.B);
 
-        public static explicit operator byte(Color v) => Color.To4bitIRGB(v);
-        public static explicit operator Color(byte v) => Color.From4bitIRGB(v);
-
         public override readonly string ToString() => $"({R:0.00}, {G:0.00}, {B:0.00})";
         readonly string GetDebuggerDisplay() => ToString();
 

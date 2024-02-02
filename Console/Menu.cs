@@ -17,13 +17,13 @@ namespace ConsoleGame
             }
         }
 
-        protected readonly IRenderer<ConsoleChar> Renderer;
+        protected readonly Renderer<ConsoleChar> Renderer;
         protected readonly MenuOption[] Options;
         public RectInt ContentRect;
 
         protected int Selected;
 
-        public Menu(IRenderer<ConsoleChar> renderer, params (string, Action)[] options)
+        public Menu(Renderer<ConsoleChar> renderer, params (string, Action)[] options)
         {
             Renderer = renderer;
 

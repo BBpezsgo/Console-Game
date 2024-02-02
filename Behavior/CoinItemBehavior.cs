@@ -44,6 +44,8 @@
         {
             if (IsDestroyed) return;
 
+            Sound.Play(Assets.GetAsset("pickupCoin.wav"));
+
             by.OnItemPickedUp(ItemBehavior.ItemKind.Coin, Amount);
             IsDestroyed = true;
 

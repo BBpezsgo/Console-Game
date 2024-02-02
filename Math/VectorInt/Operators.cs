@@ -18,5 +18,8 @@
 
         public static implicit operator VectorInt(Win32.Common.Point v) => new(v.X, v.Y);
         public static implicit operator VectorInt(Win32.Coord v) => new(v.X, v.Y);
+
+        public static implicit operator Win32.Common.Point(VectorInt v) => new(v.X, v.Y);
+        public static explicit operator Win32.Coord(VectorInt v) => new(v.X, v.Y);
     }
 }

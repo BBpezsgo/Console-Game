@@ -1,4 +1,5 @@
 ﻿using Win32;
+using Win32.Common;
 
 namespace ConsoleGame
 {
@@ -35,7 +36,7 @@ namespace ConsoleGame
 
             Game.DepthBuffer.SetRect(box, Depths.GUI);
 
-            GUI.Box(box, CharColor.Black, CharColor.White, Ascii.BoxSides);
+            GUI.Box(box, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
             box.Expand(-1);
 
             for (int i = 0; i < DrawerComponents.Length; i++)

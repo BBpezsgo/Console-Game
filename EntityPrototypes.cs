@@ -51,6 +51,7 @@ namespace ConsoleGame
                         Priority = Depths.OTHER_LIVING,
                     });
                     newEntity.AddComponent(new EnemyBehavior(newEntity));
+                    newEntity.AddComponent(new IncomingProjectileCounter(newEntity));
                     return newEntity;
                 }
             },

@@ -1,12 +1,13 @@
 ﻿using System.Text;
 using Win32;
+using Win32.Common;
 using Win32.LowLevel;
 
 namespace ConsoleGame
 {
     public class InputBox
     {
-        readonly IRenderer<ConsoleChar> Renderer;
+        readonly Renderer<ConsoleChar> Renderer;
         readonly string Title;
         readonly Action OnOk;
         readonly Action OnCancel;
@@ -18,7 +19,7 @@ namespace ConsoleGame
 
         public StringBuilder Value;
 
-        public InputBox(IRenderer<ConsoleChar> renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
+        public InputBox(Renderer<ConsoleChar> renderer, string title, string initialValue, int maxLength, Action onOk, Action onCancel)
         {
             Renderer = renderer;
             Title = title;
@@ -38,7 +39,7 @@ namespace ConsoleGame
         {
             RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            GUI.Box(borderRect, CharColor.Black, CharColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {

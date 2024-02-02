@@ -119,7 +119,7 @@ namespace ConsoleGame
                 int bottom = b.Y;
                 int right = b.X;
 
-                IRenderer<ConsoleChar> r = Game.Renderer;
+                Renderer<ConsoleChar> r = Game.Renderer;
 
                 const byte c = CharColor.Silver;
 

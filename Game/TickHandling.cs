@@ -2,6 +2,7 @@
 using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
+using Win32.Common;
 using Win32.LowLevel;
 
 namespace ConsoleGame
@@ -21,8 +22,8 @@ namespace ConsoleGame
 
             renderer.Clear();
             depthBuffer.Clear();
-            if (renderer.Resize())
-            { depthBuffer.Resize(); }
+            renderer.RefreshBufferSize();
+            depthBuffer.Resize();
 
             FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 
@@ -56,7 +57,7 @@ namespace ConsoleGame
                     QuadTree<Entity?> branch = branches[i];
                     RectInt conRect = Game.WorldToConsole(branch.Rect).Expand(0);
                     conRect.Position += VectorInt.One;
-                    GUI.Box(conRect, CharColor.White, Ascii.BoxSides);
+                    GUI.Box(conRect, CharColor.White, SideCharacters.BoxSides);
 
                     for (int j = 0; j < branch.Container.Count; j++)
                     {
@@ -185,7 +186,7 @@ namespace ConsoleGame
                 if (player == null && (connection == null || connection.IsDone))
                 {
                     RectInt box = GUI.GetCenteredBox(30, 8);
-                    GUI.Box(box, CharColor.Black, CharColor.White, Ascii.BoxSides);
+                    GUI.Box(box, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
                     box.Expand(-1);
                     VectorInt labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
                     labelPos.Y = box.Y + 1;
@@ -308,7 +309,7 @@ namespace ConsoleGame
                 if (!connection.IsDone)
                 {
                     RectInt menu = GUI.GetCenteredBox(30, 3);
-                    GUI.Box(menu, CharColor.Black, CharColor.White, Ascii.BoxSides);
+                    GUI.Box(menu, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
                     menu.Expand(-1);
 
                     string text = connection.StatusText;

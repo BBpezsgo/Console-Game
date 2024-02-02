@@ -1,4 +1,5 @@
 ﻿using Win32;
+using Win32.Common;
 
 namespace ConsoleGame
 {
@@ -6,7 +7,7 @@ namespace ConsoleGame
     {
         readonly string Title;
 
-        public MenuBoxed(IRenderer<ConsoleChar> renderer, string title, params (string, Action)[] options)
+        public MenuBoxed(Renderer<ConsoleChar> renderer, string title, params (string, Action)[] options)
             : base(renderer, options)
         {
             Title = title;
@@ -18,7 +19,7 @@ namespace ConsoleGame
         {
             RectInt borderRect = GUI.GetCenteredBox(width, height);
 
-            GUI.Box(borderRect, CharColor.Black, CharColor.White, Ascii.BoxSides);
+            GUI.Box(borderRect, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
 
             if (!string.IsNullOrEmpty(Title))
             {

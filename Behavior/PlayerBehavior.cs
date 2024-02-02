@@ -88,27 +88,27 @@ namespace ConsoleGame
             if (Keyboard.IsKeyDown('X'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (Keyboard.IsKeyDown('V'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET2](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (Keyboard.IsKeyDown('O'))
             {
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_THINGY](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedPosition);
+                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
                 Game.Instance.Scene.AddEntity(newEntity);
             }
 
             if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
             {
-                Vector diff = Game.ConsoleToWorld(Mouse.RecordedPosition) - Position;
+                Vector diff = Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position;
                 float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
                 Vector direction = diff.Normalized;
                 Vector.RotateByDeg(ref direction, Random.Float(-1f, 1f));
@@ -140,6 +140,8 @@ namespace ConsoleGame
         void Shoot(Vector origin, Vector direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(1, new RpcMessages.Shoot(origin, direction));
+
+            Sound.Play(Assets.GetAsset("laserShoot.wav"));
 
             Entity projectile = new("Player Projectile");
             projectile.SetComponents(
@@ -173,7 +175,7 @@ namespace ConsoleGame
             Entity projectile = new("Player Granate");
             projectile.AddComponent(new RendererComponent(projectile)
             {
-                Color = ByteColor.Silver,
+                Color = CharColor.Silver,
                 Character = '§',
                 Priority = Depths.PROJECTILE,
             });

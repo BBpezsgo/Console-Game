@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Win32;
-using Win32.LowLevel;
+using Win32.Common;
 
 namespace ConsoleGame
 {
     public static class GUI
     {
-        static IRenderer<ConsoleChar>? _renderer;
+        static Renderer<ConsoleChar>? _renderer;
         [NotNull]
-        public static IRenderer<ConsoleChar>? Renderer
+        public static Renderer<ConsoleChar>? Renderer
         {
             get => _renderer ?? throw new NullReferenceException($"{nameof(_renderer)} is null");
             set => _renderer = value;
@@ -18,25 +18,18 @@ namespace ConsoleGame
 
         #region Label
 
-        public static int Label(VectorInt pos, string text) => Label(pos.X, pos.Y, text);
         public static int Label(int x, int y, string text)
         {
-            int w = 0;
-            for (int i = 0; i < text.Length; i++)
-            {
-                int _x = x + i;
-
-                if (_x >= Width) break;
-                if (y >= Height) break;
-
-                Renderer[_x, y].Char = text[i];
-                w++;
-            }
-            return w;
+            Renderer.Text(x, y, text);
+            return text.Length;
         }
 
         public static int Label(VectorInt pos, string text, ushort attributes) => Label(pos.X, pos.Y, text, attributes);
-        public static int Label(int x, int y, string text, ushort attributes) => Renderer.DrawText(x, y, text, attributes);
+        public static int Label(int x, int y, string text, ushort attributes)
+        {
+            Renderer.Text(x, y, text, attributes);
+            return text.Length;
+        }
 
         public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharColor.Make(background, foreground));
         public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, CharColor.Make(background, foreground));
@@ -45,66 +38,13 @@ namespace ConsoleGame
 
         #region Box
 
-        public static void Box(RectInt box) => Box(box, Ascii.BoxSides);
+        public static void Box(RectInt box) => Box(box, SideCharacters.BoxSides);
         public static void Box(RectInt box, byte background, byte foreground) => Box(box, CharColor.Make(background, foreground));
-        public static void Box(RectInt box, ushort attributes) => Box(box, attributes, Ascii.BoxSides);
-        
-        public static void Box(RectInt box, char[] sideCharacters)
-        {
-            for (int _y = 0; _y < box.Height; _y++)
-            {
-                int actualY = box.Y + _y;
-                if (actualY >= Height) break;
+        public static void Box(RectInt box, ushort attributes) => Box(box, attributes, SideCharacters.BoxSides);
 
-                for (int _x = 0; _x < box.Width; _x++)
-                {
-                    int actualX = box.X + _x;
-
-                    if (actualX >= Width) break;
-
-                    int size = 0b_0000;
-
-                    if (_y == 0) size |= 0b_1000; // Top
-                    if (_x == 0) size |= 0b_0100; // Left
-                    if (_y == box.Height - 1) size |= 0b_0010; // Bottom
-                    if (_x == box.Width - 1) size |= 0b_0001; // Right
-
-                    char c = sideCharacters[size];
-
-                    Renderer[actualX, actualY].Char = c;
-                }
-            }
-        }
-        public static void Box(RectInt box, byte background, byte foreground, char[] sideCharacters) => Box(box, CharColor.Make(background, foreground), sideCharacters);
-        public static void Box(RectInt box, ushort attributes, char[] sideCharacters)
-        {
-            for (int _y = 0; _y < box.Height; _y++)
-            {
-                int actualY = box.Y + _y;
-                if (actualY >= Height) break;
-                if (actualY < 0) continue;
-
-                for (int _x = 0; _x < box.Width; _x++)
-                {
-                    int actualX = box.X + _x;
-
-                    if (actualX >= Width) break;
-                    if (actualX < 0) continue;
-
-                    int size = 0b_0000;
-
-                    if (_y == 0) size |= 0b_1000; // Top
-                    if (_x == 0) size |= 0b_0100; // Left
-                    if (_y == box.Height - 1) size |= 0b_0010; // Bottom
-                    if (_x == box.Width - 1) size |= 0b_0001; // Right
-
-                    char c = sideCharacters[size];
-
-                    Renderer[actualX, actualY].Char = c;
-                    Renderer[actualX, actualY].Attributes = attributes;
-                }
-            }
-        }
+        public static void Box(RectInt box, in SideCharacters<char> sideCharacters) => Renderer.Box(new SmallRect(box.X, box.Y, box.Width, box.Height), CharColor.Black, CharColor.Silver, in sideCharacters);
+        public static void Box(RectInt box, byte background, byte foreground, in SideCharacters<char> sideCharacters) => Box(box, CharColor.Make(background, foreground), in sideCharacters);
+        public static void Box(RectInt box, ushort attributes, in SideCharacters<char> sideCharacters) => Renderer.Box(new SmallRect(box.X, box.Y, box.Width, box.Height), attributes, in sideCharacters);
 
         #endregion
 

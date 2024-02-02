@@ -1,10 +1,13 @@
-﻿namespace ConsoleGame
+﻿using Win32;
+using Win32.Common;
+
+namespace ConsoleGame
 {
     public static class Renderer3D
     {
         static readonly bool SimpleLightning = false;
 
-        unsafe public static void Render<T>(IRenderer<T> renderer, Mesh mesh, Camera camera, Image? image, Func<Color, T> converter)
+        unsafe public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
         {
             List<TriangleEx> trianglesToDraw = new();
 
@@ -12,10 +15,10 @@
 
             DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
 
-            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image, converter);
+            ClipAndDrawTriangles(renderer, depth, trianglesToDraw, clipped, image, converter);
         }
 
-        unsafe public static void Render(IRenderer<Color> renderer, Mesh mesh, Camera camera, Image? image)
+        unsafe public static void Render(Renderer<Color> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image)
         {
             List<TriangleEx> trianglesToDraw = new();
 
@@ -23,7 +26,7 @@
 
             DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
 
-            ClipAndDrawTriangles(renderer, trianglesToDraw, clipped, image);
+            ClipAndDrawTriangles(renderer, depth, trianglesToDraw, clipped, image);
         }
 
         unsafe static void DoMathWithTriangles(TriangleEx[] triangles, Material[] materials, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
@@ -138,9 +141,9 @@
             */
         }
 
-        unsafe static void ClipAndDrawTriangles<T>(IRenderer<T> renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image, Func<Color, T> converter)
+        unsafe static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image, Func<Color, TPixel> converter)
         {
-            VectorInt screenSize = renderer.Rect;
+            SmallSize screenSize = renderer.Size;
             for (int i = 0; i < trianglesToDraw.Count; i++)
             {
                 TriangleEx tri = trianglesToDraw[i];
@@ -160,9 +163,9 @@
                         switch (p)
                         {
                             case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Y - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.X - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             default: break;
                         }
 
@@ -172,13 +175,13 @@
                     newTriangles = triangles.Count;
                 }
 
-                DrawTriangles(renderer, triangles.ToArray(), image, converter);
+                DrawTriangles(renderer, depth, triangles.ToArray(), image, converter);
             }
         }
 
-        unsafe static void ClipAndDrawTriangles(IRenderer<Color> renderer, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        unsafe static void ClipAndDrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
         {
-            VectorInt screenSize = renderer.Rect;
+            SmallSize screenSize = renderer.Size;
             for (int i = 0; i < trianglesToDraw.Count; i++)
             {
                 TriangleEx tri = trianglesToDraw[i];
@@ -198,9 +201,9 @@
                         switch (p)
                         {
                             case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Y - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.X - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             default: break;
                         }
 
@@ -210,90 +213,60 @@
                     newTriangles = triangles.Count;
                 }
 
-                DrawTriangles(renderer, triangles.ToArray(), image);
+                DrawTriangles(renderer, depth, triangles.ToArray(), image);
             }
         }
 
-        unsafe static void DrawTriangles<T>(IRenderer<T> renderer, TriangleEx[] triangles, Image? image, Func<Color, T> converter)
+        unsafe static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, TriangleEx[] triangles, Image? image, Func<Color, TPixel> converter)
         {
-            VectorInt ScreenSize = renderer.Rect;
+            Coord screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
             {
                 if (image.HasValue)
                 {
                     renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
-                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
-                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
+                        depth,
+                        ((Vector.One - (Vector)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA,
+                        ((Vector.One - (Vector)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB,
+                        ((Vector.One - (Vector)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC,
                         image.Value, converter);
                 }
                 else
                 {
-                    T character = converter(triangles[i].Color);
+                    TPixel pixel = converter.Invoke(triangles[i].Color);
                     renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA.Z,
-                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
-                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
-                        character);
+                        depth,
+                        ((Vector.One - (Vector)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA.Z,
+                        ((Vector.One - (Vector)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB.Z,
+                        ((Vector.One - (Vector)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC.Z,
+                        pixel);
                 }
-
-                /*
-                Renderer.FillTriangle(
-                    ((Vector.One - (Vector)triangles_[j].PointA) * ScreenSize).Round(),
-                    ((Vector.One - (Vector)triangles_[j].PointB) * ScreenSize).Round(),
-                    ((Vector.One - (Vector)triangles_[j].PointC) * ScreenSize).Round(),
-                    Color.ToCharacterShaded(triangles_[j].Color));
-                */
-
-                /*
-                renderer.DrawLines(new VectorInt[]
-                {
-                    ((Vector.One - (Vector)tri.A) * screenSize).Round(),
-                    ((Vector.One - (Vector)tri.B) * screenSize).Round(),
-                    ((Vector.One - (Vector)tri.C) * screenSize).Round(),
-                }, CharColor.Magenta << 4, ' ', true);
-                */
             }
         }
 
-        unsafe static void DrawTriangles(IRenderer<Color> renderer, TriangleEx[] triangles, Image? image)
+        unsafe static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, TriangleEx[] triangles, Image? image)
         {
-            VectorInt ScreenSize = renderer.Rect;
+            VectorInt screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
             {
                 if (image.HasValue)
                 {
                     renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA,
-                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB,
-                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC,
+                        depth,
+                        ((Vector.One - (Vector)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA,
+                        ((Vector.One - (Vector)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB,
+                        ((Vector.One - (Vector)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC,
                         image.Value, v => v);
                 }
                 else
                 {
                     renderer.FillTriangle(
-                        ((Vector.One - (Vector)triangles[i].PointA) * ScreenSize).Round(), triangles[i].TexA.Z,
-                        ((Vector.One - (Vector)triangles[i].PointB) * ScreenSize).Round(), triangles[i].TexB.Z,
-                        ((Vector.One - (Vector)triangles[i].PointC) * ScreenSize).Round(), triangles[i].TexC.Z,
+                        depth,
+                        ((Vector.One - (Vector)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA.Z,
+                        ((Vector.One - (Vector)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB.Z,
+                        ((Vector.One - (Vector)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC.Z,
                         triangles[i].Color);
                 }
-
-                /*
-                Renderer.FillTriangle(
-                    ((Vector.One - (Vector)triangles_[j].PointA) * ScreenSize).Round(),
-                    ((Vector.One - (Vector)triangles_[j].PointB) * ScreenSize).Round(),
-                    ((Vector.One - (Vector)triangles_[j].PointC) * ScreenSize).Round(),
-                    Color.ToCharacterShaded(triangles_[j].Color));
-                */
-
-                /*
-                renderer.DrawLines(new VectorInt[]
-                {
-                    ((Vector.One - (Vector)tri.A) * screenSize).Round(),
-                    ((Vector.One - (Vector)tri.B) * screenSize).Round(),
-                    ((Vector.One - (Vector)tri.C) * screenSize).Round(),
-                }, CharColor.Magenta << 4, ' ', true);
-                */
             }
         }
     }

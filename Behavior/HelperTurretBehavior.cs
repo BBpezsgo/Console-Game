@@ -37,6 +37,9 @@ namespace ConsoleGame
         public override void Destroy()
         {
             base.Destroy();
+
+            Sound.Play(Assets.GetAsset("explosion.wav"));
+
             Entity newEntity = new("Death Explosion Particles")
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });
@@ -53,14 +56,14 @@ namespace ConsoleGame
             switch (message.RpcKind)
             {
                 case RpcMessages.Kind.Shoot:
+                {
+                    if (!IsOwned)
                     {
-                        if (!IsOwned)
-                        {
-                            RpcMessages.Shoot data = message.GetObjectData<RpcMessages.Shoot>();
-                            Shoot(data.Origin, data.Direction);
-                        }
-                        break;
+                        RpcMessages.Shoot data = message.GetObjectData<RpcMessages.Shoot>();
+                        Shoot(data.Origin, data.Direction);
                     }
+                    break;
+                }
                 case RpcMessages.Kind.Damage:
                 {
                     RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
@@ -84,11 +87,34 @@ namespace ConsoleGame
             {
                 if (Target == null || Target.IsDestroyed)
                 {
-                    Target = Game.Instance.Scene.ClosestObject(Position, Tags.Enemy, VisionRadius);
+                    Target = Game.Instance.Scene.ClosestObject(Position, Tags.Enemy, VisionRadius, entity =>
+                    {
+                        if (!entity.TryGetComponent(out IncomingProjectileCounter? incomingProjectileCounter) ||
+                            !entity.TryGetComponent(out EnemyBehavior? enemy))
+                        { return true; }
+                        
+                        if (incomingProjectileCounter.EstimatedDamage <= enemy.Health + 0.1f)
+                        { return true; }
+                        else
+                        { return false; }
+                    });
                 }
                 else
                 {
+                    Target.TryGetComponent(out IncomingProjectileCounter? incomingProjectileCounter);
+                    Target.TryGetComponent(out EnemyBehavior? enemy);
+
+                    if (incomingProjectileCounter != null &&
+                        enemy != null &&
+                        incomingProjectileCounter.EstimatedDamage > enemy.Health)
+                    {
+                        Target = null;
+                        return;
+                    }
+
                     Vector direction = (Target.Position - Position).Normalized;
+
+                    incomingProjectileCounter?.OnShot(new IncomingProjectileCounter.IncomingProjectile(Entity, Position, Time.UtcNow, ProjectileBehavior.Damage, ProjectileSpeed));
 
                     SendRpcImmediate(1, new RpcMessages.Shoot(Position, direction));
 
@@ -105,6 +131,8 @@ namespace ConsoleGame
         void Shoot(Vector origin, Vector direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot(origin, direction));
+
+            Sound.Play(Assets.GetAsset("laserShoot.wav"));
 
             Entity projectile = new("Turret Projectile");
             projectile.SetComponents(

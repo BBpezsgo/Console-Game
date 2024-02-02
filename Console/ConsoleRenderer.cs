@@ -13,7 +13,7 @@ namespace ConsoleGame
     public delegate void SimpleEventHandler();
 
     [SupportedOSPlatform("windows")]
-    public class ConsoleRenderer : Win32.ConsoleRenderer, IRenderer<ConsoleChar>
+    public class ConsoleRenderer : Win32.ConsoleRenderer
     {
         bool shouldResize;
 
@@ -147,7 +147,7 @@ namespace ConsoleGame
                     VectorInt imageCoord = Vector.Floor(uv);
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
-                    this[point] = Color.ToCharacterColored(pixel);
+                    this[point] = CharColor.ToCharacterColored(pixel);
                     // BloomBlur[point] = pixel;
                 }
             }
@@ -167,7 +167,7 @@ namespace ConsoleGame
                     VectorInt imageCoord = Vector.Floor(uv);
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
-                    byte convertedPixel = Color.To4bitIRGB(pixel);
+                    byte convertedPixel = CharColor.From24bitColor(pixel);
                     this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = pixel;
                 }
@@ -235,9 +235,9 @@ namespace ConsoleGame
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
-                    Color alreadyThere = Color.FromCharacter(this[point]);
+                    Color alreadyThere = CharColor.FromCharacter(this[point]);
                     Color c = pixel.Blend(alreadyThere);
-                    this[point] = Color.ToCharacterColored(c);
+                    this[point] = CharColor.ToCharacterColored(c);
                     // BloomBlur[point] = c;
                 }
             }
@@ -258,9 +258,9 @@ namespace ConsoleGame
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
-                    Color alreadyThere = Color.FromCharacter(this[point]);
+                    Color alreadyThere = CharColor.FromCharacter(this[point]);
                     Color c = pixel.Blend(alreadyThere);
-                    byte convertedPixel = Color.To4bitIRGB(c);
+                    byte convertedPixel = CharColor.From24bitColor(c);
                     this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = c;
                 }
@@ -286,8 +286,5 @@ namespace ConsoleGame
 
             return true;
         }
-
-        public static ConsoleChar ConvertTo(Color v) => Color.ToCharacterShaded(v);
-        public static Color ConvertTo(ConsoleChar v) => Color.FromCharacter(v);
     }
 }

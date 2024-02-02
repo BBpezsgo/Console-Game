@@ -8,15 +8,8 @@ namespace ConsoleGame
         [NotNull]
         public static ITimeProvider? Provider
         {
-            get
-            {
-                if (_provider is null) throw new NullReferenceException($"{nameof(_provider)} is null");
-                return _provider;
-            }
-            set
-            {
-                _provider = value;
-            }
+            get => _provider ?? throw new NullReferenceException($"{nameof(_provider)} is null");
+            set => _provider = value;
         }
 
         public static float DeltaTime => Provider.DeltaTime;

@@ -8,6 +8,8 @@
         {
             base.Destroy();
 
+            Sound.Play(Assets.GetAsset("explosion.wav"));
+
             Entity newEntity = new("Explosion Particles")
             { Position = Position };
             newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.LargeExplosion) { Priority = Depths.EFFECT });

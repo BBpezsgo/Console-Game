@@ -7,7 +7,7 @@ namespace ConsoleGame
     public partial class Game : ITimeProvider
     {
         public Scene Scene;
-        IRenderer<ConsoleChar> renderer;
+        Renderer<ConsoleChar> renderer;
         Buffer<float> depthBuffer;
         float deltaTime;
         FpsCounter FpsCounter;
@@ -28,7 +28,7 @@ namespace ConsoleGame
         public PlayerData PlayerData;
 
         public float DeltaTime => deltaTime;
-        public static IRenderer<ConsoleChar> Renderer => Instance.renderer;
+        public static Renderer<ConsoleChar> Renderer => Instance.renderer;
         public static Buffer<float> DepthBuffer => Instance.depthBuffer;
         public static ObjectOwner LocalOwner
         {

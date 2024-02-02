@@ -5,7 +5,7 @@ namespace ConsoleGame
 {
     public partial class MeshRenderer : ITimeProvider
     {
-        IRenderer<ConsoleChar>? renderer;
+        ConsoleRenderer? renderer;
         float deltaTime;
         FpsCounter FpsCounter;
         bool isRunning;
