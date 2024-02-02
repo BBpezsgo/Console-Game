@@ -18,7 +18,7 @@ namespace ConsoleGame
             List<Vector3> vertices = new();
             List<Vector2> texs = new();
 
-            List<TriangleEx> triangles = new();
+            List<Triangle3Ex> triangles = new();
 
             Dictionary<string, Material> materials = new();
 
@@ -53,7 +53,7 @@ namespace ConsoleGame
                 {
                     case "v":
                         {
-                            if (!Vector3.TryParse(line, out Vector3 vertex))
+                            if (!Vector.TryParse(line, out Vector3 vertex))
                             { throw new ParsingException($"Failed to parse {nameof(Vector3)} (at line {i})"); }
 
                             vertices.Add(vertex);
@@ -145,7 +145,7 @@ namespace ConsoleGame
                 { continue; }
                 // { throw new ParsingException($"Expected 3 values as a face (at line {i})"); }
 
-                TriangleEx newTri;
+                Triangle3Ex newTri;
 
                 if (!TryParseIndexes(parts[0], out int[] partA))
                 {
@@ -196,16 +196,16 @@ namespace ConsoleGame
 
                     if (partA[1] != -1 && partB[1] != -1 && partC[1] != -1)
                     {
-                        newTri = (new TriangleEx(va, vb, vc)
+                        newTri = new Triangle3Ex(va, vb, vc)
                         {
                             TexA = texs[partA[1] - 1],
                             TexB = texs[partB[1] - 1],
                             TexC = texs[partC[1] - 1],
-                        });
+                        };
                     }
                     else
                     {
-                        newTri = (new TriangleEx(va, vb, vc));
+                        newTri = new Triangle3Ex(va, vb, vc);
                     }
                 }
                 else if (partA.Length == 2)
@@ -252,7 +252,7 @@ namespace ConsoleGame
                     vb = vertices[b - 1];
                     vc = vertices[c - 1];
 
-                    newTri = new TriangleEx(va, vb, vc)
+                    newTri = new Triangle3Ex(va, vb, vc)
                     {
                         TexA = texs[ta - 1],
                         TexB = texs[tb - 1],
@@ -285,7 +285,7 @@ namespace ConsoleGame
                     vb = vertices[b - 1];
                     vc = vertices[c - 1];
 
-                    newTri = new Triangle(va, vb, vc);
+                    newTri = new Triangle3(va, vb, vc);
                 }
                 else
                 { continue; }

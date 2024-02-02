@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public readonly struct Matrix4x4
     {
@@ -29,26 +31,14 @@
             readonly set => V[x][y] = value;
         }
 
-        public readonly float Width => V.Length;
-        public readonly float Height => V[0].Length;
-
-        public static Vector3 operator *(Vector3 v, Matrix4x4 m)
+        public static Vector4 operator *(Vector4 v, Matrix4x4 m)
         {
-            Vector3 result = Vector3.Zero;
+            Vector4 result = default;
 
             result.X = v.X * m[0, 0] + v.Y * m[1, 0] + v.Z * m[2, 0] + v.W * m[3, 0];
             result.Y = v.X * m[0, 1] + v.Y * m[1, 1] + v.Z * m[2, 1] + v.W * m[3, 1];
             result.Z = v.X * m[0, 2] + v.Y * m[1, 2] + v.Z * m[2, 2] + v.W * m[3, 2];
             result.W = v.X * m[0, 3] + v.Y * m[1, 3] + v.Z * m[2, 3] + v.W * m[3, 3];
-
-            /*
-            result.X = v.X * m[0, 0] + v.Y * m[1, 0] + v.Z * m[2, 0] + m[3, 0];
-            result.Y = v.X * m[0, 1] + v.Y * m[1, 1] + v.Z * m[2, 1] + m[3, 1];
-            result.Z = v.X * m[0, 2] + v.Y * m[1, 2] + v.Z * m[2, 2] + m[3, 2];
-            float  w = v.X * m[0, 3] + v.Y * m[1, 3] + v.Z * m[2, 3] + m[3, 3];
-            if (w != 0f)
-            { result /= w; }
-            */
 
             return result;
         }
@@ -161,19 +151,33 @@
 
         public static void MakePointAt(ref Matrix4x4 matrix, Vector3 pos, Vector3 target, Vector3 up)
         {
-            Vector3 newForward = target - pos;
-            newForward.Normalize();
+            Vector3 newForward = Vector3.Normalize(target - pos);
 
             Vector3 a = newForward * Vector3.Dot(up, newForward);
             Vector3 newUp = up - a;
-            newUp.Normalize();
+            newUp = Vector3.Normalize(newUp);
 
             Vector3 newRight = Vector3.Cross(newUp, newForward);
 
-            matrix[0, 0] = newRight.X; matrix[0, 1] = newRight.Y; matrix[0, 2] = newRight.Z; matrix[0, 3] = 0.0f;
-            matrix[1, 0] = newUp.X; matrix[1, 1] = newUp.Y; matrix[1, 2] = newUp.Z; matrix[1, 3] = 0.0f;
-            matrix[2, 0] = newForward.X; matrix[2, 1] = newForward.Y; matrix[2, 2] = newForward.Z; matrix[2, 3] = 0.0f;
-            matrix[3, 0] = pos.X; matrix[3, 1] = pos.Y; matrix[3, 2] = pos.Z; matrix[3, 3] = 1.0f;
+            matrix[0, 0] = newRight.X;
+            matrix[0, 1] = newRight.Y;
+            matrix[0, 2] = newRight.Z;
+            matrix[0, 3] = 0.0f;
+            
+            matrix[1, 0] = newUp.X; 
+            matrix[1, 1] = newUp.Y; 
+            matrix[1, 2] = newUp.Z; 
+            matrix[1, 3] = 0.0f;
+            
+            matrix[2, 0] = newForward.X; 
+            matrix[2, 1] = newForward.Y; 
+            matrix[2, 2] = newForward.Z;
+            matrix[2, 3] = 0.0f;
+            
+            matrix[3, 0] = pos.X;
+            matrix[3, 1] = pos.Y;
+            matrix[3, 2] = pos.Z;
+            matrix[3, 3] = 1.0f;
         }
         public static Matrix4x4 MakePointAt(Vector3 pos, Vector3 target, Vector3 up)
         {
@@ -183,7 +187,7 @@
         }
 
         /// <summary>
-        /// <b>Only for Rotation/Translatiom matrices!</b>
+        /// <b>Only for Rotation/Translation matrices!</b>
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -200,7 +204,7 @@
         }
 
         /// <summary>
-        /// <b>Only for Rotation/Translatiom matrices!</b>
+        /// <b>Only for Rotation/Translation matrices!</b>
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>

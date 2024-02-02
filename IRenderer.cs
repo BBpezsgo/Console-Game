@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Numerics;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -15,53 +16,53 @@ namespace ConsoleGame
             this BufferedRenderer<Color> renderer,
             int radius) => ColorUtils.Bloom(renderer.Buffer.ToArray(), renderer.Width, renderer.Height, radius);
 
-        public static void FillTriangle<T>(
-            this Renderer<T> renderer,
+        public static void FillTriangle<TPixel>(
+            this Renderer<TPixel> renderer,
             Vector2Int a,
             Vector2Int b,
             Vector2Int c,
-            T color)
+            TPixel color)
             => renderer.FillTriangle(
                 a.X, a.Y,
                 b.X, b.Y,
                 c.X, c.Y,
                 color);
 
-        public static void FillTriangle<T>(
-            this Renderer<T> renderer,
+        public static void FillTriangle<TPixel>(
+            this Renderer<TPixel> renderer,
             Buffer<float>? depth,
             Vector2Int a, float depthA,
             Vector2Int b, float depthB,
             Vector2Int c, float depthC,
-            T color)
-            => renderer.FillTriangle<T>(
+            TPixel color)
+            => renderer.FillTriangle<TPixel>(
                 depth,
                 a.X, a.Y, depthA,
                 b.X, b.Y, depthB,
                 c.X, c.Y, depthC,
                 color);
 
-        public static void FillTriangle<T>(
-            this Renderer<T> renderer,
+        public static void FillTriangle<TPixel>(
+            this Renderer<TPixel> renderer,
             Buffer<float>? depth,
             Vector2Int a, Vector3 texA,
             Vector2Int b, Vector3 texB,
             Vector2Int c, Vector3 texC,
-            Image image, Func<Color, T> converter)
-            => renderer.FillTriangle<T>(
+            Image image, Func<Color, TPixel> converter)
+            => renderer.FillTriangle<TPixel>(
                 depth,
                 a.X, a.Y, texA.X, texA.Y, texA.Z,
                 b.X, b.Y, texB.X, texB.Y, texB.Z,
                 c.X, c.Y, texC.X, texC.Y, texC.Z,
                 image, converter);
 
-        public static void FillTriangle<T>(
-            this Renderer<T> renderer,
+        public static void FillTriangle<TPixel>(
+            this Renderer<TPixel> renderer,
             Buffer<float>? depth,
             int x1, int y1, float u1, float v1, float w1,
             int x2, int y2, float u2, float v2, float w2,
             int x3, int y3, float u3, float v3, float w3,
-            Image image, Func<Color, T> converter)
+            Image image, Func<Color, TPixel> converter)
         {
             // sort the points vertically
             if (y2 < y1)

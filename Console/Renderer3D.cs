@@ -1,6 +1,8 @@
-﻿using Win32;
-using Win32.Common;
+﻿using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using Win32;
+using Win32.Common;
 
 namespace ConsoleGame
 {
@@ -8,52 +10,47 @@ namespace ConsoleGame
     {
         static readonly bool SimpleLightning = false;
 
-        public static unsafe void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
         {
-            List<TriangleEx> trianglesToDraw = new();
+            List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            TriangleEx* clipped = stackalloc TriangleEx[2];
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
-
-            ClipAndDrawTriangles(renderer, depth, trianglesToDraw, clipped, image, converter);
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
 
-        public static unsafe void Render(Renderer<Color> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image)
+        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image)
         {
-            List<TriangleEx> trianglesToDraw = new();
+            List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            TriangleEx* clipped = stackalloc TriangleEx[2];
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, clipped);
-
-            ClipAndDrawTriangles(renderer, depth, trianglesToDraw, clipped, image);
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        static unsafe void DoMathWithTriangles(TriangleEx[] triangles, Material[] materials, Camera camera, List<TriangleEx> trianglesToDraw, TriangleEx* clipped)
+        static void DoMathWithTriangles(Triangle3Ex[] triangles, Material[] materials, Camera camera, List<Triangle4Ex> trianglesToDraw)
         {
+            Span<Triangle3Ex> clipped = stackalloc Triangle3Ex[2];
+
             for (int i = 0; i < triangles.Length; i++)
             {
-                TriangleEx tri = triangles[i];
+                Triangle3Ex tri = triangles[i];
 
                 tri.PointA -= camera.CameraPosition;
                 tri.PointB -= camera.CameraPosition;
                 tri.PointC -= camera.CameraPosition;
 
-                Vector3 normal, line1, line2;
+                Vector3 line1 = tri.PointB - tri.PointA;
+                Vector3 line2 = tri.PointC - tri.PointA;
 
-                line1 = tri.PointB - tri.PointA;
-                line2 = tri.PointC - tri.PointA;
-
-                normal = Vector3.Cross(line1, line2);
-
-                normal.Normalize();
+                Vector3 normal = Vector3.Cross(line1, line2);
+                normal = Vector3.Normalize(normal);
 
                 Vector3 cameraRay = tri.PointA - camera.CameraPosition;
 
                 if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) continue;
 
-                Vector3 sunDirection = (0f, .7f, -1f);
+                Vector3 sunDirection = new(0f, .7f, -1f);
 
                 Material material = materials[tri.MaterialIndex];
 
@@ -75,23 +72,23 @@ namespace ConsoleGame
                     Color specular = Color.Black;
                     if (material.SpecularExponent > float.Epsilon)
                     {
-                        Vector3 reflected = Vector3.Reflect(-sunDirection, normal).Normalized;
-                        float specularConstant = MathF.Pow(Math.Max(Vector3.Dot(-cameraRay.Normalized, reflected), 0f), material.SpecularExponent);
+                        Vector3 reflected = Vector3.Normalize(Vector3.Reflect(-sunDirection, normal));
+                        float specularConstant = MathF.Pow(Math.Max(Vector3.Dot(Vector3.Normalize(-cameraRay), reflected), 0f), material.SpecularExponent);
                         specular = material.SpecularColor * specularConstant * SpecularIntensity;
                     }
 
-                    tri.Color = (ambientComponent + diffuse + specular);
+                    tri.Color = ambientComponent + diffuse + specular;
                 }
 
-                tri.PointA *= camera.ViewMatrix;
-                tri.PointB *= camera.ViewMatrix;
-                tri.PointC *= camera.ViewMatrix;
+                tri.PointA = (tri.PointA.To4() * camera.ViewMatrix).To3();
+                tri.PointB = (tri.PointB.To4() * camera.ViewMatrix).To3();
+                tri.PointC = (tri.PointC.To4() * camera.ViewMatrix).To3();
 
-                int clippedTriangles = Triangle.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
+                int clippedTriangles = Triangle3Ex.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
 
                 for (int n = 0; n < clippedTriangles; n++)
                 {
-                    TriangleEx clippedTriangle = clipped[n];
+                    Triangle4Ex clippedTriangle = clipped[n];
 
                     clippedTriangle.PointA *= camera.ProjectionMatrix;
                     clippedTriangle.PointB *= camera.ProjectionMatrix;
@@ -118,7 +115,7 @@ namespace ConsoleGame
                     if (clippedTriangle.PointC.W != 0f)
                     { clippedTriangle.PointC /= clippedTriangle.PointC.W; }
 
-                    Vector3 viewOffset = new(1f, 1f, 0f);
+                    Vector4 viewOffset = new(1f, 1f, 0f, 1f);
 
                     clippedTriangle.PointA += viewOffset;
                     clippedTriangle.PointB += viewOffset;
@@ -142,15 +139,19 @@ namespace ConsoleGame
             */
         }
 
-        static unsafe void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image, Func<Color, TPixel> converter)
+        static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image, Func<Color, TPixel> converter)
         {
-            SmallSize screenSize = renderer.Size;
-            for (int i = 0; i < trianglesToDraw.Count; i++)
-            {
-                TriangleEx tri = trianglesToDraw[i];
+            Span<Triangle4Ex> clipped = stackalloc Triangle4Ex[2];
+            ValueList<Triangle4Ex> triangles = new(stackalloc Triangle4Ex[6]);
 
-                Queue<TriangleEx> triangles = new();
-                triangles.Enqueue(tri);
+            SmallSize screenSize = renderer.Size;
+            for (int i = 0; i < trianglesToDraw.Length; i++)
+            {
+                Triangle4Ex tri = trianglesToDraw[i];
+
+                triangles.Clear();
+                triangles.Add(tri);
+
                 int newTriangles = 1;
 
                 for (int p = 0; p < 4; p++)
@@ -158,37 +159,43 @@ namespace ConsoleGame
                     int trisToAdd = 0;
                     while (newTriangles > 0)
                     {
-                        TriangleEx test = triangles.Dequeue();
+                        Triangle4Ex test = triangles[0];
+                        triangles.RemoveAt(0);
                         newTriangles--;
 
                         switch (p)
                         {
-                            case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 0: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 2: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             default: break;
                         }
 
                         for (int w = 0; w < trisToAdd; w++)
-                            triangles.Enqueue(clipped[w]);
+                        { triangles.Add(clipped[w]); }
                     }
                     newTriangles = triangles.Count;
                 }
 
-                DrawTriangles(renderer, depth, triangles.ToArray(), image, converter);
+                DrawTriangles(renderer, depth, triangles.AsSpan(), image, converter);
             }
         }
 
-        static unsafe void ClipAndDrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, List<TriangleEx> trianglesToDraw, TriangleEx* clipped, Image? image)
+        static void ClipAndDrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image)
         {
-            SmallSize screenSize = renderer.Size;
-            for (int i = 0; i < trianglesToDraw.Count; i++)
-            {
-                TriangleEx tri = trianglesToDraw[i];
+            Span<Triangle4Ex> clipped = stackalloc Triangle4Ex[2];
+            ValueList<Triangle4Ex> triangles = new(stackalloc Triangle4Ex[4], 0);
 
-                Queue<TriangleEx> triangles = new();
-                triangles.Enqueue(tri);
+            SmallSize screenSize = renderer.Size;
+            for (int i = 0; i < trianglesToDraw.Length; i++)
+            {
+                Triangle4Ex tri = trianglesToDraw[i];
+
+                triangles.Clear();
+
+                triangles.Add(tri);
+
                 int newTriangles = 1;
 
                 for (int p = 0; p < 4; p++)
@@ -196,78 +203,99 @@ namespace ConsoleGame
                     int trisToAdd = 0;
                     while (newTriangles > 0)
                     {
-                        TriangleEx test = triangles.Dequeue();
+                        Triangle4Ex test = triangles[0];
+                        triangles.RemoveAt(0);
                         newTriangles--;
 
                         switch (p)
                         {
-                            case 0: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 1: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 2: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
-                            case 3: trisToAdd = Triangle.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 0: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(0.0f, 1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 1: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, screenSize.Height - 1, 0.0f), new Vector3(0.0f, -1.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 2: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(0.0f, 0.0f, 0.0f), new Vector3(1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
+                            case 3: trisToAdd = Triangle4Ex.ClipAgainstPlane(new Vector3(screenSize.Width - 1, 0.0f, 0.0f), new Vector3(-1.0f, 0.0f, 0.0f), test, out clipped[0], out clipped[1]); break;
                             default: break;
                         }
 
                         for (int w = 0; w < trisToAdd; w++)
-                            triangles.Enqueue(clipped[w]);
+                        { triangles.Add(clipped[w]); }
                     }
                     newTriangles = triangles.Count;
                 }
 
-                DrawTriangles(renderer, depth, triangles.ToArray(), image);
+                DrawTriangles(renderer, depth, triangles.AsSpan(), image);
             }
         }
 
-        static unsafe void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, TriangleEx[] triangles, Image? image, Func<Color, TPixel> converter)
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image, Func<Color, TPixel> converter)
+        {
+            if (image.HasValue)
+            { DrawTriangles(renderer, depth, triangles, image.Value, converter); }
+            else
+            { DrawTriangles(renderer, depth, triangles, converter); }
+        }
+
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image, Func<Color, TPixel> converter)
         {
             Coord screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
             {
-                if (image.HasValue)
-                {
-                    renderer.FillTriangle(
-                        depth,
-                        ((Vector2.One - (Vector2)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA,
-                        ((Vector2.One - (Vector2)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB,
-                        ((Vector2.One - (Vector2)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC,
-                        image.Value, converter);
-                }
-                else
-                {
-                    TPixel pixel = converter.Invoke(triangles[i].Color);
-                    renderer.FillTriangle(
-                        depth,
-                        ((Vector2.One - (Vector2)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA.Z,
-                        ((Vector2.One - (Vector2)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB.Z,
-                        ((Vector2.One - (Vector2)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC.Z,
-                        pixel);
-                }
+                renderer.FillTriangle(
+                    depth,
+                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
+                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
+                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
+                    image, converter);
             }
         }
 
-        static unsafe void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, TriangleEx[] triangles, Image? image)
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Func<Color, TPixel> converter)
+        {
+            Coord screenSize = (Coord)renderer.Size;
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                TPixel pixel = converter.Invoke(triangles[i].Color);
+                renderer.FillTriangle(
+                    depth,
+                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                    pixel);
+            }
+        }
+
+        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image)
+        {
+            if (image.HasValue)
+            { DrawTriangles(renderer, depth, triangles, image.Value); }
+            else
+            { DrawTriangles(renderer, depth, triangles); }
+        }
+
+        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image)
         {
             Vector2Int screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
             {
-                if (image.HasValue)
-                {
-                    renderer.FillTriangle(
-                        depth,
-                        ((Vector2.One - (Vector2)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA,
-                        ((Vector2.One - (Vector2)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB,
-                        ((Vector2.One - (Vector2)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC,
-                        image.Value, v => v);
-                }
-                else
-                {
-                    renderer.FillTriangle(
-                        depth,
-                        ((Vector2.One - (Vector2)triangles[i].PointA) * screenSize).Round(), triangles[i].TexA.Z,
-                        ((Vector2.One - (Vector2)triangles[i].PointB) * screenSize).Round(), triangles[i].TexB.Z,
-                        ((Vector2.One - (Vector2)triangles[i].PointC) * screenSize).Round(), triangles[i].TexC.Z,
-                        triangles[i].Color);
-                }
+                renderer.FillTriangle(
+                    depth,
+                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
+                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
+                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
+                    image, v => v);
+            }
+        }
+
+        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles)
+        {
+            Vector2Int screenSize = (Coord)renderer.Size;
+            for (int i = 0; i < triangles.Length; i++)
+            {
+                renderer.FillTriangle(
+                    depth,
+                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                    triangles[i].Color);
             }
         }
     }

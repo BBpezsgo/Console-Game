@@ -4,7 +4,7 @@ namespace ConsoleGame
 {
     public partial class MeshRenderer
     {
-        int RendererMode = 1;
+        int RendererMode = 4;
 
         readonly Camera camera = new();
 

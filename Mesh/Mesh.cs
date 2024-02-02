@@ -1,14 +1,15 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace ConsoleGame
 {
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public partial struct Mesh
     {
-        public TriangleEx[] Triangles;
+        public Triangle3Ex[] Triangles;
         public Material[] Materials;
 
-        public Mesh(IEnumerable<TriangleEx> triangles)
+        public Mesh(IEnumerable<Triangle3Ex> triangles)
         {
             Triangles = triangles.ToArray();
             Materials = Array.Empty<Material>();
@@ -25,7 +26,7 @@ namespace ConsoleGame
             return this;
         }
 
-        public Mesh Scale(Vector3 scale)
+        public Mesh Scale(float scale)
         {
             for (int i = 0; i < Triangles.Length; i++)
             {
@@ -35,8 +36,7 @@ namespace ConsoleGame
             }
             return this;
         }
-
-        public Mesh Scale(float scale)
+        public Mesh Scale(Vector3 scale)
         {
             for (int i = 0; i < Triangles.Length; i++)
             {

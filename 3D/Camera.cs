@@ -1,3 +1,4 @@
+using System.Numerics;
 using Win32;
 using Win32.Common;
 using Win32.LowLevel;
@@ -54,23 +55,23 @@ namespace ConsoleGame
             { this.CameraPosition.Y -= Time.DeltaTime * CameraSpeed; }
 
             if (Keyboard.IsKeyPressed('W'))
-            { this.CameraPosition += this.CameraLookDirection * CameraSpeed * Time.DeltaTime; }
+            { this.CameraPosition += CameraLookDirection * CameraSpeed * Time.DeltaTime; }
 
             if (Keyboard.IsKeyPressed('S'))
-            { this.CameraPosition -= this.CameraLookDirection * CameraSpeed * Time.DeltaTime; }
+            { this.CameraPosition -= CameraLookDirection * CameraSpeed * Time.DeltaTime; }
 
             if (Keyboard.IsKeyPressed('A'))
-            { this.CameraPosition -= Vector3.Cross(this.CameraLookDirection.Normalized, new Vector3(0f, 1f, 0f)) * CameraSpeed * Time.DeltaTime; }
+            { this.CameraPosition -= Vector3.Cross(Vector3.Normalize(CameraLookDirection), new Vector3(0f, 1f, 0f)) * CameraSpeed * Time.DeltaTime; }
 
             if (Keyboard.IsKeyPressed('D'))
-            { this.CameraPosition += Vector3.Cross(this.CameraLookDirection.Normalized, new Vector3(0f, 1f, 0f)) * CameraSpeed * Time.DeltaTime; }
+            { this.CameraPosition += Vector3.Cross(Vector3.Normalize(CameraLookDirection), new Vector3(0f, 1f, 0f)) * CameraSpeed * Time.DeltaTime; }
 
             if (lockMouse)
             {
                 this.CameraYaw += mouseDelta.X * MouseIntensity;
                 this.CameraBruh += mouseDelta.Y * MouseIntensity;
 
-                Mouse.ScreenPosition = new Win32.Common.Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
+                Mouse.ScreenPosition = new Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
                 Vector2Int center = new(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
@@ -97,7 +98,7 @@ namespace ConsoleGame
 
             Matrix4x4.Multiply(ref this.cameraRotationMatrix, this.rotX, this.rotY);
 
-            this.CameraLookDirection = target * cameraRotationMatrix;
+            this.CameraLookDirection = (target.To4() * cameraRotationMatrix).To3();
             target = this.CameraPosition + this.CameraLookDirection;
 
             Matrix4x4.MakePointAt(ref this.cameraMatrix, this.CameraPosition, target, up);
