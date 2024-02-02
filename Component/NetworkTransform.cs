@@ -1,10 +1,11 @@
-﻿using ConsoleGame.Net;
+﻿using System.Numerics;
+using ConsoleGame.Net;
 
 namespace ConsoleGame
 {
     public class NetworkTransform : NetworkComponent
     {
-        Vector NetPosition;
+        Vector2 NetPosition;
         const float Speed = 1.5f;
         const float MinTeleportDistance = 5f;
 
@@ -33,7 +34,7 @@ namespace ConsoleGame
 
             if (Game.NetworkMode == NetworkMode.Client)
             {
-                if ((Position - NetPosition).SqrMagnitude > MinTeleportDistance * MinTeleportDistance)
+                if ((Position - NetPosition).LengthSquared() > MinTeleportDistance * MinTeleportDistance)
                 { Position = NetPosition; }
                 else
                 { Position += Vector.MoveTowards(Position, NetPosition, Speed * Time.DeltaTime); }

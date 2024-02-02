@@ -1,4 +1,5 @@
-﻿using System.Runtime.Versioning;
+﻿using System.Numerics;
+using System.Runtime.Versioning;
 using Win32;
 
 namespace ConsoleGame
@@ -21,7 +22,7 @@ namespace ConsoleGame
 
         public Buffer<float> DepthBuffer { get; }
 
-        public ref ConsoleChar this[VectorInt screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
+        public ref ConsoleChar this[Vector2Int screenPosition] => ref ConsoleBuffer[(screenPosition.Y * BufferWidth) + screenPosition.X];
 
         public event SimpleEventHandler? OnResized;
 
@@ -88,16 +89,16 @@ namespace ConsoleGame
 
         void DrawImageSubpixel(Image image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height - 1);
+            Vector2Int imageSize = new(image.Width, image.Height - 1);
 
             for (int y_ = 0; y_ < rect.Height * 2; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width * 2; x_++)
                 {
-                    VectorInt pointTL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
-                    VectorInt pointTR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
-                    VectorInt pointBL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
-                    VectorInt pointBR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
+                    Vector2Int pointTL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
+                    Vector2Int pointTR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
+                    Vector2Int pointBL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
+                    Vector2Int pointBR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
 
 
                     if (!IsVisible(pointTL)) continue;
@@ -134,17 +135,17 @@ namespace ConsoleGame
         }
         void DrawImageShaded(Image image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height);
+            Vector2Int imageSize = new(image.Width, image.Height);
 
             for (int y_ = 0; y_ < rect.Height; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width; x_++)
                 {
-                    VectorInt point = new(x_ + rect.X, y_ + rect.Y);
+                    Vector2Int point = new(x_ + rect.X, y_ + rect.Y);
                     if (!IsVisible(point)) continue;
-                    Vector uv = (Vector)point / (Vector)rect.Size;
-                    uv *= imageSize;
-                    VectorInt imageCoord = Vector.Floor(uv);
+                    Vector2 uv = (Vector2)point / (Vector2)rect.Size;
+                    uv *= (Vector2)imageSize;
+                    Vector2Int imageCoord = Vector.Floor(uv);
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
                     this[point] = CharColor.ToCharacterColored(pixel);
@@ -154,17 +155,17 @@ namespace ConsoleGame
         }
         void DrawImageNormal(Image image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height);
+            Vector2Int imageSize = new(image.Width, image.Height);
 
             for (int y_ = 0; y_ < rect.Height; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width; x_++)
                 {
-                    VectorInt point = new(x_ + rect.X, y_ + rect.Y);
+                    Vector2Int point = new(x_ + rect.X, y_ + rect.Y);
                     if (!IsVisible(point)) continue;
-                    Vector uv = (Vector)point / (Vector)rect.Size;
-                    uv *= imageSize;
-                    VectorInt imageCoord = Vector.Floor(uv);
+                    Vector2 uv = (Vector2)point / (Vector2)rect.Size;
+                    uv *= (Vector2)imageSize;
+                    Vector2Int imageCoord = Vector.Floor(uv);
 
                     Color pixel = image[imageCoord.X, imageCoord.Y];
                     byte convertedPixel = CharColor.From24bitColor(pixel);
@@ -176,16 +177,16 @@ namespace ConsoleGame
 
         void DrawImageSubpixel(TransparentImage image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height - 1);
+            Vector2Int imageSize = new(image.Width, image.Height - 1);
 
             for (int y_ = 0; y_ < rect.Height * 2; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width * 2; x_++)
                 {
-                    VectorInt pointTL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
-                    VectorInt pointTR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
-                    VectorInt pointBL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
-                    VectorInt pointBR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
+                    Vector2Int pointTL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
+                    Vector2Int pointTR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Floor(y_ / 2f) + rect.Y);
+                    Vector2Int pointBL = new((int)Math.Floor(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
+                    Vector2Int pointBR = new((int)Math.Ceiling(x_ / 2f) + rect.X, (int)Math.Ceiling(y_ / 2f) + rect.Y);
 
                     if (!IsVisible(pointTL)) continue;
 
@@ -221,17 +222,17 @@ namespace ConsoleGame
         }
         void DrawImageShaded(TransparentImage image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height);
+            Vector2Int imageSize = new(image.Width, image.Height);
 
             for (int y_ = 0; y_ < rect.Height; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width; x_++)
                 {
-                    VectorInt point = new(x_ + rect.X, y_ + rect.Y);
+                    Vector2Int point = new(x_ + rect.X, y_ + rect.Y);
                     if (!IsVisible(point)) continue;
-                    Vector uv = (Vector)point / (Vector)rect.Size;
-                    uv *= imageSize;
-                    VectorInt imageCoord = Vector.Floor(uv);
+                    Vector2 uv = (Vector2)point / (Vector2)rect.Size;
+                    uv *= (Vector2)imageSize;
+                    Vector2Int imageCoord = Vector.Floor(uv);
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
@@ -244,17 +245,17 @@ namespace ConsoleGame
         }
         void DrawImageNormal(TransparentImage image, RectInt rect)
         {
-            VectorInt imageSize = new(image.Width, image.Height);
+            Vector2Int imageSize = new(image.Width, image.Height);
 
             for (int y_ = 0; y_ < rect.Height; y_++)
             {
                 for (int x_ = 0; x_ < rect.Width; x_++)
                 {
-                    VectorInt point = new(x_ + rect.X, y_ + rect.Y);
+                    Vector2Int point = new(x_ + rect.X, y_ + rect.Y);
                     if (!IsVisible(point)) continue;
-                    Vector uv = (Vector)point / (Vector)rect.Size;
-                    uv *= imageSize;
-                    VectorInt imageCoord = Vector.Floor(uv);
+                    Vector2 uv = (Vector2)point / (Vector2)rect.Size;
+                    uv *= (Vector2)imageSize;
+                    Vector2Int imageCoord = Vector.Floor(uv);
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
@@ -267,7 +268,7 @@ namespace ConsoleGame
             }
         }
 
-        public bool IsVisible(VectorInt position) => IsVisible(position.X, position.Y);
+        public bool IsVisible(Vector2Int position) => IsVisible(position.X, position.Y);
 
         public void ShouldResize() => shouldResize = true;
 

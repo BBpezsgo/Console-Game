@@ -1,45 +1,48 @@
-﻿using DataUtilities.Serializer;
+﻿using System.Numerics;
+using DataUtilities.Serializer;
 
 namespace ConsoleGame.RpcMessages
 {
     public struct Shoot2 : ISerializable<Shoot2>
     {
-        public Vector Origin;
-        public Vector Direction;
+        public Vector2 Origin;
+        public Vector2 Direction;
         public float Speed;
 
         public Shoot2()
         {
-            Origin = Vector.Zero;
-            Direction = Vector.Zero;
+            Origin = Vector2.Zero;
+            Direction = Vector2.Zero;
             Speed = 0f;
         }
 
-        public Shoot2(Vector origin, Vector direction, float speed)
+        public Shoot2(Vector2 origin, Vector2 direction, float speed)
         {
             Origin = origin;
             Direction = direction;
             Speed = speed;
         }
 
-        public Shoot2(Vector origin, Vector velocity)
+        public Shoot2(Vector2 origin, Vector2 velocity)
         {
             Origin = origin;
-            Direction = velocity.Normalized;
-            Speed = velocity.Magnitude;
+            Direction = Vector2.Normalize(velocity);
+            Speed = velocity.Length();
         }
 
         public void Deserialize(Deserializer deserializer)
         {
-            Origin = deserializer.DeserializeObject<Vector>();
-            Direction = deserializer.DeserializeObject(Vector.DeserializeAsDirection);
+            Origin.X = deserializer.DeserializeFloat();
+            Origin.Y = deserializer.DeserializeFloat();
+            Direction = deserializer.DeserializeDirection();
             Speed = deserializer.DeserializeFloat();
         }
 
         public readonly void Serialize(Serializer serializer)
         {
-            serializer.Serialize(Origin);
-            serializer.Serialize(Direction, Vector.SerializeAsDirection);
+            serializer.Serialize(Origin.X);
+            serializer.Serialize(Origin.Y);
+            serializer.SerializeDirection(Direction);
             serializer.Serialize(Speed);
         }
     }

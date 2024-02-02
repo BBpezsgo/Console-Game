@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public partial struct Vector3
     {
@@ -16,7 +18,10 @@
 
         public static implicit operator Vector3(ValueTuple<float, float, float> v) => new(v.Item1, v.Item2, v.Item3);
 
-        public static explicit operator Vector(Vector3 v) => new(v.X, v.Y);
-        public static implicit operator Vector3(Vector v) => new(v.X, v.Y, 0f);
+        public static explicit operator Vector2(Vector3 v) => new(v.X, v.Y);
+        public static implicit operator Vector3(Vector2 v) => new(v.X, v.Y, 0f);
+
+        public static implicit operator Vector4(Vector3 v) => new(v.X, v.Y, v.Z, v.W);
+        public static implicit operator Vector3(Vector4 v) => new(v.X, v.Y, v.Z, v.W);
     }
 }

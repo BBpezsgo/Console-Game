@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     internal class EnemyFactoryBehavior : FactoryComponent<int>
     {
@@ -29,7 +31,7 @@
         protected override void OnProductDone(int product)
         {
             Entity newEntity = EntityPrototypes.Builders[product].Invoke(Game.Instance.Scene.GenerateNetworkId(), Owner);
-            newEntity.Position = Position + new Vector(1f, 2f) + Random.Point(-.01f, .01f);
+            newEntity.Position = Position + new Vector2(1f, 2f) + Random.Point(-.01f, .01f);
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

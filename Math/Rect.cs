@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 
 namespace ConsoleGame
 {
@@ -42,7 +43,7 @@ namespace ConsoleGame
             set => Width = value - X;
         }
 
-        public Vector Position
+        public Vector2 Position
         {
             readonly get => new(X, Y);
             set
@@ -52,7 +53,7 @@ namespace ConsoleGame
             }
         }
 
-        public Vector Size
+        public Vector2 Size
         {
             readonly get => new(Width, Height);
             set
@@ -70,7 +71,7 @@ namespace ConsoleGame
             Height = height;
         }
 
-        public Rect(Vector position, Vector size)
+        public Rect(Vector2 position, Vector2 size)
         {
             X = position.X;
             Y = position.Y;
@@ -78,7 +79,7 @@ namespace ConsoleGame
             Height = size.Y;
         }
 
-        public readonly bool Contains(Vector point) =>
+        public readonly bool Contains(Vector2 point) =>
             point.X >= X &&
             point.Y >= Y &&
             point.X <= Right &&
@@ -116,7 +117,7 @@ namespace ConsoleGame
             return this;
         }
 
-        public Rect Expand(Vector v)
+        public Rect Expand(Vector2 v)
         {
             X -= v.X;
             Y -= v.Y;
@@ -158,7 +159,7 @@ namespace ConsoleGame
             this.Right >= other.Right &&
             this.Bottom >= other.Bottom;
 
-        public Rect Move(Vector offset)
+        public Rect Move(Vector2 offset)
         {
             this.X += offset.X;
             this.Y += offset.Y;
@@ -172,7 +173,7 @@ namespace ConsoleGame
             return this;
         }
 
-        public static Rect Move(Rect rect, Vector offset)
+        public static Rect Move(Rect rect, Vector2 offset)
         {
             rect.X += offset.X;
             rect.Y += offset.Y;

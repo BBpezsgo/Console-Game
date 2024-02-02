@@ -1,10 +1,11 @@
-﻿using Win32;
+﻿using System.Numerics;
+using Win32;
 
 namespace ConsoleGame.Behavior
 {
     internal class GranateBehavior : Component
     {
-        public Vector Velocity;
+        public Vector2 Velocity;
         public Component? Owner;
 
         public const float Damage = 10f;
@@ -57,9 +58,9 @@ namespace ConsoleGame.Behavior
                 }
             }
 
-            Velocity += Velocity.Normalized * Acceleration * Time.DeltaTime;
+            Velocity += Vector2.Normalize(Velocity) * Acceleration * Time.DeltaTime;
 
-            Vector lastPosition = Position;
+            Vector2 lastPosition = Position;
 
             {
                 Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
@@ -116,7 +117,7 @@ namespace ConsoleGame.Behavior
             for (int i = 0; i < objs.Count; i++)
             {
                 Entity obj = objs[i];
-                float distance = (obj.Position - Position).SqrMagnitude;
+                float distance = (obj.Position - Position).LengthSquared();
                 if (distance >= Radius * Radius) continue;
 
                 if (obj.TryGetComponent(out IDamageable? damageable))
@@ -143,7 +144,7 @@ namespace ConsoleGame.Behavior
                             return;
                         }
 
-                        otherGranate.Velocity += (otherGranate.Position - Position).Normalized * (1f - (distance / Radius)) * 30f;
+                        otherGranate.Velocity += Vector2.Normalize(otherGranate.Position - Position) * (1f - (distance / Radius)) * 30f;
                     }));
 
                     continue;

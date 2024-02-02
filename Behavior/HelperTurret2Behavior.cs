@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Behavior;
+﻿using System.Numerics;
+using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
 
@@ -92,11 +93,11 @@ namespace ConsoleGame
                 }
                 else
                 {
-                    Vector diff = Target.Position - Position;
-                    Vector direction = diff.Normalized;
-                    float speed = Math.Min(ProjectileSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? ProjectileSpeed);
+                    Vector2 diff = Target.Position - Position;
+                    Vector2 direction = Vector2.Normalize(diff);
+                    float speed = Math.Min(ProjectileSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Length()) ?? ProjectileSpeed);
 
-                    Vector.RotateByDeg(ref direction, Random.Float(-1f, 1f));
+                    Rotation.RotateByDeg(ref direction, Random.Float(-1f, 1f));
 
                     SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot2(Position, direction, speed));
 
@@ -110,7 +111,7 @@ namespace ConsoleGame
             { Reload -= Time.DeltaTime; }
         }
 
-        void Shoot(Vector origin, Vector direction, float speed)
+        void Shoot(Vector2 origin, Vector2 direction, float speed)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot2(origin, direction, speed));
 

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ConsoleGame.Net;
 using Win32;
 
@@ -131,7 +132,7 @@ namespace ConsoleGame
 
             Scene.Load();
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.Position = new Vector(3, 4);
+            newEntity.Position = new Vector2(3, 4);
             Scene.AddEntity(newEntity);
             FollowEntity = newEntity;
         }
@@ -162,7 +163,7 @@ namespace ConsoleGame
             }
 
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.Position = new Vector(3, 4);
+            newEntity.Position = new Vector2(3, 4);
             Scene.AddEntity(newEntity);
             FollowEntity = newEntity;
         }
@@ -209,7 +210,7 @@ namespace ConsoleGame
             Scene.Load();
 
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), LocalOwner);
-            newEntity.Position = new Vector(3, 4);
+            newEntity.Position = new Vector2(3, 4);
             Scene.AddEntity(newEntity);
             FollowEntity = newEntity;
 
@@ -242,7 +243,7 @@ namespace ConsoleGame
             { return; }
 
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(sender));
-            newEntity.Position = new Vector(3, 4);
+            newEntity.Position = new Vector2(3, 4);
             Scene.AddEntity(newEntity);
         }
 

@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public class Component
     {
@@ -8,7 +10,7 @@
 
         public ref bool IsDestroyed => ref Entity.IsDestroyed;
 
-        public ref Vector Position => ref Entity.Position;
+        public ref Vector2 Position => ref Entity.Position;
 
         public Component(Entity entity)
         {

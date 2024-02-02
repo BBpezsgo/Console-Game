@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Win32;
 
 namespace ConsoleGame
@@ -12,11 +13,11 @@ namespace ConsoleGame
         public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
         public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
-        public VectorInt Size = new(50, 50);
+        public Vector2Int Size = new(50, 50);
 
         bool DrawGround;
 
-        public RectInt SizeR => new(VectorInt.Zero, Size);
+        public RectInt SizeR => new(Vector2Int.Zero, Size);
 
         public readonly ConsoleChar[,] BackgroundTexture;
 
@@ -35,7 +36,7 @@ namespace ConsoleGame
                 {
                     ref ConsoleChar pixel = ref BackgroundTexture[x, y];
 
-                    float v = Noise.Simplex(new Vector(x, y) * 0.25f);
+                    float v = Noise.Simplex(new Vector2(x, y) * 0.25f);
                     if (v < .5f) continue;
 
                     pixel.Foreground = v < .75f ? CharColor.Gray : CharColor.Silver;
@@ -76,7 +77,7 @@ namespace ConsoleGame
         {
             Entities.Add(entity);
 
-            QuadTreeLocation location = QuadTree.Add(entity, new Rect(entity.Position, Vector.Zero));
+            QuadTreeLocation location = QuadTree.Add(entity, new Rect(entity.Position, Vector2.Zero));
             entity.QuadTreeLocation = location;
 
             if (Game.NetworkMode == NetworkMode.Server && Game.Connection != null)
@@ -101,7 +102,7 @@ namespace ConsoleGame
                         float x = (_x / 2f) + rect2.X;
                         x = MathF.Round(x * 2) / 2;
 
-                        VectorInt conPos = Game.WorldToConsole(x, y);
+                        Vector2Int conPos = Game.WorldToConsole(x, y);
 
                         if (!Game.Renderer.IsVisible(conPos) || Game.IsOnGui(conPos)) continue;
 
@@ -111,8 +112,8 @@ namespace ConsoleGame
             }
 
             {
-                VectorInt a = Game.WorldToConsole(0f, 0f);
-                VectorInt b = Game.WorldToConsole(Size);
+                Vector2Int a = Game.WorldToConsole(Vector2Int.Zero);
+                Vector2Int b = Game.WorldToConsole(Size);
 
                 int top = a.Y;
                 int left = a.X;
@@ -125,8 +126,8 @@ namespace ConsoleGame
 
                 for (int y = top + 1; y <= bottom - 1; y++)
                 {
-                    VectorInt p1 = new(left, y);
-                    VectorInt p2 = new(right, y);
+                    Vector2Int p1 = new(left, y);
+                    Vector2Int p2 = new(right, y);
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
@@ -141,8 +142,8 @@ namespace ConsoleGame
 
                 for (int x = left + 1; x <= right - 1; x++)
                 {
-                    VectorInt p1 = new(x, top);
-                    VectorInt p2 = new(x, bottom);
+                    Vector2Int p1 = new(x, top);
+                    Vector2Int p2 = new(x, bottom);
 
                     if (r.IsVisible(p1) && !Game.IsOnGui(p1))
                     {
@@ -155,10 +156,10 @@ namespace ConsoleGame
                     }
                 }
 
-                VectorInt p3 = new(left, top);
-                VectorInt p4 = new(left, bottom);
-                VectorInt p5 = new(right, top);
-                VectorInt p6 = new(right, bottom);
+                Vector2Int p3 = new(left, top);
+                Vector2Int p4 = new(left, bottom);
+                Vector2Int p5 = new(right, top);
+                Vector2Int p6 = new(right, bottom);
 
                 if (r.IsVisible(p3) && !Game.IsOnGui(p3))
                 {
@@ -267,12 +268,12 @@ namespace ConsoleGame
                 */
 
                 Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](GenerateNetworkId(), Game.LocalOwner);
-                newEntity.Position = new Vector(2 + i, 20);
+                newEntity.Position = new Vector2(2 + i, 20);
                 AddEntity(newEntity);
             }
 
             Entity newEntity2 = EntityPrototypes.Builders[GameObjectPrototype.ENEMY_FACTORY](GenerateNetworkId(), Game.LocalOwner);
-            newEntity2.Position = new Vector(30, 30);
+            newEntity2.Position = new Vector2(30, 30);
             AddEntity(newEntity2);
         }
     }

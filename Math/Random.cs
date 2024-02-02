@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public readonly struct Random
     {
@@ -14,7 +16,7 @@
         public static float Float(float min, float max) => (float)random.NextDouble() * (max - min) + min;
         public static float Float(Range range) => ((float)random.NextDouble() * (range.B - range.A)) + range.A;
 
-        public static Vector Direction()
+        public static Vector2 Direction()
         {
             float x = (Random.Float() - .5f) * 2f * MathF.PI * 2f;
             float y = (Random.Float() - .5f) * 2f * MathF.PI * 2f;
@@ -22,13 +24,13 @@
             x = MathF.Cos(x);
             y = MathF.Sin(y);
 
-            return new Vector(x, y);
+            return new Vector2(x, y);
         }
 
-        public static Vector Point(float min, float max) => new(Random.Float(min, max), Random.Float(min, max));
-        public static Vector Point(Rect limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);
-        public static Vector Point(RectInt limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);
-        public static VectorInt PointInt(RectInt limits) => new(Random.Integer(limits.Width) + limits.X, Random.Integer(limits.Height) + limits.Y);
+        public static Vector2 Point(float min, float max) => new(Random.Float(min, max), Random.Float(min, max));
+        public static Vector2 Point(Rect limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);
+        public static Vector2 Point(RectInt limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);
+        public static Vector2Int PointInt(RectInt limits) => new(Random.Integer(limits.Width) + limits.X, Random.Integer(limits.Height) + limits.Y);
     }
 
     public readonly struct Noise
@@ -354,7 +356,7 @@
         }
 
         public static float Simplex(float x) => (SimplexNoise.Generate(x) * .5f) + .5f;
-        public static float Simplex(Vector pos) => (SimplexNoise.Generate(pos.X, pos.Y) * .5f) + .5f;
+        public static float Simplex(Vector2 pos) => (SimplexNoise.Generate(pos.X, pos.Y) * .5f) + .5f;
         public static float Simplex(float x, float y) => (SimplexNoise.Generate(x, y) * .5f) + .5f;
         public static float Simplex(float x, float y, float z) => (SimplexNoise.Generate(x, y, z) * .5f) + .5f;
     }

@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public abstract class QuadTree
     {
@@ -201,14 +203,14 @@
             }
         }
 
-        public QuadTree<T>[] Branches(Vector point)
+        public QuadTree<T>[] Branches(Vector2 point)
         {
             List<QuadTree<T>> result = new();
             Branches(point, result);
             return result.ToArray();
         }
 
-        public void Branches(Vector point, List<QuadTree<T>> list)
+        public void Branches(Vector2 point, List<QuadTree<T>> list)
         {
             list.Add(this);
             for (int i = 0; i < ChildrenRects.Length; i++)
@@ -298,16 +300,16 @@
             return true;
         }
 
-        public QuadTreeLocation Relocate(QuadTreeLocation branch, T element, Vector position)
-            => Relocate(branch, element, new Rect(position, Vector.Zero));
+        public QuadTreeLocation Relocate(QuadTreeLocation branch, T element, Vector2 position)
+            => Relocate(branch, element, new Rect(position, Vector2.Zero));
         public QuadTreeLocation Relocate(QuadTreeLocation branch, T element, Rect rect)
         {
             Remove(branch, element);
             return Add(element, rect);
         }
 
-        public void Relocate(ref QuadTreeLocation branch, T element, Vector position)
-            => Relocate(ref branch, element, new Rect(position, Vector.Zero));
+        public void Relocate(ref QuadTreeLocation branch, T element, Vector2 position)
+            => Relocate(ref branch, element, new Rect(position, Vector2.Zero));
         public void Relocate(ref QuadTreeLocation branch, T element, Rect rect)
         {
             Remove(branch, element);

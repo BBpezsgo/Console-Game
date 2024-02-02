@@ -24,14 +24,14 @@ namespace ConsoleGame
             return text.Length;
         }
 
-        public static int Label(VectorInt pos, string text, ushort attributes) => Label(pos.X, pos.Y, text, attributes);
+        public static int Label(Vector2Int pos, string text, ushort attributes) => Label(pos.X, pos.Y, text, attributes);
         public static int Label(int x, int y, string text, ushort attributes)
         {
             Renderer.Text(x, y, text, attributes);
             return text.Length;
         }
 
-        public static int Label(VectorInt pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharColor.Make(background, foreground));
+        public static int Label(Vector2Int pos, string text, byte background, byte foreground) => Label(pos.X, pos.Y, text, CharColor.Make(background, foreground));
         public static int Label(int x, int y, string text, byte background, byte foreground) => Label(x, y, text, CharColor.Make(background, foreground));
 
         #endregion
@@ -54,7 +54,7 @@ namespace ConsoleGame
             width,
             height
         );
-        public static RectInt GetCenteredBox(VectorInt size) => new(
+        public static RectInt GetCenteredBox(Vector2Int size) => new(
             (Width / 2) - (size.X / 2),
             (Height / 2) - (size.Y / 2),
             size.X,

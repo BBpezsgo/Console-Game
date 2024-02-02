@@ -2,9 +2,6 @@
 {
     internal class Program
     {
-        // static string AssetsProject => @$"C:\Users\{Environment.UserName}\source\repos\ConsoleGame\Assets\";
-        // static string AssetsRuntime => @$"{Path.Combine(Directory.GetCurrentDirectory(), "Assets").TrimEnd('\\')}\";
-        // 
         // static Mesh MeshCube => Mesh.MakeCube();
         // static Mesh MeshSpaceship => Obj.LoadFile($"{AssetsRuntime}VideoShip.obj");
         // static Mesh MeshTeapot => Obj.LoadFile($"{AssetsRuntime}teapot.obj");
@@ -197,6 +194,10 @@
             }
             catch (Win32.Common.WindowsException windowsException)
             { windowsException.ShowMessageBox(); }
+            finally
+            {
+                Sound.Dispose();
+            }
         }
     }
 }

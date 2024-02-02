@@ -1,8 +1,10 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public class WorldBorders
     {
-        public static bool Bounce(Rect rect, ref Vector position, ref Vector speed)
+        public static bool Bounce(Rect rect, ref Vector2 position, ref Vector2 speed)
         {
             bool bounced = false;
 
@@ -35,7 +37,7 @@
             return bounced;
         }
 
-        public static bool Clamp(Rect rect, ref Vector position)
+        public static bool Clamp(Rect rect, ref Vector2 position)
         {
             bool clamped = false;
 

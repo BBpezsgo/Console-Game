@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using System.Numerics;
 using System.Text;
 
 namespace ConsoleGame
@@ -15,7 +16,7 @@ namespace ConsoleGame
             string[] lines = text.Replace('\r', '\n').Split('\n');
 
             List<Vector3> vertices = new();
-            List<Vector> texs = new();
+            List<Vector2> texs = new();
 
             List<TriangleEx> triangles = new();
 
@@ -60,8 +61,8 @@ namespace ConsoleGame
                         }
                     case "vt":
                         {
-                            if (!Vector.TryParse(line, out Vector tex))
-                            { throw new ParsingException($"Failed to parse {nameof(Vector)} (at line {i})"); }
+                            if (!Vector.TryParse(line, out Vector2 tex))
+                            { throw new ParsingException($"Failed to parse {nameof(Vector2)} (at line {i})"); }
 
                             texs.Add(tex);
                             break;

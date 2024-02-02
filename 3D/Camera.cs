@@ -38,9 +38,9 @@ namespace ConsoleGame
             cameraRotationMatrix = Matrix4x4.Zero;
         }
 
-        public void HandleInput(bool lockMouse, ref VectorInt mousePosition)
+        public void HandleInput(bool lockMouse, ref Vector2Int mousePosition)
         {
-            VectorInt mouseDelta = (VectorInt)Mouse.ScreenPosition - mousePosition;
+            Vector2Int mouseDelta = (Vector2Int)Mouse.ScreenPosition - mousePosition;
             mousePosition = Mouse.ScreenPosition;
 
             if (Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
@@ -72,7 +72,7 @@ namespace ConsoleGame
 
                 Mouse.ScreenPosition = new Win32.Common.Point(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
-                VectorInt center = new(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
+                Vector2Int center = new(DisplayMetrics.Width / 2, DisplayMetrics.Height / 2);
 
                 mousePosition = center;
             }

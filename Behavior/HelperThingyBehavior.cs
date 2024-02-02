@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Net;
+﻿using System.Numerics;
+using ConsoleGame.Net;
 using Win32;
 
 namespace ConsoleGame
@@ -144,7 +145,7 @@ namespace ConsoleGame
             if (Target == null) return;
 
             if (Target.IsDestroyed ||
-                (canLoseTarget && ((Target.Position - Position).SqrMagnitude >= VisionRadius * VisionRadius)))
+                (canLoseTarget && ((Target.Position - Position).LengthSquared() >= VisionRadius * VisionRadius)))
             {
                 Target = null;
                 return;
@@ -152,7 +153,7 @@ namespace ConsoleGame
 
             if (Target.TryGetComponent(out IDamageable? damageableTarget))
             {
-                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                float sqrMag = (Target.Position - Position).LengthSquared();
                 if (sqrMag > ShootRadius * ShootRadius)
                 {
                     Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
@@ -161,7 +162,7 @@ namespace ConsoleGame
                 {
                     if (Ammo > 0 && Reload <= 0f)
                     {
-                        Vector direction = (Target.Position - Position).Normalized;
+                        Vector2 direction = Vector2.Normalize(Target.Position - Position);
 
                         SendRpcImmediate(1, new RpcMessages.Shoot(Position, direction));
 
@@ -176,7 +177,7 @@ namespace ConsoleGame
             }
             else if (Target.TryGetComponent(out ItemBehavior? item))
             {
-                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                float sqrMag = (Target.Position - Position).LengthSquared();
                 if (sqrMag > 1f * 1f)
                 {
                     Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
@@ -188,7 +189,7 @@ namespace ConsoleGame
             }
         }
 
-        void Shoot(Vector origin, Vector direction)
+        void Shoot(Vector2 origin, Vector2 direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot(origin, direction));
 

@@ -1,11 +1,12 @@
-﻿using DataUtilities.Serializer;
+﻿using System.Numerics;
+using DataUtilities.Serializer;
 
 namespace ConsoleGame
 {
     public class ObjectDetailsMessage : Message, ISerializable<ObjectDetailsMessage>
     {
         public int NetworkId;
-        public Vector Position;
+        public Vector2 Position;
         public int ObjectId;
         public ulong OwnerId;
 
@@ -27,7 +28,7 @@ namespace ConsoleGame
         {
             base.Deserialize(deserializer);
             NetworkId = deserializer.DeserializeInt32();
-            Position = deserializer.DeserializeObject<Vector>();
+            Position = deserializer.DeserializeVector2();
             ObjectId = deserializer.DeserializeInt32();
             OwnerId = deserializer.DeserializeUInt64();
         }

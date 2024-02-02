@@ -1,38 +1,42 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public partial class Game
     {
-        public VectorInt ViewportWorldPosition = new(0, -4);
+        public Vector2Int ViewportWorldPosition = new(0, -4);
 
         public Entity? FollowEntity;
 
-        public static Vector WorldToViewport(Vector worldPosition)
-            => worldPosition - Game.Instance.ViewportWorldPosition;
+        public static Vector2 WorldToViewport(Vector2 worldPosition)
+            => worldPosition - (Vector2)Game.Instance.ViewportWorldPosition;
 
-        public static Vector ViewportToWorld(Vector viewportPosition)
-            => viewportPosition + Game.Instance.ViewportWorldPosition;
+        public static Vector2 ViewportToWorld(Vector2 viewportPosition)
+            => viewportPosition + (Vector2)Game.Instance.ViewportWorldPosition;
 
-        public static VectorInt ViewportToConsole(Vector viewportPosition)
-            => Vector.Round(viewportPosition * new Vector(2f, 1f));
-        public static VectorInt ViewportToConsole(float x, float y)
+        public static Vector2Int ViewportToConsole(Vector2 viewportPosition)
+            => Vector.Round(viewportPosition * new Vector2(2f, 1f));
+        public static Vector2Int ViewportToConsole(float x, float y)
             => Vector.Round(x * 2f, y);
 
-        public static Vector ConsoleToViewport(VectorInt consolePosition)
-            => consolePosition * new Vector(0.5f, 1f);
-        public static Vector ConsoleToViewport(int x, int y)
+        public static Vector2 ConsoleToViewport(Vector2Int consolePosition)
+            => (Vector2)consolePosition * new Vector2(0.5f, 1f);
+        public static Vector2 ConsoleToViewport(int x, int y)
             => new(x * 0.5f, y);
 
-        public static Vector ConsoleToWorld(VectorInt consolePosition)
-            => (consolePosition * new Vector(0.5f, 1f)) + Game.Instance.ViewportWorldPosition;
-        public static Vector ConsoleToWorld(int x, int y)
-            => new Vector(x * 0.5f, y) + Game.Instance.ViewportWorldPosition;
+        public static Vector2 ConsoleToWorld(Vector2Int consolePosition)
+            => ((Vector2)consolePosition * new Vector2(0.5f, 1f)) + (Vector2)Game.Instance.ViewportWorldPosition;
+        public static Vector2 ConsoleToWorld(int x, int y)
+            => new Vector2(x * 0.5f, y) + (Vector2)Game.Instance.ViewportWorldPosition;
 
-        public static VectorInt WorldToConsole(Vector worldPosition)
-            => Vector.Round((worldPosition - Game.Instance.ViewportWorldPosition) * new Vector(2f, 1f));
-        public static VectorInt WorldToConsole(float x, float y)
+        public static Vector2Int WorldToConsole(Vector2 worldPosition)
+            => Vector.Round((worldPosition - (Vector2)Game.Instance.ViewportWorldPosition) * new Vector2(2f, 1f));
+        public static Vector2Int WorldToConsole(Vector2Int worldPosition)
+            => (worldPosition - Game.Instance.ViewportWorldPosition) * new Vector2Int(2, 1);
+        public static Vector2Int WorldToConsole(float x, float y)
             => Vector.Round((x - Game.Instance.ViewportWorldPosition.X) * 2, y - Game.Instance.ViewportWorldPosition.Y);
 
-        public static RectInt WorldToConsole(Rect worldRect) => new(WorldToConsole(worldRect.Position), Vector.Round(worldRect.Size * new Vector(2f, 1f)));
+        public static RectInt WorldToConsole(Rect worldRect) => new(WorldToConsole(worldRect.Position), Vector.Round(worldRect.Size * new Vector2(2f, 1f)));
 
         public static Rect VisibleWorldRect() => new()
         {
@@ -42,18 +46,18 @@
             Height = Renderer.Height,
         };
 
-        public static bool IsVisible(Vector worldPosition)
+        public static bool IsVisible(Vector2 worldPosition)
         {
-            Vector viewportPosition = Game.WorldToViewport(worldPosition);
+            Vector2 viewportPosition = Game.WorldToViewport(worldPosition);
             if (viewportPosition.X < 0f || viewportPosition.Y < 0f) return false;
 
-            VectorInt consolePosition = Game.ViewportToConsole(viewportPosition);
+            Vector2Int consolePosition = Game.ViewportToConsole(viewportPosition);
             if (consolePosition.X >= Renderer.Width || consolePosition.Y >= Renderer.Height) return false;
 
             return !IsOnGui(consolePosition);
         }
 
-        public static bool IsOnGui(VectorInt consolePosition)
+        public static bool IsOnGui(Vector2Int consolePosition)
         {
             if (consolePosition.Y < 4) return true;
 

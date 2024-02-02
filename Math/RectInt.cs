@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 
 namespace ConsoleGame
 {
@@ -41,7 +42,7 @@ namespace ConsoleGame
             set => Width = value - X;
         }
 
-        public VectorInt Position
+        public Vector2Int Position
         {
             readonly get => new(X, Y);
             set
@@ -51,7 +52,7 @@ namespace ConsoleGame
             }
         }
 
-        public VectorInt Size
+        public Vector2Int Size
         {
             readonly get => new(Width, Height);
             set
@@ -69,7 +70,7 @@ namespace ConsoleGame
             Height = height;
         }
 
-        public RectInt(VectorInt position, VectorInt size)
+        public RectInt(Vector2Int position, Vector2Int size)
         {
             X = position.X;
             Y = position.Y;
@@ -77,7 +78,7 @@ namespace ConsoleGame
             Height = size.Y;
         }
 
-        public readonly bool Contains(Vector point) =>
+        public readonly bool Contains(Vector2 point) =>
             point.X >= X &&
             point.Y >= Y &&
             point.X <= Right &&
@@ -88,7 +89,7 @@ namespace ConsoleGame
             x <= Right &&
             y <= Bottom;
 
-        public readonly bool Contains(VectorInt point) =>
+        public readonly bool Contains(Vector2Int point) =>
             point.X >= X &&
             point.Y >= Y &&
             point.X <= Right &&
@@ -128,7 +129,7 @@ namespace ConsoleGame
             return this;
         }
 
-        public RectInt Expand(VectorInt v)
+        public RectInt Expand(Vector2Int v)
         {
             X -= v.X;
             Y -= v.Y;

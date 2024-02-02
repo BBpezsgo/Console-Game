@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public static class Ascii
     {
@@ -573,12 +575,12 @@
             { 'W', (char)0x1d42 },
         };
 
-        public static char DirectionLine(Vector dir)
-            => DirectionLine(Vector.ToDeg(dir));
+        public static char DirectionLine(Vector2 dir)
+            => DirectionLine(Rotation.ToDeg(dir));
         public static char DirectionLine(float deg)
         {
             deg += 90f + 10f;
-            Vector.ClampAngle(ref deg);
+            Rotation.ClampAngle(ref deg);
             deg /= 360f;
 
             int i = (int)MathF.Round(deg * (LineSegment.Length - 1));

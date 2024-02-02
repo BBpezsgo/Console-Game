@@ -5,31 +5,29 @@ using DataUtilities.Serializer;
 namespace ConsoleGame
 {
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-    public partial struct VectorInt : IEquatable<VectorInt>, ISerializable<VectorInt>
+    public partial struct Vector2Int : IEquatable<Vector2Int>, ISerializable<Vector2Int>
     {
         public int X;
         public int Y;
 
-        public VectorInt(int v)
+        public Vector2Int(int v)
         {
             X = v;
             Y = v;
         }
-        public VectorInt(int x, int y)
+        public Vector2Int(int x, int y)
         {
             X = x;
             Y = y;
         }
 
-        public static bool operator ==(VectorInt left, VectorInt right) => left.Equals(right);
-        public static bool operator !=(VectorInt left, VectorInt right) => !(left == right);
-
-        public static implicit operator Vector(VectorInt v) => new(v.X, v.Y);
+        public static bool operator ==(Vector2Int left, Vector2Int right) => left.Equals(right);
+        public static bool operator !=(Vector2Int left, Vector2Int right) => !(left == right);
 
         public override readonly bool Equals(object? obj) =>
-            obj is VectorInt vector &&
+            obj is Vector2Int vector &&
             Equals(vector);
-        public readonly bool Equals(VectorInt other) =>
+        public readonly bool Equals(Vector2Int other) =>
             X == other.X &&
             Y == other.Y;
         public override readonly int GetHashCode()
@@ -51,7 +49,7 @@ namespace ConsoleGame
             Y = deserializer.DeserializeInt32();
         }
 
-        public static VectorInt Zero => new(0);
-        public static VectorInt One => new(1);
+        public static Vector2Int Zero => new(0);
+        public static Vector2Int One => new(1);
     }
 }

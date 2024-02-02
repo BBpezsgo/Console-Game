@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Net;
+﻿using System.Numerics;
+using ConsoleGame.Net;
 using Win32;
 
 namespace ConsoleGame
@@ -112,7 +113,7 @@ namespace ConsoleGame
                         return;
                     }
 
-                    Vector direction = (Target.Position - Position).Normalized;
+                    Vector2 direction = Vector2.Normalize(Target.Position - Position);
 
                     incomingProjectileCounter?.OnShot(new IncomingProjectileCounter.IncomingProjectile(Entity, Position, Time.UtcNow, ProjectileBehavior.Damage, ProjectileSpeed));
 
@@ -128,7 +129,7 @@ namespace ConsoleGame
             { Reload -= Time.DeltaTime; }
         }
 
-        void Shoot(Vector origin, Vector direction)
+        void Shoot(Vector2 origin, Vector2 direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(RpcMessages.Kind.Shoot, new RpcMessages.Shoot(origin, direction));
 

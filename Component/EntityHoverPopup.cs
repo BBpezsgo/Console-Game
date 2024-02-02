@@ -11,13 +11,13 @@ namespace ConsoleGame
         public static bool ShouldNotShow;
         public static EntityHoverPopup? AlreadyShown;
 
-        public VectorInt Size;
+        public Vector2Int Size;
 
         readonly ICanDrawEntityHoverPopup[] DrawerComponents;
 
         public EntityHoverPopup(Entity entity) : base(entity)
         {
-            Size = new VectorInt(20, 5);
+            Size = new Vector2Int(20, 5);
             DrawerComponents = Entity.GetComponents<ICanDrawEntityHoverPopup>();
         }
 
@@ -25,7 +25,7 @@ namespace ConsoleGame
         {
             if (!IsShown) return;
 
-            VectorInt conPos = Game.WorldToConsole(Position);
+            Vector2Int conPos = Game.WorldToConsole(Position);
 
             RectInt box = new(conPos.X + 1, conPos.Y - Size.Y, Size.X, Size.Y);
 
@@ -53,7 +53,7 @@ namespace ConsoleGame
                 return;
             }
 
-            float dist = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position).SqrMagnitude;
+            float dist = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position).LengthSquared();
             bool shouldShown = dist <= (DistanceToShow * DistanceToShow);
 
             if (!shouldShown)
@@ -64,7 +64,7 @@ namespace ConsoleGame
 
             if (AlreadyShown != null)
             {
-                float dist2 = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - AlreadyShown.Position).SqrMagnitude;
+                float dist2 = (Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - AlreadyShown.Position).LengthSquared();
                 if (dist2 < dist)
                 {
                     IsShown = false;

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace ConsoleGame
 {
@@ -10,7 +11,7 @@ namespace ConsoleGame
         readonly List<Component> components;
         public int Tags;
         public bool IsDestroyed;
-        public Vector Position;
+        public Vector2 Position;
         public string? Name;
 
         public bool IsSolid;
@@ -171,23 +172,23 @@ namespace ConsoleGame
 
             if (!IsStatic && other.IsStatic)
             {
-                Vector error = (Position - other.Position) * ErrorMultiplier;
+                Vector2 error = (Position - other.Position) * ErrorMultiplier;
                 Position += error;
             }
             else if (IsStatic && !other.IsStatic)
             {
-                Vector error = (Position - other.Position) * ErrorMultiplier;
+                Vector2 error = (Position - other.Position) * ErrorMultiplier;
                 other.Position -= error;
             }
             else
             {
-                Vector error = (Position - other.Position) * (ErrorMultiplier * .5f);
+                Vector2 error = (Position - other.Position) * (ErrorMultiplier * .5f);
                 Position += error;
                 other.Position -= error;
             }
         }
 
-        public bool DoBounceOff(ref Vector velocity)
+        public bool DoBounceOff(ref Vector2 velocity)
         {
             // if (!IsSolid) return false;
 
@@ -203,10 +204,10 @@ namespace ConsoleGame
             }
             return isCollided;
         }
-        public void DoBounceOff(Entity other, ref Vector velocity)
+        public void DoBounceOff(Entity other, ref Vector2 velocity)
         {
-            float speed = velocity.Magnitude;
-            velocity = (Position - other.Position).Normalized * speed;
+            float speed = velocity.Length();
+            velocity = Vector2.Normalize(Position - other.Position) * speed;
         }
 
         public bool ClampIntoWord() => WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);

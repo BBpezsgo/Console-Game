@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Numerics;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -27,15 +28,15 @@ namespace ConsoleGame
 
             for (int i = 0; i < points; i++)
             {
-                Vector direction = Vector.FromRad((float)i / (float)points * MathF.PI * 2f);
+                Vector2 direction = Rotation.FromDeg((float)i / (float)points);
 
-                Vector p = (direction * radius) + Position;
+                Vector2 p = (direction * radius) + Position;
 
                 p += direction * (Noise.Simplex(p.X, p.Y) * .5f + .5f) * 1.5f;
 
                 if (!Game.IsVisible(p)) continue;
 
-                VectorInt conPos = Game.WorldToConsole(p);
+                Vector2Int conPos = Game.WorldToConsole(p);
 
                 if (Game.IsOnGui(conPos)) continue;
 

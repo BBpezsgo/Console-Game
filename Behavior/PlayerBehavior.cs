@@ -1,3 +1,4 @@
+using System.Numerics;
 using ConsoleGame.Behavior;
 using Win32;
 using Win32.LowLevel;
@@ -82,7 +83,7 @@ namespace ConsoleGame
 
             if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCode.SPACE)))
             {
-                Shoot(Position, Vector.RotateByDeg((Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position).Normalized, Random.Float(-2f, 2f)));
+                Shoot(Position, Rotation.RotateByDeg(Vector2.Normalize(Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position), Random.Float(-2f, 2f)));
             }
 
             if (Keyboard.IsKeyDown('X'))
@@ -108,10 +109,10 @@ namespace ConsoleGame
 
             if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
             {
-                Vector diff = Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position;
-                float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, (float)diff.Magnitude) ?? GranateSpeed);
-                Vector direction = diff.Normalized;
-                Vector.RotateByDeg(ref direction, Random.Float(-1f, 1f));
+                Vector2 diff = Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position;
+                float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, diff.Length()) ?? GranateSpeed);
+                Vector2 direction = Vector2.Normalize(diff);
+                Rotation.RotateByDeg(ref direction, Random.Float(-1f, 1f));
                 ShootGranate(Position, direction, speed);
             }
 
@@ -137,7 +138,7 @@ namespace ConsoleGame
             { GranateReload -= Time.DeltaTime; }
         }
 
-        void Shoot(Vector origin, Vector direction)
+        void Shoot(Vector2 origin, Vector2 direction)
         {
             if (NetworkEntity.IsOwned) SendRpcImmediate(1, new RpcMessages.Shoot(origin, direction));
 
@@ -168,7 +169,7 @@ namespace ConsoleGame
             Reload = ReloadTime;
         }
 
-        void ShootGranate(Vector origin, Vector direction, float speed)
+        void ShootGranate(Vector2 origin, Vector2 direction, float speed)
         {
             if (!NetworkEntity.IsOwned) return;
 

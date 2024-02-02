@@ -1,4 +1,5 @@
-﻿using ConsoleGame.Behavior;
+﻿using System.Numerics;
+using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 
 namespace ConsoleGame
@@ -97,7 +98,7 @@ namespace ConsoleGame
             if (Target == null) return;
 
             if (Target.IsDestroyed ||
-                (canLoseTarget && ((Target.Position - Position).SqrMagnitude >= visionRange * visionRange)))
+                (canLoseTarget && ((Target.Position - Position).LengthSquared() >= visionRange * visionRange)))
             {
                 Target = null;
                 return;
@@ -105,8 +106,8 @@ namespace ConsoleGame
 
             if (Target.TryGetComponent(out IDamageable? damageableTarget))
             {
-                Vector diff = Target.Position - Position;
-                float sqrMag = diff.SqrMagnitude;
+                Vector2 diff = Target.Position - Position;
+                float sqrMag = diff.LengthSquared();
                 if (sqrMag > MeleeAttackRange * MeleeAttackRange)
                 {
                     Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);
@@ -127,7 +128,7 @@ namespace ConsoleGame
             }
             else if (Target.TryGetComponent(out ItemBehavior? item))
             {
-                float sqrMag = (Target.Position - Position).SqrMagnitude;
+                float sqrMag = (Target.Position - Position).LengthSquared();
                 if (sqrMag > MeleeAttackRange * MeleeAttackRange)
                 {
                     Position += Vector.MoveTowards(Position, Target.Position, MaxSpeed * Time.DeltaTime);

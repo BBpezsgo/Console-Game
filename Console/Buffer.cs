@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Numerics;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -17,8 +18,8 @@ namespace ConsoleGame
         public ref T this[int x, int y] => ref buffer[(y * Width) + x];
 
         public ref T this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
-        public ref T this[Vector position] => ref this[position.X, position.Y];
-        public ref T this[VectorInt position] => ref this[position.X, position.Y];
+        public ref T this[Vector2 position] => ref this[position.X, position.Y];
+        public ref T this[Vector2Int position] => ref this[position.X, position.Y];
 
         public Buffer(Renderer renderer)
         {

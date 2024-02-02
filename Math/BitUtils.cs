@@ -44,14 +44,14 @@ namespace ConsoleGame
             segments[i] = segment;
         }
 
-        public static void RenderBits(ConsoleRenderer renderer, VectorInt position, int[] segments)
+        public static void RenderBits(ConsoleRenderer renderer, Vector2Int position, int[] segments)
         {
             for (int i = 0; i < segments.Length; i++)
             {
-                RenderBits(renderer, new VectorInt(position.X + i * 32, position.Y), segments[i]);
+                RenderBits(renderer, new Vector2Int(position.X + i * 32, position.Y), segments[i]);
             }
         }
-        public static void RenderBits(ConsoleRenderer renderer, VectorInt position, int segment)
+        public static void RenderBits(ConsoleRenderer renderer, Vector2Int position, int segment)
         {
             for (int i = 0; i < 32; i++)
             {

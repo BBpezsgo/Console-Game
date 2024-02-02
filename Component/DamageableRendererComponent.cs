@@ -15,7 +15,7 @@ namespace ConsoleGame
         {
             if (!Game.IsVisible(Position)) return;
 
-            VectorInt p = Game.WorldToConsole(Position);
+            Vector2Int p = Game.WorldToConsole(Position);
 
             ref float depth = ref Game.DepthBuffer[p];
 

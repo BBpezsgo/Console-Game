@@ -17,9 +17,9 @@ namespace ConsoleGame
 
         public static void FillTriangle<T>(
             this Renderer<T> renderer,
-            VectorInt a,
-            VectorInt b,
-            VectorInt c,
+            Vector2Int a,
+            Vector2Int b,
+            Vector2Int c,
             T color)
             => renderer.FillTriangle(
                 a.X, a.Y,
@@ -30,9 +30,9 @@ namespace ConsoleGame
         public static void FillTriangle<T>(
             this Renderer<T> renderer,
             Buffer<float>? depth,
-            VectorInt a, float depthA,
-            VectorInt b, float depthB,
-            VectorInt c, float depthC,
+            Vector2Int a, float depthA,
+            Vector2Int b, float depthB,
+            Vector2Int c, float depthC,
             T color)
             => renderer.FillTriangle<T>(
                 depth,
@@ -44,9 +44,9 @@ namespace ConsoleGame
         public static void FillTriangle<T>(
             this Renderer<T> renderer,
             Buffer<float>? depth,
-            VectorInt a, Vector3 texA,
-            VectorInt b, Vector3 texB,
-            VectorInt c, Vector3 texC,
+            Vector2Int a, Vector3 texA,
+            Vector2Int b, Vector3 texB,
+            Vector2Int c, Vector3 texC,
             Image image, Func<Color, T> converter)
             => renderer.FillTriangle<T>(
                 depth,
@@ -430,7 +430,7 @@ namespace ConsoleGame
 
         public static void DrawLines<T>(
             this Renderer<T> renderer,
-            VectorInt[] points,
+            Vector2Int[] points,
             T c,
             bool connectEnd = false)
         {
@@ -465,8 +465,8 @@ namespace ConsoleGame
         /// </summary>
         public static void DrawLine<T>(
             this Renderer<T> renderer,
-            VectorInt a,
-            VectorInt b,
+            Vector2Int a,
+            Vector2Int b,
             T c)
             => DrawLine(renderer, a.X, a.Y, b.X, b.Y, c);
         /// <summary>
@@ -524,7 +524,7 @@ namespace ConsoleGame
         public static void DrawImage<T>(
             this Renderer<T> renderer,
             Image? image,
-            VectorInt position,
+            Vector2Int position,
             bool fixWidth,
             Func<Color, T> converter)
         {
@@ -534,7 +534,7 @@ namespace ConsoleGame
         public static void DrawImage<T>(
             this Renderer<T> renderer,
             TransparentImage? image,
-            VectorInt position,
+            Vector2Int position,
             bool fixWidth,
             Func<T, TransparentColor, T> blender)
         {
@@ -545,7 +545,7 @@ namespace ConsoleGame
         public static void DrawImage<T>(
             this Renderer<T> renderer,
             Image image,
-            VectorInt position,
+            Vector2Int position,
             bool fixWidth,
             Func<Color, T> converter)
         {
@@ -558,7 +558,7 @@ namespace ConsoleGame
             {
                 for (int x_ = 0; x_ < w; x_++)
                 {
-                    VectorInt point = new(x_ + position.X, y_ + position.Y);
+                    Vector2Int point = new(x_ + position.X, y_ + position.Y);
                     if (!renderer.IsVisible(point.X, point.Y)) continue;
                     Color c = image[fixWidth ? x_ / 2 : x_, y_];
                     renderer[point.X, point.Y] = converter.Invoke(c); // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(c));
@@ -569,7 +569,7 @@ namespace ConsoleGame
         public static void DrawImage<T>(
             this Renderer<T> renderer,
             TransparentImage image,
-            VectorInt position,
+            Vector2Int position,
             bool fixWidth,
             Func<T, TransparentColor, T> blender)
         {
@@ -582,7 +582,7 @@ namespace ConsoleGame
             {
                 for (int x_ = 0; x_ < w; x_++)
                 {
-                    VectorInt point = new(x_ + position.X, y_ + position.Y);
+                    Vector2Int point = new(x_ + position.X, y_ + position.Y);
                     if (!renderer.IsVisible(point.X, point.Y)) continue;
                     TransparentColor color = image[fixWidth ? x_ / 2 : x_, y_];
                     ref T alreadyThere = ref renderer[point.X, point.Y];

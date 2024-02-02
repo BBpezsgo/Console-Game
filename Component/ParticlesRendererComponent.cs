@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public enum ParticleCharacterMode
     {
@@ -17,7 +19,7 @@
         public ParticleCharacterMode CharacterMode;
         public float CharacterModeParam;
         public float InDirection;
-        public Vector Direction;
+        public Vector2 Direction;
 
         public ParticlesConfig(ParticlesConfig other)
         {
@@ -39,16 +41,16 @@
         {
             public readonly float Lifetime;
             public readonly byte Kind;
-            public readonly Vector LocalSpeed;
+            public readonly Vector2 LocalSpeed;
             public readonly float BornAt;
 
-            public Vector LocalPosition;
+            public Vector2 LocalPosition;
             public bool IsAlive;
 
             public readonly float Age => Time.UtcNow - BornAt;
             public readonly float AgePercent => Age / Lifetime;
 
-            public Particle(byte kind, Vector localPosition, Vector localSpeed, float lifetime)
+            public Particle(byte kind, Vector2 localPosition, Vector2 localSpeed, float lifetime)
             {
                 Kind = kind;
                 LocalPosition = localPosition;
@@ -83,7 +85,7 @@
 
             for (int i = 0; i < particles.Length; i++)
             {
-                Vector dir;
+                Vector2 dir;
 
                 if (config.InDirection == 0f)
                 { dir = Random.Direction(); }
@@ -92,11 +94,11 @@
                 else
                 { dir = Vector.LinearLerp(Random.Direction(), config.Direction, config.InDirection); }
 
-                dir.Normalize();
+                dir = Vector2.Normalize(dir);
 
                 particles[i] = new Particle(
                     (byte)Random.Integer(0, config.Gradients.Length),
-                    Vector.Zero,
+                    Vector2.Zero,
                     dir * config.ParticleSpeed.Random(),
                     config.ParticleLifetime.Random());
             }
@@ -128,10 +130,10 @@
             {
                 if (!particles[i].IsAlive) continue;
 
-                Vector pos = particles[i].LocalPosition + Position;
+                Vector2 pos = particles[i].LocalPosition + Position;
 
                 if (!Game.IsVisible(pos)) continue;
-                VectorInt p = Game.WorldToConsole(pos);
+                Vector2Int p = Game.WorldToConsole(pos);
 
                 ref float depth = ref Game.DepthBuffer[p];
 

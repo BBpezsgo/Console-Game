@@ -8,7 +8,7 @@ namespace ConsoleGame
 
         readonly Camera camera = new();
 
-        VectorInt LastMousePosition;
+        Vector2Int LastMousePosition;
 
         bool LockCursor;
 

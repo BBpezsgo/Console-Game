@@ -1,24 +1,26 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public class IncomingProjectileCounter : Component
     {
         public readonly struct IncomingProjectile
         {
             public readonly Entity Entity;
-            public readonly Vector ShotPoint;
+            public readonly Vector2 ShotPoint;
             public readonly float ShotTime;
             public readonly float Damage;
             public readonly float ProjectileSpeed;
 
-            public readonly float TimeUntilImpact(Vector end)
+            public readonly float TimeUntilImpact(Vector2 end)
             {
-                float distance = (end - ShotPoint).Magnitude;
+                float distance = (end - ShotPoint).Length();
                 distance -= (Time.UtcNow - ShotTime) * ProjectileSpeed;
                 if (distance <= 0f) return 0f;
                 return distance / ProjectileSpeed;
             }
 
-            public IncomingProjectile(Entity entity, Vector shotPoint, float shotTime, float damage, float projectileSpeed)
+            public IncomingProjectile(Entity entity, Vector2 shotPoint, float shotTime, float damage, float projectileSpeed)
             {
                 Entity = entity;
                 ShotPoint = shotPoint;

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using ConsoleGame.Behavior;
 using ConsoleGame.Net;
 using Win32;
@@ -56,7 +57,7 @@ namespace ConsoleGame
                 {
                     QuadTree<Entity?> branch = branches[i];
                     RectInt conRect = Game.WorldToConsole(branch.Rect).Expand(0);
-                    conRect.Position += VectorInt.One;
+                    conRect.Position += Vector2Int.One;
                     GUI.Box(conRect, CharColor.White, SideCharacters.BoxSides);
 
                     for (int j = 0; j < branch.Container.Count; j++)
@@ -64,7 +65,7 @@ namespace ConsoleGame
                         Entity? entity = branch.Container[j].Item2;
                         if (entity == null) continue;
 
-                        VectorInt conPos = Game.WorldToConsole(entity.Position);
+                        Vector2Int conPos = Game.WorldToConsole(entity.Position);
                         if (!renderer.IsVisible(conPos)) continue;
                         renderer[conPos].Background = CharColor.Magenta;
                     }
@@ -188,7 +189,7 @@ namespace ConsoleGame
                     RectInt box = GUI.GetCenteredBox(30, 8);
                     GUI.Box(box, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
                     box.Expand(-1);
-                    VectorInt labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
+                    Vector2Int labelPos = Layout.MakeCenteredLabel(box, "YOU DIED");
                     labelPos.Y = box.Y + 1;
                     GUI.Label(labelPos, "YOU DIED", CharColor.Black, CharColor.BrightRed);
 
@@ -314,7 +315,7 @@ namespace ConsoleGame
 
                     string text = connection.StatusText;
 
-                    VectorInt labelPos = Layout.MakeCenteredLabel(menu, text);
+                    Vector2Int labelPos = Layout.MakeCenteredLabel(menu, text);
 
                     GUI.Label(labelPos, text, CharColor.Black, CharColor.White);
                 }
@@ -394,7 +395,7 @@ namespace ConsoleGame
 
             if (Scene == null) return false;
 
-            Vector randomPoint = Random.Point(Scene.SizeR);
+            Vector2 randomPoint = Random.Point(Scene.SizeR);
             if (Scene.FirstObjectAt(randomPoint, Tags.Player, 13f) == null)
             {
                 enemy = EntityPrototypes.Builders[GameObjectPrototype.ENEMY](Scene.GenerateNetworkId(), LocalOwner);
@@ -426,7 +427,7 @@ namespace ConsoleGame
             return true;
         }
 
-        public CoinItemBehavior SpawnCoin(Vector position, int amount)
+        public CoinItemBehavior SpawnCoin(Vector2 position, int amount)
         {
             CoinItemBehavior item;
 

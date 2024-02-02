@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
     public class CoinItemBehavior : Component
     {
@@ -23,8 +25,8 @@
                     !otherItems[i].TryGetComponent<PlayerBehavior>(out _))
                 { continue; }
 
-                Vector diff = otherItems[i].Position - Position;
-                float distance = diff.SqrMagnitude;
+                Vector2 diff = otherItems[i].Position - Position;
+                float distance = diff.LengthSquared();
 
                 if (otherCoin != null && distance <= 1f)
                 {
@@ -33,7 +35,7 @@
                     continue;
                 }
 
-                Position += diff.Normalized * (1f - (MathF.Sqrt(distance) / MagnetRange)) * Time.DeltaTime;
+                Position += Vector2.Normalize(diff) * (1f - (MathF.Sqrt(distance) / MagnetRange)) * Time.DeltaTime;
 
             }
 

@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Numerics;
+
+namespace ConsoleGame
 {
 	public readonly struct TransparentImage
     {
@@ -7,13 +9,13 @@
 		public readonly int Height;
 
         public TransparentColor this[int x, int y] => Data[x + (Width * y)];
-        public TransparentColor this[VectorInt point] => Data[point.X + (Width * point.Y)];
+        public TransparentColor this[Vector2Int point] => Data[point.X + (Width * point.Y)];
 
-        public TransparentColor GetPixelWithUV(Vector uv, Vector point)
+        public TransparentColor GetPixelWithUV(Vector2 uv, Vector2 point)
         {
-            Vector transformedPoint = point / uv;
-            transformedPoint *= new Vector(Width, Height);
-            VectorInt imageCoord = Vector.Floor(transformedPoint);
+            Vector2 transformedPoint = point / uv;
+            transformedPoint *= new Vector2(Width, Height);
+            Vector2Int imageCoord = Vector.Floor(transformedPoint);
             return this[imageCoord];
         }
 

@@ -1,8 +1,10 @@
+using System.Numerics;
+
 namespace ConsoleGame
 {
     public class Projectile2Behavior : Component
     {
-        public Vector Velocity;
+        public Vector2 Velocity;
         public Component? Owner;
 
         public const float Damage = 1f;
@@ -14,7 +16,7 @@ namespace ConsoleGame
 
         public override void Update()
         {
-            Vector lastPosition = Position;
+            Vector2 lastPosition = Position;
             Position += Velocity * Time.DeltaTime;
 
             bool bounced = WorldBorders.Bounce(Game.Instance.Scene.SizeR, ref Position, ref Velocity);
@@ -23,11 +25,11 @@ namespace ConsoleGame
 
             if (IsDestroyed) return;
 
-            Vector positionDiff = Position - lastPosition;
-            Vector direction = positionDiff.Normalized;
-            float distanceTravelled = positionDiff.Magnitude;
+            Vector2 positionDiff = Position - lastPosition;
+            Vector2 direction = Vector2.Normalize(positionDiff);
+            float distanceTravelled = positionDiff.Length();
 
-            Vector currentPoint = lastPosition;
+            Vector2 currentPoint = lastPosition;
             for (float i = 0f; i <= distanceTravelled; i++)
             {
                 currentPoint += direction;

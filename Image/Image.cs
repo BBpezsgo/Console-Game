@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 
 namespace ConsoleGame
 {
@@ -9,13 +10,13 @@ namespace ConsoleGame
         public readonly int Height;
 
         public Color this[int x, int y] => Data[x + (Width * y)];
-        public Color this[VectorInt point] => Data[point.X + (Width * point.Y)];
+        public Color this[Vector2Int point] => Data[point.X + (Width * point.Y)];
 
-        public Color GetPixelWithUV(Vector uv, Vector point)
+        public Color GetPixelWithUV(Vector2 uv, Vector2 point)
         {
-            Vector transformedPoint = point / uv;
-            transformedPoint *= new Vector(Width, Height);
-            VectorInt imageCoord = Vector.Floor(transformedPoint);
+            Vector2 transformedPoint = point / uv;
+            transformedPoint *= new Vector2(Width, Height);
+            Vector2Int imageCoord = Vector.Floor(transformedPoint);
             return this[imageCoord];
         }
 

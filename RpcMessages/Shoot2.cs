@@ -1,19 +1,20 @@
-﻿using DataUtilities.Serializer;
+﻿using System.Numerics;
+using DataUtilities.Serializer;
 
 namespace ConsoleGame.RpcMessages
 {
     public struct Shoot : ISerializable<Shoot>
     {
-        public Vector Origin;
-        public Vector Direction;
+        public Vector2 Origin;
+        public Vector2 Direction;
 
         public Shoot()
         {
-            Origin = Vector.Zero;
-            Direction = Vector.Zero;
+            Origin = Vector2.Zero;
+            Direction = Vector2.Zero;
         }
 
-        public Shoot(Vector origin, Vector direction)
+        public Shoot(Vector2 origin, Vector2 direction)
         {
             Origin = origin;
             Direction = direction;
@@ -21,14 +22,14 @@ namespace ConsoleGame.RpcMessages
 
         public void Deserialize(Deserializer deserializer)
         {
-            Origin = deserializer.DeserializeObject<Vector>();
-            Direction = deserializer.DeserializeObject(Vector.DeserializeAsDirection);
+            Origin = deserializer.DeserializeVector2();
+            Direction = deserializer.DeserializeDirection();
         }
 
         public readonly void Serialize(Serializer serializer)
         {
             serializer.Serialize(Origin);
-            serializer.Serialize(Direction, Vector.SerializeAsDirection);
+            serializer.SerializeDirection(Direction);
         }
     }
 }

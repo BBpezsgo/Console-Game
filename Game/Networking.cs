@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using ConsoleGame.Net;
 using DataUtilities.Serializer;
 
@@ -33,7 +34,7 @@ namespace ConsoleGame
         void OnClientConnected(Socket client)
         {
             Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.PLAYER](Scene.GenerateNetworkId(), new ObjectOwner(client));
-            newEntity.Position = new Vector(3, 4);
+            newEntity.Position = new Vector2(3, 4);
             Scene.AddEntity(newEntity);
         }
 
