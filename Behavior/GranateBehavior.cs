@@ -24,13 +24,13 @@ namespace ConsoleGame.Behavior
         public GranateBehavior(Entity entity) : base(entity)
         {
             Entity.Tags |= Tags.Projectile;
-            ShotTime = Time.UtcNow;
+            ShotTime = Time.Now;
             Renderer = Entity.TryGetComponent<RendererComponent>();
         }
 
         public override void Update()
         {
-            float t = Time.UtcNow - ShotTime;
+            float t = Time.Now - ShotTime;
 
             if (FirstShot)
             {

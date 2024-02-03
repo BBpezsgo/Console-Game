@@ -115,7 +115,7 @@ namespace ConsoleGame
 
                     Vector2 direction = Vector2.Normalize(Target.Position - Position);
 
-                    incomingProjectileCounter?.OnShot(new IncomingProjectileCounter.IncomingProjectile(Entity, Position, Time.UtcNow, ProjectileBehavior.Damage, ProjectileSpeed));
+                    incomingProjectileCounter?.OnShot(new IncomingProjectileCounter.IncomingProjectile(Entity, Position, Time.Now, ProjectileBehavior.Damage, ProjectileSpeed));
 
                     SendRpcImmediate(1, new RpcMessages.Shoot(Position, direction));
 

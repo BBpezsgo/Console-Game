@@ -53,7 +53,7 @@ namespace ConsoleGame
 
             Entity effect = new("Coin Pickup Effect");
 
-            effect.AddComponent(new ParticlesRendererComponent(effect, new ParticlesConfig()
+            effect.AddComponent(new ParticlesRendererComponent3D(effect, new ParticlesConfig()
             {
                 Gradients = new Gradient[1] { new(Color.White, Color.Yellow) },
                 Characters = new char[] { '○', '°', '⁰', '˚' },

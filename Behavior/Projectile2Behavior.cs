@@ -55,7 +55,16 @@ namespace ConsoleGame
             base.Destroy();
             Entity newEntity = new("Projectile Impact Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.MetalSparks) { Priority = Depths.EFFECT });
+            newEntity.SetComponents(
+                new ParticlesRendererComponent3D(newEntity, PredefinedEffects.MetalSparks)
+                {
+
+                }
+                // new ParticlesRendererComponent(newEntity, PredefinedEffects.MetalSparks)
+                // {
+                //     Priority = Depths.EFFECT,
+                // }
+            );
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

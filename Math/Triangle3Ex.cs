@@ -173,5 +173,21 @@ namespace ConsoleGame
             MaterialIndex = tri.MaterialIndex,
             Color = tri.Color,
         };
+
+        public static Triangle3Ex operator +(Triangle3Ex tri, Vector3 vec)
+        {
+            tri.PointA += vec;
+            tri.PointB += vec;
+            tri.PointC += vec;
+            return tri;
+        }
+
+        public static Triangle3Ex operator -(Triangle3Ex tri, Vector3 vec)
+        {
+            tri.PointA -= vec;
+            tri.PointB -= vec;
+            tri.PointC -= vec;
+            return tri;
+        }
     }
 }

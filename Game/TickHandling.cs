@@ -12,8 +12,8 @@ namespace ConsoleGame
     {
         float ah = .5f;
 
-        float LastEnemySpawn = Time.UtcNow;
-        float LastItemSpawn = Time.UtcNow;
+        float LastEnemySpawn = Time.Now;
+        float LastItemSpawn = Time.Now;
 
         int EnemyWave = 5;
 
@@ -49,6 +49,7 @@ namespace ConsoleGame
                 }
             }
 
+            /*
             if (Scene != null)
             {
                 QuadTree<Entity?>[] branches = Scene.QuadTree.Branches(Game.ConsoleToWorld(Mouse.RecordedConsolePosition));
@@ -71,6 +72,7 @@ namespace ConsoleGame
                     }
                 }
             }
+            */
 
             /*
             BitUtils.RenderBits(renderer, new VectorInt(0, 0), Keyboard.Accumulated);
@@ -252,7 +254,7 @@ namespace ConsoleGame
 
                 if (players.Length > 0 &&
                     networkMode != NetworkMode.Client &&
-                    Time.UtcNow - LastEnemySpawn > 10f)
+                    Time.Now - LastEnemySpawn > 10f)
                 {
                     for (int i = 0; i < EnemyWave; i++)
                     {
@@ -262,15 +264,15 @@ namespace ConsoleGame
                         }
                     }
                     EnemyWave++;
-                    LastEnemySpawn = Time.UtcNow;
+                    LastEnemySpawn = Time.Now;
                 }
 
                 if (networkMode != NetworkMode.Client &&
-                    Time.UtcNow - LastItemSpawn > 11f)
+                    Time.Now - LastItemSpawn > 11f)
                 {
                     for (int i = 0; i < 2; i++)
                     { TrySpawnItem(ItemBehavior.ItemKind.Health, 5f, out _); }
-                    LastItemSpawn = Time.UtcNow;
+                    LastItemSpawn = Time.Now;
                 }
 
                 if (shouldSync && connection != null)
@@ -436,10 +438,10 @@ namespace ConsoleGame
             {
                 Amount = amount,
             });
-            entity.AddComponent(new CoinItemRendererComponent(entity)
+            entity.AddComponent(new CoinItemRendererComponent3D(entity)
             {
-                Character = Ascii.CircleNumbersOutline[0],
-                Color = CharColor.BrightYellow,
+                // Character = Ascii.CircleNumbersOutline[0],
+                // Color = CharColor.BrightYellow,
             });
 
             entity.Position = position;

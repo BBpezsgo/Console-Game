@@ -117,7 +117,7 @@ namespace ConsoleGame
 
             GUI.Label(borderRect.X, borderRect.Y, Value.ToString(), CharColor.Black, Selected == 0 ? CharColor.BrightCyan : CharColor.White);
 
-            if (Selected == 0 && (int)(Time.UtcNow * 2f) % 2 == 1)
+            if (Selected == 0 && (int)(Time.Now * 2f) % 2 == 1)
             {
                 if (CursorPosition < Value.Length)
                 {

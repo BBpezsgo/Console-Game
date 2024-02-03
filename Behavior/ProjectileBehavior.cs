@@ -55,7 +55,7 @@ namespace ConsoleGame
             base.Destroy();
             Entity newEntity = new("Projectile2 Impact Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.SmallExplosion) { Priority = Depths.EFFECT });
+            newEntity.SetComponents(new ParticlesRendererComponent3D(newEntity, PredefinedEffects.SmallExplosion));
             Game.Instance.Scene.AddEntity(newEntity);
         }
     }

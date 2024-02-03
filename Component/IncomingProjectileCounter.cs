@@ -15,7 +15,7 @@ namespace ConsoleGame
             public readonly float TimeUntilImpact(Vector2 end)
             {
                 float distance = (end - ShotPoint).Length();
-                distance -= (Time.UtcNow - ShotTime) * ProjectileSpeed;
+                distance -= (Time.Now - ShotTime) * ProjectileSpeed;
                 if (distance <= 0f) return 0f;
                 return distance / ProjectileSpeed;
             }

@@ -36,6 +36,7 @@ namespace ConsoleGame
             }
             return this;
         }
+
         public Mesh Scale(Vector3 scale)
         {
             for (int i = 0; i < Triangles.Length; i++)
@@ -46,5 +47,16 @@ namespace ConsoleGame
             }
             return this;
         }
+
+        public readonly TransformedMesh ToTransformed() => new(this);
+
+        public readonly TransformedMesh ToTransformed(Vector3 offset, Matrix4x4 rotation) => new(this)
+        {
+            Transformation = new MeshTransformation()
+            {
+                Offset = offset,
+                Rotation = rotation,
+            }
+        };
     }
 }

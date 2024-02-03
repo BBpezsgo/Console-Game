@@ -137,8 +137,9 @@
 
             args = new string[]
             {
-                "-3D",
-                @"C:\Users\bazsi\Desktop\yeah.obj",
+                // "-3D",
+                // Assets.GetAsset("uploads_files_3707747_landscape.obj")!,
+                // @"C:\Users\bazsi\Desktop\yeah.obj",
             };
 
             args = ArgumentNormalizer.NormalizeArgs(args);

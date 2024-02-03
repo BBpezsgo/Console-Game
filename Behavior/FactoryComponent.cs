@@ -11,7 +11,7 @@
             public float StartedTime;
             public readonly float RequiredTime;
 
-            public bool IsDone => (StartedTime != 0f) && (Time.UtcNow - StartedTime >= RequiredTime);
+            public bool IsDone => (StartedTime != 0f) && (Time.Now - StartedTime >= RequiredTime);
 
             public Producible(TProduct product, float requiredTime)
             {
@@ -34,7 +34,7 @@
                 Queue.Dequeue();
 
                 if (Queue.TryPeek(out Producible<T>? next))
-                { next.StartedTime = Time.UtcNow; }
+                { next.StartedTime = Time.Now; }
             }
         }
 
@@ -42,7 +42,7 @@
         {
             Producible<T> producible = new(product, requiredTime);
             if (Queue.Count == 0)
-            { producible.StartedTime = Time.UtcNow; }
+            { producible.StartedTime = Time.Now; }
             Queue.Enqueue(producible);
         }
 

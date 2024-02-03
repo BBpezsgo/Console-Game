@@ -14,7 +14,7 @@ namespace ConsoleGame
 
         public static float DeltaTime => Provider.DeltaTime;
 
-        public static float Now => (float)DateTime.Now.TimeOfDay.TotalSeconds;
-        public static float UtcNow => (float)DateTime.UtcNow.TimeOfDay.TotalSeconds;
+        public static float LocalNow => (float)DateTime.Now.TimeOfDay.TotalSeconds;
+        public static float Now => (float)DateTime.UtcNow.TimeOfDay.TotalSeconds;
     }
 }

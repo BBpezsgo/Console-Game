@@ -21,13 +21,13 @@ namespace ConsoleGame
         Entity? PriorityTarget;
         Entity? Target;
 
-        readonly DamageableRendererComponent? DamageableRenderer;
+        readonly DamageableRendererComponent3D? DamageableRenderer;
 
         unsafe public EnemyBehavior(Entity entity) : base(entity)
         {
             Health = MaxHealth;
             Entity.Tags |= Tags.Enemy;
-            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
+            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent3D>();
         }
 
         public override void Destroy()
@@ -35,7 +35,7 @@ namespace ConsoleGame
             base.Destroy();
             Entity newEntity = new("Death Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
+            newEntity.SetComponents(new ParticlesRendererComponent3D(newEntity, PredefinedEffects.Death) { /*Priority = Depths.EFFECT*/ });
             Game.Instance.Scene.AddEntity(newEntity);
 
             if (Random.Float() <= .5f)
@@ -120,7 +120,7 @@ namespace ConsoleGame
                         damageableTarget.Damage(MeleeAttackDamage, this);
 
                         Entity newEntity = new();
-                        newEntity.AddComponent(new ParticlesRendererComponent(newEntity, PredefinedEffects.Stuff));
+                        newEntity.AddComponent(new ParticlesRendererComponent3D(newEntity, PredefinedEffects.Stuff));
                         newEntity.Position = Position + (diff * .5f);
                         Game.Instance.Scene.AddEntity(newEntity);
                     }

@@ -4,13 +4,13 @@
     {
         public float Health;
         public readonly float MaxHealth;
-        readonly DamageableRendererComponent? DamageableRenderer;
+        readonly DamageableRendererComponent3D? DamageableRenderer;
 
         public SimpleDestroyableThing(Entity entity, float maxHealth) : base(entity)
         {
             MaxHealth = maxHealth;
             Health = maxHealth;
-            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
+            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent3D>();
         }
 
         public void Damage(float amount, Component? by)

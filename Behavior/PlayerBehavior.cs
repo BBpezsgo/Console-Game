@@ -23,7 +23,7 @@ namespace ConsoleGame
 
         float DamageIndicator;
 
-        DamageableRendererComponent? DamageableRenderer;
+        DamageableRendererComponent3D? DamageableRenderer;
 
         public PlayerBehavior(Entity entity) : base(entity)
         {
@@ -33,7 +33,7 @@ namespace ConsoleGame
         public override void Make()
         {
             base.Make();
-            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent>();
+            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent3D>();
         }
 
         public override void Update()
@@ -44,7 +44,7 @@ namespace ConsoleGame
             const float blinkPerSec = 2f * 2;
             const float blinkingDuration = 1f;
 
-            float damageIndicatorEffect = Time.UtcNow - DamageIndicator;
+            float damageIndicatorEffect = Time.Now - DamageIndicator;
             if (damageIndicatorEffect < blinkingDuration && (int)(damageIndicatorEffect * blinkPerSec) % 2 == 0)
             {
                 for (int y = 4; y < Game.Renderer.Height; y++)
@@ -59,62 +59,92 @@ namespace ConsoleGame
                 }
             }
 
-            if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCode.UP))
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
+            { this.Position.X += Time.DeltaTime * MaxSpeed; }
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
+            { this.Position.X -= Time.DeltaTime * MaxSpeed; }
+
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.UP))
+            { this.Position.Y += Time.DeltaTime * MaxSpeed; }
+            if (Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
+            { this.Position.Y -= Time.DeltaTime * MaxSpeed; }
+
+            Vector2 lookDir = Vector2.Normalize(new Vector2(Game.Instance.Scene.Camera.CameraLookDirection.X, Game.Instance.Scene.Camera.CameraLookDirection.Z));
+            Vector3 lookDir2 = Vector3.Cross(Vector3.Normalize(Game.Instance.Scene.Camera.CameraLookDirection), new Vector3(0f, 1f, 0f));
+
+            if (DamageableRenderer is not null)
             {
-                Position.Y -= Time.DeltaTime * MaxSpeed;
+                Matrix4x4.MakeRotationY(ref DamageableRenderer.Rotation, Game.Instance.Scene.Camera.CameraYaw);
             }
 
-            if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
-            {
-                Position.X -= Time.DeltaTime * MaxSpeed;
-            }
+            if (Keyboard.IsKeyPressed('W'))
+            { this.Position += lookDir * MaxSpeed * Time.DeltaTime; }
 
-            if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
-            {
-                Position.Y += Time.DeltaTime * MaxSpeed;
-            }
+            if (Keyboard.IsKeyPressed('S'))
+            { this.Position -= lookDir * MaxSpeed * Time.DeltaTime; }
 
-            if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
-            {
-                Position.X += Time.DeltaTime * MaxSpeed;
-            }
+            if (Keyboard.IsKeyPressed('A'))
+            { this.Position -= new Vector2(lookDir2.X, lookDir2.Z) * MaxSpeed * Time.DeltaTime; }
+
+            if (Keyboard.IsKeyPressed('D'))
+            { this.Position += new Vector2(lookDir2.X, lookDir2.Z) * MaxSpeed * Time.DeltaTime; }
+
+            // if (Keyboard.IsKeyPressed('W') || Keyboard.IsKeyPressed(VirtualKeyCode.UP))
+            // {
+            //     Position.Y -= Time.DeltaTime * MaxSpeed;
+            // }
+            // 
+            // if (Keyboard.IsKeyPressed('A') || Keyboard.IsKeyPressed(VirtualKeyCode.LEFT))
+            // {
+            //     Position.X -= Time.DeltaTime * MaxSpeed;
+            // }
+            // 
+            // if (Keyboard.IsKeyPressed('S') || Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
+            // {
+            //     Position.Y += Time.DeltaTime * MaxSpeed;
+            // }
+            // 
+            // if (Keyboard.IsKeyPressed('D') || Keyboard.IsKeyPressed(VirtualKeyCode.RIGHT))
+            // {
+            //     Position.X += Time.DeltaTime * MaxSpeed;
+            // }
 
             WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
 
             if (Reload <= 0f && (Mouse.IsPressed(MouseButton.Left) || Keyboard.IsKeyPressed(VirtualKeyCode.SPACE)))
             {
-                Shoot(Position, Rotation.RotateByDeg(Vector2.Normalize(Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position), Random.Float(-2f, 2f)));
+                Shoot(Position, lookDir); // Rotation.RotateByDeg(Vector2.Normalize(Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position), Random.Float(-2f, 2f)));
             }
 
-            if (Keyboard.IsKeyDown('X'))
-            {
-                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
-                Game.Instance.Scene.AddEntity(newEntity);
-            }
+            // if (Keyboard.IsKeyDown('X'))
+            // {
+            //     Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET](Game.Instance.Scene.GenerateNetworkId(), Owner);
+            //     newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
+            //     Game.Instance.Scene.AddEntity(newEntity);
+            // }
+            // 
+            // if (Keyboard.IsKeyDown('V'))
+            // {
+            //     Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET2](Game.Instance.Scene.GenerateNetworkId(), Owner);
+            //     newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
+            //     Game.Instance.Scene.AddEntity(newEntity);
+            // }
+            // 
+            // if (Keyboard.IsKeyDown('O'))
+            // {
+            //     Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_THINGY](Game.Instance.Scene.GenerateNetworkId(), Owner);
+            //     newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
+            //     Game.Instance.Scene.AddEntity(newEntity);
+            // }
 
-            if (Keyboard.IsKeyDown('V'))
-            {
-                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_TURRET2](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
-                Game.Instance.Scene.AddEntity(newEntity);
-            }
-
-            if (Keyboard.IsKeyDown('O'))
-            {
-                Entity newEntity = EntityPrototypes.Builders[GameObjectPrototype.HELPER_THINGY](Game.Instance.Scene.GenerateNetworkId(), Owner);
-                newEntity.Position = Game.ConsoleToWorld(Mouse.RecordedConsolePosition);
-                Game.Instance.Scene.AddEntity(newEntity);
-            }
-
-            if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
-            {
-                Vector2 diff = Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position;
-                float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, diff.Length()) ?? GranateSpeed);
-                Vector2 direction = Vector2.Normalize(diff);
-                Rotation.RotateByDeg(ref direction, Random.Float(-1f, 1f));
-                ShootGranate(Position, direction, speed);
-            }
+            // if (GranateReload <= 0f && Keyboard.IsKeyPressed('G'))
+            // {
+            //     Vector2 diff = Game.ConsoleToWorld(Mouse.RecordedConsolePosition) - Position;
+            //     float speed = Math.Min(GranateSpeed, Acceleration.RequiredSpeedToReachDistance(GranateBehavior.Acceleration, diff.Length()) ?? GranateSpeed);
+            //     Vector2 direction = Vector2.Normalize(diff);
+            //     Rotation.RotateByDeg(ref direction, Random.Float(-1f, 1f));
+            //     ShootGranate(Position, direction, speed);
+            // }
 
             if (Keyboard.IsKeyDown('T'))
             {
@@ -146,12 +176,22 @@ namespace ConsoleGame
 
             Entity projectile = new("Player Projectile");
             projectile.SetComponents(
-                    new RendererComponent(projectile)
-                    {
-                        Color = CharColor.BrightYellow,
-                        Character = '.',
-                        Priority = Depths.PROJECTILE,
-                    },
+                    // new RendererComponent(projectile)
+                    // {
+                    //     Color = CharColor.BrightYellow,
+                    //     Character = '.',
+                    //     Priority = Depths.PROJECTILE,
+                    // },
+                    new RendererComponent3D(projectile,
+                        material =>
+                        {
+                            material.DiffuseColor = CharColor.To24bitColor(CharColor.BrightYellow);
+                            material.AmbientColor = CharColor.To24bitColor(CharColor.BrightYellow) * .6f;
+                        },
+                        mesh =>
+                        {
+                            mesh.Scale(.5f);
+                        }),
                     new ProjectileBehavior(projectile)
                     {
                         Velocity = direction * ProjectileSpeed,
@@ -162,7 +202,7 @@ namespace ConsoleGame
             Game.Instance.Scene.AddEntity(projectile);
 
             Entity effect = new("Shoot Effect");
-            effect.SetComponents(new ParticlesRendererComponent(effect, new ParticlesConfig(PredefinedEffects.Shoot) { Direction = direction }));
+            effect.SetComponents(new ParticlesRendererComponent3D(effect, new ParticlesConfig(PredefinedEffects.Shoot) { Direction = direction }));
             effect.Position = Position + direction;
             Game.Instance.Scene.AddEntity(effect);
 
@@ -196,20 +236,20 @@ namespace ConsoleGame
             switch (message.RpcKind)
             {
                 case RpcMessages.Kind.Shoot:
+                {
+                    if (!NetworkEntity.IsOwned)
                     {
-                        if (!NetworkEntity.IsOwned)
-                        {
-                            RpcMessages.Shoot data = message.GetObjectData<RpcMessages.Shoot>();
-                            Shoot(data.Origin, data.Direction);
-                        }
-                        break;
+                        RpcMessages.Shoot data = message.GetObjectData<RpcMessages.Shoot>();
+                        Shoot(data.Origin, data.Direction);
                     }
+                    break;
+                }
                 case RpcMessages.Kind.Damage:
-                    {
-                        RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
-                        Damage(data.Amount, data.By);
-                        break;
-                    }
+                {
+                    RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
+                    Damage(data.Amount, data.By);
+                    break;
+                }
                 default: break;
             }
         }
@@ -217,7 +257,7 @@ namespace ConsoleGame
         public void Damage(float amount, Component? by)
         {
             DamageableRenderer?.OnDamage();
-            DamageIndicator = Time.UtcNow;
+            DamageIndicator = Time.Now;
 
             if (Game.NetworkMode == NetworkMode.Client) return;
 
@@ -235,7 +275,7 @@ namespace ConsoleGame
             base.Destroy();
             Entity newEntity = new("Death Particles")
             { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.Death) { Priority = Depths.EFFECT });
+            newEntity.SetComponents(new ParticlesRendererComponent3D(newEntity, PredefinedEffects.Death));
             Game.Instance.Scene.AddEntity(newEntity);
         }
 

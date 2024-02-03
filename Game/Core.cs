@@ -96,7 +96,7 @@ namespace ConsoleGame
                 PlayerData = savedPlayerData;
             }
 
-            // MainMenu.Select("Offline");
+            MainMenu.Select("Offline");
 
             while (isRunning)
             {

@@ -11,12 +11,12 @@ namespace ConsoleGame
 
         public ShockwaveRendererComponent(Entity entity) : base(entity)
         {
-            BornTime = Time.UtcNow;
+            BornTime = Time.Now;
         }
 
         public override void Render()
         {
-            float life = (Time.UtcNow - BornTime) / Lifetime;
+            float life = (Time.Now - BornTime) / Lifetime;
             if (life >= 1f)
             {
                 Entity.IsDestroyed = true;

@@ -27,6 +27,17 @@ namespace ConsoleGame
             return new Vector2(x, y);
         }
 
+        public static Vector3 Direction3()
+        {
+            float theta = 2f * MathF.PI * random.NextSingle();
+            float phi = MathF.Acos(1 - (2 * random.NextSingle()));
+            float x = MathF.Sin(phi) * MathF.Cos(theta);
+            float y = MathF.Sin(phi) * MathF.Sin(theta);
+            float z = MathF.Cos(phi);
+
+            return new Vector3(x, y, z);
+        }
+
         public static Vector2 Point(float min, float max) => new(Random.Float(min, max), Random.Float(min, max));
         public static Vector2 Point(Rect limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);
         public static Vector2 Point(RectInt limits) => new(Random.Float(limits.Width) + limits.X, Random.Float(limits.Height) + limits.Y);

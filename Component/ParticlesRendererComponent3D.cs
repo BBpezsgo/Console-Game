@@ -2,55 +2,22 @@
 
 namespace ConsoleGame
 {
-    public enum ParticleCharacterMode
-    {
-        LifetimeRelative,
-        TimeRelative,
-        Random,
-    }
-
-    public struct ParticlesConfig
-    {
-        public Gradient[] Gradients;
-        public RangeInt ParticleCount;
-        public Range ParticleSpeed;
-        public Range ParticleLifetime;
-        public char[]? Characters;
-        public ParticleCharacterMode CharacterMode;
-        public float CharacterModeParam;
-        public float InDirection;
-        public Vector2 Direction;
-
-        public ParticlesConfig(ParticlesConfig other)
-        {
-            this.Gradients = other.Gradients;
-            this.ParticleCount = other.ParticleCount;
-            this.ParticleSpeed = other.ParticleSpeed;
-            this.ParticleLifetime = other.ParticleLifetime;
-            this.Characters = other.Characters;
-            this.CharacterMode = other.CharacterMode;
-            this.CharacterModeParam = other.CharacterModeParam;
-            this.InDirection = other.InDirection;
-            this.Direction = other.Direction;
-        }
-    }
-
-    internal class ParticlesRendererComponent : RendererComponent
+    internal class ParticlesRendererComponent3D : PostRendererComponent3D
     {
         struct Particle
         {
             public readonly float Lifetime;
             public readonly byte Kind;
-            public readonly Vector2 LocalSpeed;
+            public readonly Vector3 LocalSpeed;
             public readonly float BornAt;
 
-            public Vector2 LocalPosition;
+            public Vector3 LocalPosition;
             public bool IsAlive;
 
             public readonly float Age => Time.Now - BornAt;
             public readonly float AgePercent => Age / Lifetime;
 
-            public Particle(byte kind, Vector2 localPosition, Vector2 localSpeed, float lifetime)
+            public Particle(byte kind, Vector3 localPosition, Vector3 localSpeed, float lifetime)
             {
                 Kind = kind;
                 LocalPosition = localPosition;
@@ -77,30 +44,28 @@ namespace ConsoleGame
         readonly ParticleCharacterMode CharacterMode;
         readonly float CharacterModeParam;
 
-        public ParticlesRendererComponent(Entity entity, ParticlesConfig config) : base(entity)
+        public ParticlesRendererComponent3D(Entity entity, ParticlesConfig config) : base(entity)
         {
-            Priority = Depths.EFFECT;
-
             particles = new Particle[config.ParticleCount.Random()];
 
             config.InDirection = Math.Clamp(config.InDirection, 0f, 1f);
 
             for (int i = 0; i < particles.Length; i++)
             {
-                Vector2 dir;
+                Vector3 dir;
 
                 if (config.InDirection == 0f)
-                { dir = Random.Direction(); }
+                { dir = Random.Direction3(); }
                 else if (config.InDirection == 1f)
-                { dir = config.Direction; }
+                { dir = new Vector3(config.Direction.X, 0f, config.Direction.Y); }
                 else
-                { dir = Vector.LinearLerp(Random.Direction(), config.Direction, config.InDirection); }
+                { dir = Vector.LinearLerp(Random.Direction3(), new Vector3(config.Direction.X, 0f, config.Direction.Y), config.InDirection); }
 
-                dir = Vector2.Normalize(dir);
+                dir = Vector3.Normalize(dir);
 
                 particles[i] = new Particle(
                     (byte)Random.Integer(0, config.Gradients.Length),
-                    Vector2.Zero,
+                    Vector3.Zero,
                     dir * config.ParticleSpeed.Random(),
                     config.ParticleLifetime.Random());
             }
@@ -132,19 +97,22 @@ namespace ConsoleGame
             {
                 if (!particles[i].IsAlive) continue;
 
-                Vector2 pos = particles[i].LocalPosition + Position;
-
-                if (!Game.IsVisible(pos)) continue;
-                Vector2Int p = Game.WorldToConsole(pos);
-
-                ref float depth = ref Game.DepthBuffer[p];
-
-                if (depth > Priority) continue;
-                depth = Priority;
+                Vector3 pos = particles[i].LocalPosition + new Vector3(Position.X * 2f, 0f, Position.Y * 2f);
 
                 float v = particles[i].AgePercent;
 
                 if (v >= 1f) return;
+
+                Vector2Int p = Renderer3D.DoMathWithThis(Game.Renderer, pos, Game.Instance.Scene.Camera, out float depth);
+
+                if (!Game.Renderer.IsVisible(p)) return;
+
+                if (Game.Renderer is IRendererWithDepth depth_)
+                {
+                    if (depth_.DepthBuffer[p] > depth)
+                    { return; }
+                    depth_.DepthBuffer[p] = depth;
+                }
 
                 int charIndex = CharacterMode switch
                 {

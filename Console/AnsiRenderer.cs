@@ -10,7 +10,7 @@ namespace ConsoleGame
         TrueColor,
     }
 
-    public class AnsiRenderer : BufferedRenderer<Color>
+    public class AnsiRenderer : BufferedRenderer<Color>, IRendererWithDepth
     {
         Color[] buffer;
         int width;

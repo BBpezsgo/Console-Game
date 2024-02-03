@@ -22,12 +22,19 @@ namespace ConsoleGame
                         Owner = owner,
                     });
                     newEntity.AddComponent(new NetworkTransform(newEntity));
-                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
-                    {
-                        Character = 'O',
-                        Color = CharColor.Magenta,
-                        Priority = Depths.PLAYER,
-                    });
+                    // newEntity.AddComponent(new DamageableRendererComponent(newEntity)
+                    // {
+                    //     Character = 'O',
+                    //     Color = CharColor.Magenta,
+                    //     Priority = Depths.PLAYER,
+                    // });
+                    
+                    newEntity.AddComponent(new DamageableRendererComponent3D(newEntity,
+                        material =>
+                        {
+                            material.DiffuseColor = CharColor.To24bitColor(CharColor.Magenta);
+                        }));
+
                     newEntity.AddComponent(new PlayerBehavior(newEntity));
                     return newEntity;
                 }
@@ -44,12 +51,19 @@ namespace ConsoleGame
                         Owner = owner,
                     });
                     newEntity.AddComponent(new NetworkTransform(newEntity));
-                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
-                    {
-                        Character = '@',
-                        Color = CharColor.BrightRed,
-                        Priority = Depths.OTHER_LIVING,
-                    });
+                    // newEntity.AddComponent(new DamageableRendererComponent(newEntity)
+                    // {
+                    //     Character = '@',
+                    //     Color = CharColor.BrightRed,
+                    //     Priority = Depths.OTHER_LIVING,
+                    // });
+
+                    newEntity.AddComponent(new DamageableRendererComponent3D(newEntity,
+                        material =>
+                        {
+                            material.DiffuseColor = CharColor.To24bitColor(CharColor.BrightRed);
+                        }));
+
                     newEntity.AddComponent(new EnemyBehavior(newEntity));
                     newEntity.AddComponent(new IncomingProjectileCounter(newEntity));
                     return newEntity;
@@ -67,12 +81,19 @@ namespace ConsoleGame
                         ObjectId = GameObjectPrototype.ENEMY_FACTORY,
                         Owner = owner,
                     });
-                    newEntity.AddComponent(new DamageableRendererComponent(newEntity)
-                    {
-                        Character = 'A',
-                        Color = CharColor.BrightRed,
-                        Priority = Depths.OTHER_LIVING,
-                    });
+                    // newEntity.AddComponent(new DamageableRendererComponent(newEntity)
+                    // {
+                    //     Character = 'A',
+                    //     Color = CharColor.BrightRed,
+                    //     Priority = Depths.OTHER_LIVING,
+                    // });
+
+                    newEntity.AddComponent(new DamageableRendererComponent3D(newEntity,
+                        material =>
+                        {
+                            material.DiffuseColor = CharColor.To24bitColor(CharColor.BrightRed);
+                        }));
+
                     newEntity.AddComponent(new SimpleDestroyableThing(newEntity, 25f));
                     newEntity.AddComponent(new EnemyFactoryBehavior(newEntity));
                     return newEntity;

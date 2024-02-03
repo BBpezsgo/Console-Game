@@ -19,6 +19,8 @@ namespace ConsoleGame
         public static Vector2 operator *(float a, Vector2Int b) => new(a * b.X, a * b.Y);
 
         public static implicit operator Vector2Int(Win32.Common.Point v) => new(v.X, v.Y);
+        public static implicit operator Vector2Int(Win32.Common.Size v) => new(v.Width, v.Height);
+        public static implicit operator Vector2Int(Win32.Common.SmallSize v) => new(v.Width, v.Height);
         public static implicit operator Vector2Int(Win32.Coord v) => new(v.X, v.Y);
 
         public static implicit operator Win32.Common.Point(Vector2Int v) => new(v.X, v.Y);

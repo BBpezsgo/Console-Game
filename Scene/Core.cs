@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Win32;
 
 namespace ConsoleGame
@@ -11,6 +12,8 @@ namespace ConsoleGame
 
         public readonly BaseSystem<Component> AllComponents = new(true);
         public readonly BaseSystem<RendererComponent> RendererComponents = new(false);
+        public readonly BaseSystem<RendererComponent3D> RendererComponent3Ds = new(false);
+        public readonly BaseSystem<PostRendererComponent3D> PostRendererComponent3Ds = new(false);
         public readonly BaseSystem<NetworkEntityComponent> NetworkEntityComponents = new(false);
 
         public Vector2Int Size = new(50, 50);
@@ -22,6 +25,13 @@ namespace ConsoleGame
         public readonly ConsoleChar[,] BackgroundTexture;
 
         public readonly QuadTree<Entity?> QuadTree;
+
+        int RendererMode = 4;
+
+        public readonly Camera Camera = new();
+        Vector2Int LastMousePosition;
+        bool LockCursor = true;
+        List<TransformedMesh> MeshBuffer = new();
 
         public Scene()
         {
@@ -89,6 +99,16 @@ namespace ConsoleGame
 
         public void Update(bool shouldSync)
         {
+            if (Keyboard.IsKeyDown('Q'))
+            {
+                RendererMode++;
+                RendererMode %= 5;
+            }
+
+            if (Keyboard.IsKeyDown('C'))
+            { LockCursor = !LockCursor; }
+
+            /*
             if (DrawGround)
             {
                 Rect rect = Game.VisibleWorldRect();
@@ -110,7 +130,9 @@ namespace ConsoleGame
                     }
                 }
             }
+            */
 
+            /*
             {
                 Vector2Int a = Game.WorldToConsole(Vector2Int.Zero);
                 Vector2Int b = Game.WorldToConsole(Size);
@@ -186,6 +208,7 @@ namespace ConsoleGame
                     pixel.Char = '+';
                 }
             }
+            */
 
             for (int i = Entities.Count - 1; i >= 0; i--)
             {
@@ -199,8 +222,12 @@ namespace ConsoleGame
                 }
             }
 
+            PlayerBehavior? player = null;
             for (int i = 0; i < AllComponents.Components.Count; i++)
             {
+                if (AllComponents.Components[i] is PlayerBehavior _player &&
+                    _player.IsOwned)
+                { player = _player; }
                 AllComponents.Components[i].Update();
             }
 
@@ -212,10 +239,65 @@ namespace ConsoleGame
                 }
             }
 
-            for (int i = 0; i < RendererComponents.Components.Count; i++)
+            Vector2Int mouseDelta = (Vector2Int)Mouse.ScreenPosition - LastMousePosition;
+            LastMousePosition = Mouse.ScreenPosition;
+
+            const float MouseIntensity = 0.001f;
+            Camera.CameraYaw += mouseDelta.X * MouseIntensity;
+            // camera.CameraBruh += mouseDelta.Y * MouseIntensity;
+
+            Vector2Int center = DisplayMetrics.Size / 2;
+            Mouse.ScreenPosition = center;
+            LastMousePosition = center;
+
+            // camera.HandleInput(LockCursor, ref LastMousePosition);
+            if (player is not null)
             {
-                RendererComponents.Components[i].Render();
+                Camera.CameraPosition =
+                    new Vector3(player.Position.X + .25f, .6f, player.Position.Y + .25f) -
+                    Camera.CameraLookDirection;
+                Camera.CameraBruh = 0.5f;
             }
+            Camera.DoMath(Game.Renderer.Size, out _, out _);
+
+            MeshBuffer.Clear();
+
+            for (int i = 0; i < RendererComponent3Ds.Components.Count; i++)
+            {
+                RendererComponent3Ds.Components[i].Render(MeshBuffer);
+            }
+
+            // for (int i = 0; i < RendererComponents.Components.Count; i++)
+            // {
+            //     RendererComponents.Components[i].Render();
+            // }
+
+            static ConsoleChar ColorConverter(Color color)
+            {
+                ConsoleChar c = CharColor.ToCharacterColored(color);
+                int i = 4;
+                while (i-- > 0 && c.Attributes == 0)
+                {
+                    color *= 1.1f;
+                    c = CharColor.ToCharacterColored(color);
+                }
+                return c;
+            }
+
+            if (Game.Renderer is ConsoleRenderer consoleRenderer)
+            { Renderer3D.Render(Game.Renderer, consoleRenderer.DepthBuffer, CollectionsMarshal.AsSpan(MeshBuffer), Camera, null, ColorConverter); }
+            else
+            { Renderer3D.Render(Game.Renderer, null, CollectionsMarshal.AsSpan(MeshBuffer), Camera, null, ColorConverter); }
+
+            for (int i = 0; i < PostRendererComponent3Ds.Components.Count; i++)
+            {
+                PostRendererComponent3Ds.Components[i].Render();
+            }
+
+            // for (int i = 0; i < RendererComponents.Components.Count; i++)
+            // {
+            //     RendererComponents.Components[i].Render();
+            // }
 
             for (int i = 0; i < Entities.Count; i++)
             {
@@ -251,6 +333,8 @@ namespace ConsoleGame
         {
             AllComponents.Components.Clear();
             RendererComponents.Components.Clear();
+            RendererComponent3Ds.Components.Clear();
+            PostRendererComponent3Ds.Components.Clear();
             NetworkEntityComponents.Components.Clear();
             Entities.Clear();
             QuadTree.Clear();

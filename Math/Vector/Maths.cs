@@ -29,6 +29,8 @@ namespace ConsoleGame
 
         public static Vector2 LinearLerp(Vector2 a, Vector2 b, float t) => (a * (1f - t)) + (b * t);
 
+        public static Vector3 LinearLerp(Vector3 a, Vector3 b, float t) => (a * (1f - t)) + (b * t);
+
         public static Vector2Int Round(this Vector2 vector) => new((int)MathF.Round(vector.X), (int)MathF.Round(vector.Y));
         public static Vector2Int Floor(this Vector2 vector) => new((int)MathF.Floor(vector.X), (int)MathF.Floor(vector.Y));
         public static Vector2Int Ceil(this Vector2 vector) => new((int)MathF.Ceiling(vector.X), (int)MathF.Ceiling(vector.Y));

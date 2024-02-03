@@ -26,13 +26,13 @@ namespace ConsoleGame
             ref ConsoleChar pixel = ref Game.Renderer[p];
             pixel.Char = Character;
 
-            float lastDamagedInterval = Time.UtcNow - LastDamaged;
+            float lastDamagedInterval = Time.Now - LastDamaged;
             if (lastDamagedInterval < BlinkingDuration && (int)(lastDamagedInterval * BlinkPerSec) % 2 == 0)
             { pixel.Attributes = CharColor.White; }
             else
             { pixel.Attributes = Color; }
         }
 
-        public void OnDamage() => LastDamaged = Time.UtcNow;
+        public void OnDamage() => LastDamaged = Time.Now;
     }
 }

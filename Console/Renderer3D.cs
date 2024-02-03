@@ -10,11 +10,81 @@ namespace ConsoleGame
     {
         static readonly bool SimpleLightning = false;
 
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image, Func<Color, TPixel> converter)
+        {
+            List<Triangle4Ex> trianglesToDraw = new();
+
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                TransformedMesh mesh = meshes[i];
+                DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+            }
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
+        }
+
+        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image)
+        {
+            List<Triangle4Ex> trianglesToDraw = new();
+
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                TransformedMesh mesh = meshes[i];
+                DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+            }
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
+        }
+
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image, Func<Color, TPixel> converter)
+        {
+            List<Triangle4Ex> trianglesToDraw = new();
+
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                Mesh mesh = meshes[i];
+                DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+            }
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
+        }
+
+        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image)
+        {
+            List<Triangle4Ex> trianglesToDraw = new();
+
+            for (int i = 0; i < meshes.Length; i++)
+            {
+                Mesh mesh = meshes[i];
+                DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+            }
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
+        }
+
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
+        {
+            List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
+
+            DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
+        }
+
+        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image)
+        {
+            List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
+
+            DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+
+            ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
+        }
+
         public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw);
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
@@ -23,110 +93,23 @@ namespace ConsoleGame
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw);
+            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        static void DoMathWithTriangles(Triangle3Ex[] triangles, Material[] materials, Camera camera, List<Triangle4Ex> trianglesToDraw)
+        public static void DoMathWithTriangles(
+            Triangle3Ex[] triangles,
+            Material[] materials,
+            Camera camera,
+            List<Triangle4Ex> trianglesToDraw,
+            MeshTransformation meshTransformation)
         {
             Span<Triangle3Ex> clipped = stackalloc Triangle3Ex[2];
 
             for (int i = 0; i < triangles.Length; i++)
             {
-                Triangle3Ex tri = triangles[i];
-
-                tri.PointA -= camera.CameraPosition;
-                tri.PointB -= camera.CameraPosition;
-                tri.PointC -= camera.CameraPosition;
-
-                Vector3 line1 = tri.PointB - tri.PointA;
-                Vector3 line2 = tri.PointC - tri.PointA;
-
-                Vector3 normal = Vector3.Cross(line1, line2);
-                normal = Vector3.Normalize(normal);
-
-                Vector3 cameraRay = tri.PointA - camera.CameraPosition;
-
-                if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) continue;
-
-                Vector3 sunDirection = new(0f, .7f, -1f);
-
-                Material material = materials[tri.MaterialIndex];
-
-                if (SimpleLightning)
-                {
-                    float dp = Math.Clamp(Vector3.Dot(sunDirection, normal), 0.3f, 1f);
-                    tri.Color = material.DiffuseColor * dp;
-                }
-                else
-                {
-                    const float AmbientIntensity = 0.2f;
-                    const float DiffuseIntensity = 1.0f;
-                    const float SpecularIntensity = 5.0f;
-
-                    Color ambientComponent = AmbientIntensity * material.AmbientColor;
-
-                    Color diffuse = DiffuseIntensity * Math.Clamp(Vector3.Dot(sunDirection, normal), 0f, 1f) * material.DiffuseColor;
-
-                    Color specular = Color.Black;
-                    if (material.SpecularExponent > float.Epsilon)
-                    {
-                        Vector3 reflected = Vector3.Normalize(Vector3.Reflect(-sunDirection, normal));
-                        float specularConstant = MathF.Pow(Math.Max(Vector3.Dot(Vector3.Normalize(-cameraRay), reflected), 0f), material.SpecularExponent);
-                        specular = material.SpecularColor * specularConstant * SpecularIntensity;
-                    }
-
-                    tri.Color = ambientComponent + diffuse + specular;
-                }
-
-                tri.PointA = (tri.PointA.To4() * camera.ViewMatrix).To3();
-                tri.PointB = (tri.PointB.To4() * camera.ViewMatrix).To3();
-                tri.PointC = (tri.PointC.To4() * camera.ViewMatrix).To3();
-
-                int clippedTriangles = Triangle3Ex.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
-
-                for (int n = 0; n < clippedTriangles; n++)
-                {
-                    Triangle4Ex clippedTriangle = clipped[n];
-
-                    clippedTriangle.PointA *= camera.ProjectionMatrix;
-                    clippedTriangle.PointB *= camera.ProjectionMatrix;
-                    clippedTriangle.PointC *= camera.ProjectionMatrix;
-
-                    clippedTriangle.TexA.X /= clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.X /= clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.X /= clippedTriangle.PointC.W;
-
-                    clippedTriangle.TexA.Y /= clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.Y /= clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.Y /= clippedTriangle.PointC.W;
-
-                    clippedTriangle.TexA.Z = 1f / clippedTriangle.PointA.W;
-                    clippedTriangle.TexB.Z = 1f / clippedTriangle.PointB.W;
-                    clippedTriangle.TexC.Z = 1f / clippedTriangle.PointC.W;
-
-                    if (clippedTriangle.PointA.W != 0f)
-                    { clippedTriangle.PointA /= clippedTriangle.PointA.W; }
-
-                    if (clippedTriangle.PointB.W != 0f)
-                    { clippedTriangle.PointB /= clippedTriangle.PointB.W; }
-
-                    if (clippedTriangle.PointC.W != 0f)
-                    { clippedTriangle.PointC /= clippedTriangle.PointC.W; }
-
-                    Vector4 viewOffset = new(1f, 1f, 0f, 1f);
-
-                    clippedTriangle.PointA += viewOffset;
-                    clippedTriangle.PointB += viewOffset;
-                    clippedTriangle.PointC += viewOffset;
-
-                    clippedTriangle.PointA *= 0.5f;
-                    clippedTriangle.PointB *= 0.5f;
-                    clippedTriangle.PointC *= 0.5f;
-
-                    trianglesToDraw.Add(clippedTriangle);
-                }
+                DoMathWithTriangle(triangles[i], materials, camera, trianglesToDraw, meshTransformation, clipped);
             }
 
             /*
@@ -137,6 +120,146 @@ namespace ConsoleGame
                 return -midA.CompareTo(midB);
             }));
             */
+        }
+
+        public static void DoMathWithTriangle(
+            Triangle3Ex tri,
+            Material[] materials,
+            Camera camera,
+            List<Triangle4Ex> trianglesToDraw,
+            MeshTransformation meshTransformation,
+            Span<Triangle3Ex> clipped)
+        {
+            tri.PointA -= new Vector3(.5f, 0f, .5f);
+            tri.PointB -= new Vector3(.5f, 0f, .5f);
+            tri.PointC -= new Vector3(.5f, 0f, .5f);
+
+            tri.PointA = (tri.PointA.To4() * meshTransformation.Rotation).To3();
+            tri.PointB = (tri.PointB.To4() * meshTransformation.Rotation).To3();
+            tri.PointC = (tri.PointC.To4() * meshTransformation.Rotation).To3();
+
+            tri.PointA += new Vector3(.5f, 0f, .5f);
+            tri.PointB += new Vector3(.5f, 0f, .5f);
+            tri.PointC += new Vector3(.5f, 0f, .5f);
+
+            tri.PointA -= camera.CameraPosition;
+            tri.PointB -= camera.CameraPosition;
+            tri.PointC -= camera.CameraPosition;
+
+            tri.PointA += meshTransformation.Offset;
+            tri.PointB += meshTransformation.Offset;
+            tri.PointC += meshTransformation.Offset;
+
+            Vector3 line1 = tri.PointB - tri.PointA;
+            Vector3 line2 = tri.PointC - tri.PointA;
+
+            Vector3 normal = Vector3.Cross(line1, line2);
+            normal = Vector3.Normalize(normal);
+
+            Vector3 cameraRay = tri.PointA - camera.CameraPosition;
+
+            if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) return;
+
+            Vector3 sunDirection = new(0f, .7f, -1f);
+
+            Material material = materials[tri.MaterialIndex];
+
+            if (SimpleLightning)
+            {
+                float dp = Math.Clamp(Vector3.Dot(sunDirection, normal), 0.3f, 1f);
+                tri.Color = material.DiffuseColor * dp;
+            }
+            else
+            {
+                const float AmbientIntensity = 0.2f;
+                const float DiffuseIntensity = 1.0f;
+                const float SpecularIntensity = 5.0f;
+
+                Color ambientComponent = AmbientIntensity * material.AmbientColor;
+
+                Color diffuse = DiffuseIntensity * Math.Clamp(Vector3.Dot(sunDirection, normal), 0f, 1f) * material.DiffuseColor;
+
+                Color specular = Color.Black;
+                if (material.SpecularExponent > float.Epsilon)
+                {
+                    Vector3 reflected = Vector3.Normalize(Vector3.Reflect(-sunDirection, normal));
+                    float specularConstant = MathF.Pow(Math.Max(Vector3.Dot(Vector3.Normalize(-cameraRay), reflected), 0f), material.SpecularExponent);
+                    specular = material.SpecularColor * specularConstant * SpecularIntensity;
+                }
+
+                tri.Color = ambientComponent + diffuse + specular;
+            }
+
+            tri.PointA = (tri.PointA.To4() * camera.ViewMatrix).To3();
+            tri.PointB = (tri.PointB.To4() * camera.ViewMatrix).To3();
+            tri.PointC = (tri.PointC.To4() * camera.ViewMatrix).To3();
+
+            int clippedTriangles = Triangle3Ex.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
+
+            for (int n = 0; n < clippedTriangles; n++)
+            {
+                Triangle4Ex clippedTriangle = clipped[n];
+
+                clippedTriangle.PointA *= camera.ProjectionMatrix;
+                clippedTriangle.PointB *= camera.ProjectionMatrix;
+                clippedTriangle.PointC *= camera.ProjectionMatrix;
+
+                clippedTriangle.TexA.X /= clippedTriangle.PointA.W;
+                clippedTriangle.TexB.X /= clippedTriangle.PointB.W;
+                clippedTriangle.TexC.X /= clippedTriangle.PointC.W;
+
+                clippedTriangle.TexA.Y /= clippedTriangle.PointA.W;
+                clippedTriangle.TexB.Y /= clippedTriangle.PointB.W;
+                clippedTriangle.TexC.Y /= clippedTriangle.PointC.W;
+
+                clippedTriangle.TexA.Z = 1f / clippedTriangle.PointA.W;
+                clippedTriangle.TexB.Z = 1f / clippedTriangle.PointB.W;
+                clippedTriangle.TexC.Z = 1f / clippedTriangle.PointC.W;
+
+                if (clippedTriangle.PointA.W != 0f)
+                { clippedTriangle.PointA /= clippedTriangle.PointA.W; }
+
+                if (clippedTriangle.PointB.W != 0f)
+                { clippedTriangle.PointB /= clippedTriangle.PointB.W; }
+
+                if (clippedTriangle.PointC.W != 0f)
+                { clippedTriangle.PointC /= clippedTriangle.PointC.W; }
+
+                Vector4 viewOffset = new(1f, 1f, 0f, 1f);
+
+                clippedTriangle.PointA += viewOffset;
+                clippedTriangle.PointB += viewOffset;
+                clippedTriangle.PointC += viewOffset;
+
+                clippedTriangle.PointA *= 0.5f;
+                clippedTriangle.PointB *= 0.5f;
+                clippedTriangle.PointC *= 0.5f;
+
+                trianglesToDraw.Add(clippedTriangle);
+            }
+        }
+
+        public static Vector2Int DoMathWithThis(Renderer renderer, Vector3 point, Camera camera, out float depth)
+        {
+            point -= camera.CameraPosition;
+
+            point = (point.To4() * camera.ViewMatrix).To3();
+
+            Vector4 p4 = point.To4();
+            p4 *= camera.ProjectionMatrix;
+
+            if (p4.W != 0f)
+            { p4 /= p4.W; }
+
+            Vector4 viewOffset = new(1f, 1f, 0f, 1f);
+
+            p4 += viewOffset;
+
+            p4 *= 0.5f;
+
+            depth = 1f / p4.W;
+
+            return ((Vector2.One - p4.To2()) * renderer.Size).Round();
         }
 
         static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image, Func<Color, TPixel> converter)

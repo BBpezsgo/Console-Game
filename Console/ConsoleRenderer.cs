@@ -14,7 +14,7 @@ namespace ConsoleGame
     public delegate void SimpleEventHandler();
 
     [SupportedOSPlatform("windows")]
-    public class ConsoleRenderer : Win32.ConsoleRenderer
+    public class ConsoleRenderer : Win32.ConsoleRenderer, IRendererWithDepth
     {
         bool shouldResize;
 
