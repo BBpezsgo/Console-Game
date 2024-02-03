@@ -153,7 +153,7 @@ namespace ConsoleGame
 
             if (Game.NetworkMode != NetworkMode.Client)
             {
-                Entity[] coinsNearby = Game.Instance.Scene.ObjectsAt(Position, Tags.Item, .5f);
+                ReadOnlySpan<Entity> coinsNearby = Game.Instance.Scene.ObjectsAt(Position, Tags.Item, .5f);
                 for (int i = 0; i < coinsNearby.Length; i++)
                 {
                     if (!coinsNearby[i].TryGetComponent(out CoinItemBehavior? coin)) continue;

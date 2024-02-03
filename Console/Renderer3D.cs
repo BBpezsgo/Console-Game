@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using Win32;
 using Win32.Common;
@@ -17,7 +16,7 @@ namespace ConsoleGame
             for (int i = 0; i < meshes.Length; i++)
             {
                 TransformedMesh mesh = meshes[i];
-                DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+                Project(mesh.Mesh.Triangles, mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
             }
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
@@ -30,7 +29,7 @@ namespace ConsoleGame
             for (int i = 0; i < meshes.Length; i++)
             {
                 TransformedMesh mesh = meshes[i];
-                DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+                Project(mesh.Mesh.Triangles, mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
             }
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
@@ -43,7 +42,7 @@ namespace ConsoleGame
             for (int i = 0; i < meshes.Length; i++)
             {
                 Mesh mesh = meshes[i];
-                DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+                Project(mesh.Triangles, mesh.Materials, camera, trianglesToDraw, default);
             }
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
@@ -56,7 +55,7 @@ namespace ConsoleGame
             for (int i = 0; i < meshes.Length; i++)
             {
                 Mesh mesh = meshes[i];
-                DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+                Project(mesh.Triangles, mesh.Materials, camera, trianglesToDraw, default);
             }
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
@@ -66,7 +65,7 @@ namespace ConsoleGame
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+            Project(mesh.Mesh.Triangles, mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
@@ -75,7 +74,7 @@ namespace ConsoleGame
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Mesh.Triangles.ToArray(), mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
+            Project(mesh.Mesh.Triangles, mesh.Mesh.Materials, camera, trianglesToDraw, mesh.Transformation);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
@@ -84,7 +83,7 @@ namespace ConsoleGame
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+            Project(mesh.Triangles, mesh.Materials, camera, trianglesToDraw, default);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
@@ -93,23 +92,21 @@ namespace ConsoleGame
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
-            DoMathWithTriangles(mesh.Triangles.ToArray(), mesh.Materials, camera, trianglesToDraw, default);
+            Project(mesh.Triangles, mesh.Materials, camera, trianglesToDraw, default);
 
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        public static void DoMathWithTriangles(
-            Triangle3Ex[] triangles,
-            Material[] materials,
+        static void Project(
+            ReadOnlySpan<Triangle3Ex> triangles,
+            ReadOnlySpan<Material> materials,
             Camera camera,
-            List<Triangle4Ex> trianglesToDraw,
-            MeshTransformation meshTransformation)
+            List<Triangle4Ex> projected,
+            MeshTransformation transformation)
         {
-            Span<Triangle3Ex> clipped = stackalloc Triangle3Ex[2];
-
             for (int i = 0; i < triangles.Length; i++)
             {
-                DoMathWithTriangle(triangles[i], materials, camera, trianglesToDraw, meshTransformation, clipped);
+                Project(triangles[i], materials, camera, projected, transformation);
             }
 
             /*
@@ -122,21 +119,22 @@ namespace ConsoleGame
             */
         }
 
-        public static void DoMathWithTriangle(
+        static void Project(
             Triangle3Ex tri,
-            Material[] materials,
+            ReadOnlySpan<Material> materials,
             Camera camera,
-            List<Triangle4Ex> trianglesToDraw,
-            MeshTransformation meshTransformation,
-            Span<Triangle3Ex> clipped)
+            List<Triangle4Ex> projected,
+            MeshTransformation transformation)
         {
+            Span<Triangle3Ex> clipped = stackalloc Triangle3Ex[2];
+
             tri.PointA -= new Vector3(.5f, 0f, .5f);
             tri.PointB -= new Vector3(.5f, 0f, .5f);
             tri.PointC -= new Vector3(.5f, 0f, .5f);
 
-            tri.PointA = (tri.PointA.To4() * meshTransformation.Rotation).To3();
-            tri.PointB = (tri.PointB.To4() * meshTransformation.Rotation).To3();
-            tri.PointC = (tri.PointC.To4() * meshTransformation.Rotation).To3();
+            tri.PointA = (tri.PointA.To4() * transformation.Rotation).To3();
+            tri.PointB = (tri.PointB.To4() * transformation.Rotation).To3();
+            tri.PointC = (tri.PointC.To4() * transformation.Rotation).To3();
 
             tri.PointA += new Vector3(.5f, 0f, .5f);
             tri.PointB += new Vector3(.5f, 0f, .5f);
@@ -146,9 +144,9 @@ namespace ConsoleGame
             tri.PointB -= camera.CameraPosition;
             tri.PointC -= camera.CameraPosition;
 
-            tri.PointA += meshTransformation.Offset;
-            tri.PointB += meshTransformation.Offset;
-            tri.PointC += meshTransformation.Offset;
+            tri.PointA += transformation.Offset;
+            tri.PointB += transformation.Offset;
+            tri.PointC += transformation.Offset;
 
             Vector3 line1 = tri.PointB - tri.PointA;
             Vector3 line2 = tri.PointC - tri.PointA;
@@ -235,11 +233,15 @@ namespace ConsoleGame
                 clippedTriangle.PointB *= 0.5f;
                 clippedTriangle.PointC *= 0.5f;
 
-                trianglesToDraw.Add(clippedTriangle);
+                projected.Add(clippedTriangle);
             }
         }
 
-        public static Vector2Int DoMathWithThis(Renderer renderer, Vector3 point, Camera camera, out float depth)
+        public static Vector2 Project(
+            Renderer renderer,
+            Vector3 point,
+            Camera camera,
+            out float depth)
         {
             point -= camera.CameraPosition;
 
@@ -255,11 +257,11 @@ namespace ConsoleGame
 
             p4 += viewOffset;
 
-            p4 *= 0.5f;
+            p4 *= .5f;
 
             depth = 1f / p4.W;
 
-            return ((Vector2.One - p4.To2()) * renderer.Size).Round();
+            return (Vector2.One - p4.To2()) * renderer.Size;
         }
 
         static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image, Func<Color, TPixel> converter)
@@ -377,11 +379,11 @@ namespace ConsoleGame
             for (int i = 0; i < triangles.Length; i++)
             {
                 TPixel pixel = converter.Invoke(triangles[i].Color);
-                renderer.FillTriangle(
-                    depth,
-                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
-                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
-                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                renderer.Triangle(
+                    (Span<float>)depth,
+                    (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                    (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                    (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
                     pixel);
             }
         }
@@ -413,11 +415,11 @@ namespace ConsoleGame
             Vector2Int screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
             {
-                renderer.FillTriangle(
-                    depth,
-                    ((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
-                    ((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
-                    ((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                renderer.Triangle(
+                    (Span<float>)depth,
+                    (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                    (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                    (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
                     triangles[i].Color);
             }
         }

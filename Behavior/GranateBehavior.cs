@@ -35,7 +35,7 @@ namespace ConsoleGame.Behavior
             if (FirstShot)
             {
                 FirstShot = false;
-                Entity[] objs = Game.Instance.Scene.ObjectsAt(Position, 1f);
+                ReadOnlySpan<Entity> objs = Game.Instance.Scene.ObjectsAt(Position, 1f);
                 for (int i = 0; i < objs.Length; i++)
                 {
                     if (objs[i] == Entity) continue;
@@ -63,7 +63,7 @@ namespace ConsoleGame.Behavior
             Vector2 lastPosition = Position;
 
             {
-                Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+                ReadOnlySpan<Entity> collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
                 for (int i = 0; i < collided.Length; i++)
                 {
                     Entity other = collided[i];

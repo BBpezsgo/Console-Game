@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace ConsoleGame
 {
     public partial class Scene
     {
-        public Entity[] ObjectsOfTag(int tags)
+        public ReadOnlySpan<Entity> ObjectsOfTag(int tags)
         {
             List<Entity> result = new();
             for (int i = Entities.Count - 1; i >= 0; i--)
@@ -14,7 +15,7 @@ namespace ConsoleGame
                 if ((obj.Tags & tags) == 0) continue;
                 result.Add(obj);
             }
-            return result.ToArray();
+            return CollectionsMarshal.AsSpan(result);
         }
 
         public Entity? FirstObjectAt(Vector2 position, float distanceThreshold)
@@ -158,7 +159,7 @@ namespace ConsoleGame
             return result;
         }
 
-        public Entity[] ObjectsAt(Vector2 position, float radius)
+        public ReadOnlySpan<Entity> ObjectsAt(Vector2 position, float radius)
         {
             List<Entity> result = new();
             for (int i = Entities.Count - 1; i >= 0; i--)
@@ -172,9 +173,9 @@ namespace ConsoleGame
                     result.Add(obj);
                 }
             }
-            return result.ToArray();
+            return CollectionsMarshal.AsSpan(result);
         }
-        public Entity[] ObjectsAt(Vector2 position, int tags, float radius)
+        public ReadOnlySpan<Entity> ObjectsAt(Vector2 position, int tags, float radius)
         {
             List<Entity> result = new();
             for (int i = Entities.Count - 1; i >= 0; i--)
@@ -189,7 +190,7 @@ namespace ConsoleGame
                     result.Add(obj);
                 }
             }
-            return result.ToArray();
+            return CollectionsMarshal.AsSpan(result);
         }
     }
 }

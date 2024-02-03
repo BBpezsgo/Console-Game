@@ -20,6 +20,7 @@ namespace ConsoleGame
         unsafe void Tick()
         {
             Keyboard.Tick();
+            Mouse.Tick();
 
             renderer.Clear();
             depthBuffer.Clear();
@@ -174,7 +175,7 @@ namespace ConsoleGame
 
                 Scene.Update(shouldSync);
 
-                Entity[] players = Scene.ObjectsOfTag(Tags.Player);
+                ReadOnlySpan<Entity> players = Scene.ObjectsOfTag(Tags.Player);
                 Entity? player = null;
                 for (int i = 0; i < players.Length; i++)
                 {

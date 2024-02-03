@@ -140,7 +140,7 @@ namespace ConsoleGame
         void Menu_YouDied_Respawn()
         {
             bool hasPlayer = false;
-            Entity[] players = Scene.ObjectsOfTag(Tags.Player);
+            ReadOnlySpan<Entity> players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
                 if (players[i].GetComponent<NetworkEntityComponent>().IsOwned)
@@ -226,7 +226,7 @@ namespace ConsoleGame
         void OnRespawnRequest(Socket sender)
         {
             bool hasPlayer = false;
-            Entity[] players = Scene.ObjectsOfTag(Tags.Player);
+            ReadOnlySpan<Entity> players = Scene.ObjectsOfTag(Tags.Player);
             for (int i = 0; i < players.Length; i++)
             {
                 if (players[i].GetComponent<NetworkEntityComponent>().Owner == new ObjectOwner(sender))

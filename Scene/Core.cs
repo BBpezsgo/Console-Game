@@ -26,12 +26,14 @@ namespace ConsoleGame
 
         public readonly QuadTree<Entity?> QuadTree;
 
-        int RendererMode = 4;
-
         public readonly Camera Camera = new();
         Vector2Int LastMousePosition;
-        bool LockCursor = true;
-        List<TransformedMesh> MeshBuffer = new();
+        readonly List<TransformedMesh> MeshBuffer = new();
+        
+        float Zoom;
+        const float MinZoom = .3f;
+        const float MaxZoom = 3f;
+        float NormalizedZoom => (Zoom - MinZoom) / (MaxZoom - MinZoom);
 
         public Scene()
         {
@@ -87,8 +89,7 @@ namespace ConsoleGame
         {
             Entities.Add(entity);
 
-            QuadTreeLocation location = QuadTree.Add(entity, new Rect(entity.Position, Vector2.Zero));
-            entity.QuadTreeLocation = location;
+            entity.QuadTreeLocation = QuadTree.Add(entity, new Rect(entity.Position, Vector2.Zero));
 
             if (Game.NetworkMode == NetworkMode.Server && Game.Connection != null)
             {
@@ -99,15 +100,6 @@ namespace ConsoleGame
 
         public void Update(bool shouldSync)
         {
-            if (Keyboard.IsKeyDown('Q'))
-            {
-                RendererMode++;
-                RendererMode %= 5;
-            }
-
-            if (Keyboard.IsKeyDown('C'))
-            { LockCursor = !LockCursor; }
-
             /*
             if (DrawGround)
             {
@@ -244,19 +236,21 @@ namespace ConsoleGame
 
             const float MouseIntensity = 0.001f;
             Camera.CameraYaw += mouseDelta.X * MouseIntensity;
-            // camera.CameraBruh += mouseDelta.Y * MouseIntensity;
 
             Vector2Int center = DisplayMetrics.Size / 2;
             Mouse.ScreenPosition = center;
             LastMousePosition = center;
 
-            // camera.HandleInput(LockCursor, ref LastMousePosition);
+            Zoom += -Math.Sign(Mouse.ScrollDelta) * .3f;
+
             if (player is not null)
             {
+                Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
+                float normalizedZoom = NormalizedZoom;
                 Camera.CameraPosition =
-                    new Vector3(player.Position.X + .25f, .6f, player.Position.Y + .25f) -
-                    Camera.CameraLookDirection;
-                Camera.CameraBruh = 0.5f;
+                    new Vector3(player.Position.X + .25f, .6f + ((1f - NormalizedZoom) * .25f), player.Position.Y + .25f) -
+                    Camera.CameraLookDirection * Zoom;
+                Camera.CameraBruh = (normalizedZoom * .6f) + .3f;
             }
             Camera.DoMath(Game.Renderer.Size, out _, out _);
 
@@ -284,8 +278,8 @@ namespace ConsoleGame
                 return c;
             }
 
-            if (Game.Renderer is ConsoleRenderer consoleRenderer)
-            { Renderer3D.Render(Game.Renderer, consoleRenderer.DepthBuffer, CollectionsMarshal.AsSpan(MeshBuffer), Camera, null, ColorConverter); }
+            if (Game.Renderer is IRendererWithDepth _depth)
+            { Renderer3D.Render(Game.Renderer, _depth.DepthBuffer, CollectionsMarshal.AsSpan(MeshBuffer), Camera, null, ColorConverter); }
             else
             { Renderer3D.Render(Game.Renderer, null, CollectionsMarshal.AsSpan(MeshBuffer), Camera, null, ColorConverter); }
 

@@ -15,7 +15,7 @@ namespace ConsoleGame
 
         public override void Update()
         {
-            Entity[] otherItems = Game.Instance.Scene.ObjectsAt(Position, Tags.Item | Tags.Player, MagnetRange);
+            ReadOnlySpan<Entity> otherItems = Game.Instance.Scene.ObjectsAt(Position, Tags.Item | Tags.Player, MagnetRange);
 
             for (int i = 0; i < otherItems.Length; i++)
             {

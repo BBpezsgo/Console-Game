@@ -103,7 +103,7 @@ namespace ConsoleGame
 
                 if (v >= 1f) return;
 
-                Vector2Int p = Renderer3D.DoMathWithThis(Game.Renderer, pos, Game.Instance.Scene.Camera, out float depth);
+                Vector2Int p = Renderer3D.Project(Game.Renderer, pos, Game.Instance.Scene.Camera, out float depth).Round();
 
                 if (!Game.Renderer.IsVisible(p)) return;
 

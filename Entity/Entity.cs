@@ -153,7 +153,7 @@ namespace ConsoleGame
             if (!IsSolid) return false;
 
             bool isCollided = false;
-            Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+            ReadOnlySpan<Entity> collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
             for (int i = 0; i < collided.Length; i++)
             {
                 Entity other = collided[i];
@@ -193,7 +193,7 @@ namespace ConsoleGame
             // if (!IsSolid) return false;
 
             bool isCollided = false;
-            Entity[] collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
+            ReadOnlySpan<Entity> collided = Game.Instance.Scene.ObjectsAt(Position, 1f);
             for (int i = 0; i < collided.Length; i++)
             {
                 Entity other = collided[i];

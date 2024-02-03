@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using Win32;
 
 namespace ConsoleGame
@@ -43,7 +44,10 @@ namespace ConsoleGame
             }
         }
 
-        public static explicit operator T[](Buffer<T> v) => v.buffer;
+        [return: NotNullIfNotNull(nameof(v))]
+        public static explicit operator T[]?(Buffer<T>? v) => v?.buffer;
+
+        public static explicit operator Span<T>(Buffer<T>? v) => v?.buffer ?? Span<T>.Empty;
 
         public void Copy(ConsoleRenderer destination, Func<T, ConsoleChar> converter)
         {
