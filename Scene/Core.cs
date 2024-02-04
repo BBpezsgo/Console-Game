@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Win32;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
@@ -268,14 +269,14 @@ namespace ConsoleGame
             //     RendererComponents.Components[i].Render();
             // }
 
-            static ConsoleChar ColorConverter(Color color)
+            static ConsoleChar ColorConverter(ColorF color)
             {
-                ConsoleChar c = CharColor.ToCharacterColored(color);
+                ConsoleChar c = CharColor.ToCharacterColored((GdiColor)color);
                 int i = 4;
                 while (i-- > 0 && c.Attributes == 0)
                 {
                     color *= 1.1f;
-                    c = CharColor.ToCharacterColored(color);
+                    c = CharColor.ToCharacterColored((GdiColor)color);
                 }
                 return c;
             }

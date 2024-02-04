@@ -1,10 +1,11 @@
 ﻿using System.Numerics;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
     public static class ColorUtils
     {
-        public static void Threshold(Span<Color> buffer, Color threshold)
+        public static void Threshold(Span<ColorF> buffer, ColorF threshold)
         {
             for (int i = 0; i < buffer.Length; i++)
             {
@@ -25,7 +26,7 @@ namespace ConsoleGame
             }
         }
 
-        public static void Blur(Span<Color24> pix, int w, int h, int radius)
+        public static void Blur(Span<GdiColor> pix, int w, int h, int radius)
         {
             if (radius < 1) return;
 
@@ -51,9 +52,9 @@ namespace ConsoleGame
             int yi;
             int yw;
 
-            Color24 p;
-            Color24 p1;
-            Color24 p2;
+            GdiColor p;
+            GdiColor p1;
+            GdiColor p2;
 
             int[] vmin = new int[Math.Max(w, h)];
             int[] vmax = new int[Math.Max(w, h)];
@@ -112,25 +113,25 @@ namespace ConsoleGame
                 yi = x;
                 for (y = 0; y < h; y++)
                 {
-                    pix[yi] = new Color24(dv[rsum], dv[gsum], dv[bsum]);
+                    pix[yi] = new GdiColor(dv[rsum], dv[gsum], dv[bsum]);
                     if (x == 0)
                     {
                         vmin[y] = Math.Min(y + radius + 1, hm) * w;
                         vmax[y] = Math.Max(y - radius, 0) * w;
                     }
-                    p1 = (Color24)(x + vmin[y]);
-                    p2 = (Color24)(x + vmax[y]);
+                    p1 = (GdiColor)(x + vmin[y]);
+                    p2 = (GdiColor)(x + vmax[y]);
 
-                    rsum += r[(int)p1] - r[(int)p2];
-                    gsum += g[(int)p1] - g[(int)p2];
-                    bsum += b[(int)p1] - b[(int)p2];
+                    rsum += r[p1] - r[p2];
+                    gsum += g[p1] - g[p2];
+                    bsum += b[p1] - b[p2];
 
                     yi += w;
                 }
             }
         }
 
-        public static void Blur<TColor>(Span<TColor> pix, int w, int h, int radius, Func<TColor, Color24> convTo, Func<Color24, TColor> convFrom)
+        public static void Blur<TColor>(Span<TColor> pix, int w, int h, int radius, Func<TColor, GdiColor> convTo, Func<GdiColor, TColor> convFrom)
         {
             if (radius < 1) return;
 
@@ -142,7 +143,7 @@ namespace ConsoleGame
             int[] g = new int[wh];
             int[] b = new int[wh];
             int rsum, gsum, bsum, x, y, i, yp, yi, yw;
-            Color24 p, p1, p2;
+            GdiColor p, p1, p2;
             int[] vmin = new int[Math.Max(w, h)];
             int[] vmax = new int[Math.Max(w, h)];
 
@@ -202,18 +203,18 @@ namespace ConsoleGame
                 yi = x;
                 for (y = 0; y < h; y++)
                 {
-                    pix[yi] = convFrom.Invoke(new Color24(dv[rsum], dv[gsum], dv[bsum]));
+                    pix[yi] = convFrom.Invoke(new GdiColor(dv[rsum], dv[gsum], dv[bsum]));
                     if (x == 0)
                     {
                         vmin[y] = Math.Min(y + radius + 1, hm) * w;
                         vmax[y] = Math.Max(y - radius, 0) * w;
                     }
-                    p1 = (Color24)(x + vmin[y]);
-                    p2 = (Color24)(x + vmax[y]);
+                    p1 = (GdiColor)(x + vmin[y]);
+                    p2 = (GdiColor)(x + vmax[y]);
 
-                    rsum += r[(int)p1] - r[(int)p2];
-                    gsum += g[(int)p1] - g[(int)p2];
-                    bsum += b[(int)p1] - b[(int)p2];
+                    rsum += r[p1] - r[p2];
+                    gsum += g[p1] - g[p2];
+                    bsum += b[p1] - b[p2];
 
                     yi += w;
                 }
@@ -227,19 +228,19 @@ namespace ConsoleGame
             { to[i] += what[i]; }
         }
 
-        public static void Bloom(Span<Color> buffer, int w, int h, int radius)
+        public static void Bloom(Span<ColorF> buffer, int w, int h, int radius)
         {
             if (radius < 1) return;
-            Span<Color> bloomBuffer = new Color[buffer.Length];
+            Span<ColorF> bloomBuffer = new ColorF[buffer.Length];
             CalculateBloom(buffer, bloomBuffer, w, h, radius);
-            Add(buffer, (ReadOnlySpan<Color>)bloomBuffer);
+            Add(buffer, (ReadOnlySpan<ColorF>)bloomBuffer);
         }
 
-        public static void CalculateBloom(Span<Color> buffer, Span<Color> bloomBuffer, int w, int h, int radius)
+        public static void CalculateBloom(Span<ColorF> buffer, Span<ColorF> bloomBuffer, int w, int h, int radius)
         {
             buffer.CopyTo(bloomBuffer);
-            ColorUtils.Threshold(bloomBuffer, Color.White);
-            ColorUtils.Blur(bloomBuffer, w, h, radius, v => (Color24)v, v => (Color)v);
+            ColorUtils.Threshold(bloomBuffer, ColorF.White);
+            ColorUtils.Blur(bloomBuffer, w, h, radius, v => (GdiColor)v, v => (ColorF)v);
         }
     }
 }

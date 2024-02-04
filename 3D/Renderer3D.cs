@@ -9,7 +9,7 @@ namespace ConsoleGame
     {
         static readonly bool SimpleLightning = false;
 
-        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image, Func<Color, TPixel> converter)
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image, Func<ColorF, TPixel> converter)
         {
             List<Triangle4Ex> trianglesToDraw = new();
 
@@ -22,7 +22,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
 
-        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image)
+        public static void Render(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image)
         {
             List<Triangle4Ex> trianglesToDraw = new();
 
@@ -35,7 +35,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image, Func<Color, TPixel> converter)
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image, Func<ColorF, TPixel> converter)
         {
             List<Triangle4Ex> trianglesToDraw = new();
 
@@ -48,7 +48,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
 
-        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image)
+        public static void Render(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<Mesh> meshes, Camera camera, Image? image)
         {
             List<Triangle4Ex> trianglesToDraw = new();
 
@@ -61,7 +61,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image, Func<ColorF, TPixel> converter)
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
 
@@ -70,7 +70,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
 
-        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image)
+        public static void Render(Renderer<ColorF> renderer, Buffer<float>? depth, TransformedMesh mesh, Camera camera, Image? image)
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Mesh.Triangles.Length / 2);
 
@@ -79,7 +79,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image);
         }
 
-        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<Color, TPixel> converter)
+        public static void Render<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image, Func<ColorF, TPixel> converter)
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
@@ -88,7 +88,7 @@ namespace ConsoleGame
             ClipAndDrawTriangles(renderer, depth, CollectionsMarshal.AsSpan(trianglesToDraw), image, converter);
         }
 
-        public static void Render(Renderer<Color> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image)
+        public static void Render(Renderer<ColorF> renderer, Buffer<float>? depth, Mesh mesh, Camera camera, Image? image)
         {
             List<Triangle4Ex> trianglesToDraw = new(mesh.Triangles.Length / 2);
 
@@ -173,11 +173,11 @@ namespace ConsoleGame
                 const float DiffuseIntensity = 1.0f;
                 const float SpecularIntensity = 5.0f;
 
-                Color ambientComponent = AmbientIntensity * material.AmbientColor;
+                ColorF ambientComponent = AmbientIntensity * material.AmbientColor;
 
-                Color diffuse = DiffuseIntensity * Math.Clamp(Vector3.Dot(sunDirection, normal), 0f, 1f) * material.DiffuseColor;
+                ColorF diffuse = DiffuseIntensity * Math.Clamp(Vector3.Dot(sunDirection, normal), 0f, 1f) * material.DiffuseColor;
 
-                Color specular = Color.Black;
+                ColorF specular = ColorF.Black;
                 if (material.SpecularExponent > float.Epsilon)
                 {
                     Vector3 reflected = Vector3.Normalize(Vector3.Reflect(-sunDirection, normal));
@@ -264,7 +264,7 @@ namespace ConsoleGame
             return (Vector2.One - p4.To2()) * renderer.Size;
         }
 
-        static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image, Func<Color, TPixel> converter)
+        static void ClipAndDrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image, Func<ColorF, TPixel> converter)
         {
             Span<Triangle4Ex> clipped = stackalloc Triangle4Ex[2];
             ValueList<Triangle4Ex> triangles = new(stackalloc Triangle4Ex[6]);
@@ -307,7 +307,7 @@ namespace ConsoleGame
             }
         }
 
-        static void ClipAndDrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image)
+        static void ClipAndDrawTriangles(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> trianglesToDraw, Image? image)
         {
             Span<Triangle4Ex> clipped = stackalloc Triangle4Ex[2];
             ValueList<Triangle4Ex> triangles = new(stackalloc Triangle4Ex[4], 0);
@@ -351,7 +351,7 @@ namespace ConsoleGame
             }
         }
 
-        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image, Func<Color, TPixel> converter)
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image, Func<ColorF, TPixel> converter)
         {
             if (image.HasValue)
             { DrawTriangles(renderer, depth, triangles, image.Value, converter); }
@@ -359,7 +359,7 @@ namespace ConsoleGame
             { DrawTriangles(renderer, depth, triangles, converter); }
         }
 
-        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image, Func<Color, TPixel> converter)
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image, Func<ColorF, TPixel> converter)
         {
             Coord screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
@@ -373,7 +373,7 @@ namespace ConsoleGame
             }
         }
 
-        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Func<Color, TPixel> converter)
+        static void DrawTriangles<TPixel>(Renderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Func<ColorF, TPixel> converter)
         {
             Coord screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
@@ -388,7 +388,7 @@ namespace ConsoleGame
             }
         }
 
-        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image)
+        static void DrawTriangles(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image? image)
         {
             if (image.HasValue)
             { DrawTriangles(renderer, depth, triangles, image.Value); }
@@ -396,7 +396,7 @@ namespace ConsoleGame
             { DrawTriangles(renderer, depth, triangles); }
         }
 
-        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image)
+        static void DrawTriangles(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles, Image image)
         {
             Vector2Int screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)
@@ -410,7 +410,7 @@ namespace ConsoleGame
             }
         }
 
-        static void DrawTriangles(Renderer<Color> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles)
+        static void DrawTriangles(Renderer<ColorF> renderer, Buffer<float>? depth, ReadOnlySpan<Triangle4Ex> triangles)
         {
             Vector2Int screenSize = (Coord)renderer.Size;
             for (int i = 0; i < triangles.Length; i++)

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -155,7 +156,7 @@ namespace ConsoleGame
                 };
                 if (charIndex < 0 || charIndex >= Characters.Length) return;
 
-                Game.Renderer[p] = new Win32.ConsoleChar(Characters[charIndex], (byte)Gradients[particles[i].Kind].Get(v));
+                Game.Renderer[p] = new ConsoleChar(Characters[charIndex], CharColor.From24bitColor(Gradients[particles[i].Kind].Get(v)));
             }
         }
     }

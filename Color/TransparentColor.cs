@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
@@ -28,10 +29,10 @@ namespace ConsoleGame
             A = 1f;
         }
 
-        public readonly Color Blend(Color background)
+        public readonly ColorF Blend(ColorF background)
         {
             float alpha = Math.Clamp(A, 0f, 1f);
-            return ((Color)this * alpha) + ((1f - alpha) * background);
+            return ((ColorF)this * alpha) + ((1f - alpha) * background);
         }
 
         public void Clamp()
@@ -51,7 +52,7 @@ namespace ConsoleGame
             G == other.G &&
             B == other.B &&
             A == other.A;
-        public readonly bool Equals(Color other) =>
+        public readonly bool Equals(ColorF other) =>
             R == other.R &&
             G == other.G &&
             B == other.B &&
@@ -61,34 +62,27 @@ namespace ConsoleGame
         public static bool operator ==(TransparentColor left, TransparentColor right) => left.Equals(right);
         public static bool operator !=(TransparentColor left, TransparentColor right) => !(left == right);
 
-        public static bool operator ==(TransparentColor left, Color right) => left.Equals(right);
-        public static bool operator !=(TransparentColor left, Color right) => !(left == right);
+        public static bool operator ==(TransparentColor left, ColorF right) => left.Equals(right);
+        public static bool operator !=(TransparentColor left, ColorF right) => !(left == right);
 
-        public static bool operator ==(Color left, TransparentColor right) => right.Equals(left);
-        public static bool operator !=(Color left, TransparentColor right) => !(right == left);
+        public static bool operator ==(ColorF left, TransparentColor right) => right.Equals(left);
+        public static bool operator !=(ColorF left, TransparentColor right) => !right.Equals(left);
 
-        public static TransparentColor operator +(TransparentColor a, TransparentColor b)
-            => new(a.R + b.R, a.G + b.G, a.B + b.B, a.A + b.A);
-        public static TransparentColor operator -(TransparentColor a, TransparentColor b)
-            => new(a.R - b.R, a.G - b.G, a.B - b.B, a.A - b.A);
-        public static TransparentColor operator *(TransparentColor a, TransparentColor b)
-            => new(a.R * b.R, a.G * b.G, a.B * b.B, a.A * b.A);
-        public static TransparentColor operator /(TransparentColor a, TransparentColor b)
-            => new(a.R / b.R, a.G / b.G, a.B / b.B, a.A / b.A);
+        public static TransparentColor operator +(TransparentColor a, TransparentColor b) => new(a.R + b.R, a.G + b.G, a.B + b.B, a.A + b.A);
+        public static TransparentColor operator -(TransparentColor a, TransparentColor b) => new(a.R - b.R, a.G - b.G, a.B - b.B, a.A - b.A);
+        public static TransparentColor operator *(TransparentColor a, TransparentColor b) => new(a.R * b.R, a.G * b.G, a.B * b.B, a.A * b.A);
+        public static TransparentColor operator /(TransparentColor a, TransparentColor b) => new(a.R / b.R, a.G / b.G, a.B / b.B, a.A / b.A);
 
-        public static TransparentColor operator *(TransparentColor a, float b)
-            => new(a.R * b, a.G * b, a.B * b, a.A * b);
-        public static TransparentColor operator /(TransparentColor a, float b)
-            => new(a.R / b, a.G / b, a.B / b, a.A / b);
+        public static TransparentColor operator *(TransparentColor a, float b) => new(a.R * b, a.G * b, a.B * b, a.A * b);
+        public static TransparentColor operator /(TransparentColor a, float b) => new(a.R / b, a.G / b, a.B / b, a.A / b);
 
-        public static TransparentColor operator *(float a, TransparentColor b)
-            => new(a * b.R, a * b.G, a * b.B, a * b.A);
+        public static TransparentColor operator *(float a, TransparentColor b) => new(a * b.R, a * b.G, a * b.B, a * b.A);
 
-        public static implicit operator TransparentColor(Color v)
-            => new(v.R, v.G, v.B, 1f);
+        public static implicit operator TransparentColor(ColorF v) => new(v.R, v.G, v.B, 1f);
+        public static explicit operator ColorF(TransparentColor v) => new(v.R, v.G, v.B);
 
-        public static explicit operator Color(TransparentColor v)
-            => new(v.R, v.G, v.B);
+        public static implicit operator TransparentColor(GdiColor v) => new(v.R, v.G, v.B, 1f);
+        public static explicit operator GdiColor(TransparentColor v) => new(v.R, v.G, v.B);
 
         public override readonly string ToString() => $"({R:0.00}, {G:0.00}, {B:0.00}, {A:0.00})";
         readonly string GetDebuggerDisplay() => ToString();

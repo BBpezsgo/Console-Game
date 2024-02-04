@@ -5,16 +5,16 @@ namespace ConsoleGame
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public struct Gradient : IEquatable<Gradient>
     {
-        public Color A;
-        public Color B;
+        public ColorF A;
+        public ColorF B;
 
-        public Gradient(Color a, Color b)
+        public Gradient(ColorF a, ColorF b)
         {
             A = a;
             B = b;
         }
 
-        public readonly Color Get(float v)
+        public readonly ColorF Get(float v)
         {
             v = Math.Clamp(v, 0f, 1f);
             return (A * (1f - v)) + (B * v);

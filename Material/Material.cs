@@ -1,24 +1,26 @@
-﻿namespace ConsoleGame
+﻿using Win32.Gdi32;
+
+namespace ConsoleGame
 {
     public class Material
     {
-        public Color AmbientColor;
-        public Color DiffuseColor;
-        public Color SpecularColor;
+        public ColorF AmbientColor;
+        public ColorF DiffuseColor;
+        public ColorF SpecularColor;
         public float SpecularExponent;
         public float Alpha;
 
-        public Color EmissionColor;
+        public ColorF EmissionColor;
         public bool IsEmissive => EmissionColor.Intensity > float.Epsilon;
 
         public Material()
         {
-            AmbientColor = Color.White * .3f;
-            DiffuseColor = Color.White;
-            SpecularColor = Color.Black;
+            AmbientColor = ColorF.White * .3f;
+            DiffuseColor = ColorF.White;
+            SpecularColor = ColorF.Black;
             SpecularExponent = 0f;
             Alpha = 1f;
-            EmissionColor = Color.Black;
+            EmissionColor = ColorF.Black;
         }
 
         public Material Normalize()

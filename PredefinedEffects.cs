@@ -6,7 +6,7 @@
         {
             Characters = Ascii.Stuff1,
             Gradients = new Gradient[]
-            { new(Color.White, Color.Red) },
+            { new(ColorF.White, ColorF.Red) },
             ParticleCount = (1, 3),
             ParticleSpeed = (4, 7),
             ParticleLifetime = (0.2f, 0.6f),
@@ -38,7 +38,7 @@
         {
             Gradients = new Gradient[]
             {
-                new(new Color(1f, 1f, 1f), new Color(1f, .8f, 0f)),
+                new(new ColorF(1f, 1f, 1f), new ColorF(1f, .8f, 0f)),
             },
             ParticleCount = 5,
             ParticleLifetime = (.5f, 1f),
@@ -49,7 +49,7 @@
         {
             Gradients = new Gradient[]
             {
-                new(Color.White, Color.Yellow),
+                new(ColorF.White, ColorF.Yellow),
             },
             ParticleCount = 5,
             ParticleLifetime = .5f,
@@ -60,7 +60,7 @@
         {
             Gradients = new Gradient[]
             {
-                new(Color.White, Color.Yellow),
+                new(ColorF.White, ColorF.Yellow),
             },
             ParticleCount = 2,
             ParticleLifetime = .3f,
@@ -73,7 +73,7 @@
         {
             Gradients = new Gradient[]
             {
-                new(Color.Red, Color.Red * .5f),
+                new(ColorF.Red, ColorF.Red * .5f),
             },
             ParticleCount = 10,
             ParticleLifetime = 1,

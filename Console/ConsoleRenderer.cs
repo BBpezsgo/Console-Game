@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.Versioning;
 using Win32;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
@@ -103,7 +104,7 @@ namespace ConsoleGame
 
                     if (!IsVisible(pointTL)) continue;
 
-                    byte colorTL = (byte)image.GetPixelWithUV(rect.Size, pointTL);
+                    byte colorTL = CharColor.From24bitColor(image.GetPixelWithUV(rect.Size, pointTL));
 
                     byte fg = colorTL;
                     byte bg = colorTL;
@@ -111,9 +112,9 @@ namespace ConsoleGame
 
                     if (IsVisible(pointBR))
                     {
-                        byte colorTR = (byte)image.GetPixelWithUV(rect.Size, pointTR);
-                        byte colorBL = (byte)image.GetPixelWithUV(rect.Size, pointBL);
-                        byte colorBR = (byte)image.GetPixelWithUV(rect.Size, pointBR);
+                        byte colorTR = CharColor.From24bitColor(image.GetPixelWithUV(rect.Size, pointTR));
+                        byte colorBL = CharColor.From24bitColor(image.GetPixelWithUV(rect.Size, pointBL));
+                        byte colorBR = CharColor.From24bitColor(image.GetPixelWithUV(rect.Size, pointBR));
 
                         if (colorTL != colorBL || colorTL != colorBR || colorTR != colorBL || colorTR != colorBR)
                         {
@@ -147,8 +148,8 @@ namespace ConsoleGame
                     uv *= (Vector2)imageSize;
                     Vector2Int imageCoord = Vector.Floor(uv);
 
-                    Color pixel = image[imageCoord.X, imageCoord.Y];
-                    this[point] = CharColor.ToCharacterColored(pixel);
+                    ColorF pixel = image[imageCoord.X, imageCoord.Y];
+                    this[point] = CharColor.ToCharacterColored((GdiColor)pixel);
                     // BloomBlur[point] = pixel;
                 }
             }
@@ -167,7 +168,7 @@ namespace ConsoleGame
                     uv *= (Vector2)imageSize;
                     Vector2Int imageCoord = Vector.Floor(uv);
 
-                    Color pixel = image[imageCoord.X, imageCoord.Y];
+                    ColorF pixel = image[imageCoord.X, imageCoord.Y];
                     byte convertedPixel = CharColor.From24bitColor(pixel);
                     this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = pixel;
@@ -190,7 +191,7 @@ namespace ConsoleGame
 
                     if (!IsVisible(pointTL)) continue;
 
-                    byte colorTL = (byte)(Color)image.GetPixelWithUV(rect.Size, pointTL);
+                    byte colorTL = CharColor.From24bitColor((ColorF)image.GetPixelWithUV(rect.Size, pointTL));
 
                     byte fg = colorTL;
                     byte bg = colorTL;
@@ -198,9 +199,9 @@ namespace ConsoleGame
 
                     if (IsVisible(pointBR))
                     {
-                        byte colorTR = (byte)(Color)image.GetPixelWithUV(rect.Size, pointTR);
-                        byte colorBL = (byte)(Color)image.GetPixelWithUV(rect.Size, pointBL);
-                        byte colorBR = (byte)(Color)image.GetPixelWithUV(rect.Size, pointBR);
+                        byte colorTR = CharColor.From24bitColor((ColorF)image.GetPixelWithUV(rect.Size, pointTR));
+                        byte colorBL = CharColor.From24bitColor((ColorF)image.GetPixelWithUV(rect.Size, pointBL));
+                        byte colorBR = CharColor.From24bitColor((ColorF)image.GetPixelWithUV(rect.Size, pointBR));
 
                         if (colorTL != colorBL || colorTL != colorBR || colorTR != colorBL || colorTR != colorBR)
                         {
@@ -236,9 +237,9 @@ namespace ConsoleGame
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
-                    Color alreadyThere = CharColor.FromCharacter(this[point]);
-                    Color c = pixel.Blend(alreadyThere);
-                    this[point] = CharColor.ToCharacterColored(c);
+                    ColorF alreadyThere = CharColor.FromCharacter(this[point]);
+                    ColorF c = pixel.Blend(alreadyThere);
+                    this[point] = CharColor.ToCharacterColored((GdiColor)c);
                     // BloomBlur[point] = c;
                 }
             }
@@ -259,8 +260,8 @@ namespace ConsoleGame
 
                     TransparentColor pixel = image[imageCoord.X, imageCoord.Y];
                     if (pixel.A <= float.Epsilon) continue;
-                    Color alreadyThere = CharColor.FromCharacter(this[point]);
-                    Color c = pixel.Blend(alreadyThere);
+                    ColorF alreadyThere = CharColor.FromCharacter(this[point]);
+                    ColorF c = pixel.Blend(alreadyThere);
                     byte convertedPixel = CharColor.From24bitColor(c);
                     this[point] = new ConsoleChar(' ', CharColor.Black, convertedPixel);
                     // BloomBlur[point] = c;

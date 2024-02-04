@@ -26,7 +26,7 @@ namespace ConsoleGame
             Height = height;
         }
 
-        public TransparentImage(Color[] data, int width, int height)
+        public TransparentImage(ColorF[] data, int width, int height)
         {
             Data = new TransparentColor[data.Length];
             for (int i = 0; i < data.Length; i++)

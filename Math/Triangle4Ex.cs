@@ -6,7 +6,7 @@ namespace ConsoleGame
     {
         public Vector4 PointA, PointB, PointC;
         public Vector4 TexA, TexB, TexC;
-        public Color Color;
+        public ColorF Color;
 
         public int MaterialIndex;
 
@@ -21,7 +21,7 @@ namespace ConsoleGame
             TexB = b;
             TexC = c;
 
-            Color = Color.Magenta;
+            Color = ColorF.Magenta;
             MaterialIndex = -1;
         }
 

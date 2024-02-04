@@ -29,7 +29,7 @@ namespace ConsoleGame
         public MeshRenderer(string objFile, string? imgFile) : this()
         {
             MeshToRender = Obj.LoadFile(objFile).Scale(3);
-            ImageToRender = Image.LoadFile(imgFile, Color.Black);
+            ImageToRender = Image.LoadFile(imgFile, ColorF.Black);
         }
 
         public MeshRenderer(Mesh mesh, Image? image) : this()

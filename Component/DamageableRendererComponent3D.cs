@@ -11,7 +11,7 @@ namespace ConsoleGame
 
         static readonly Material DamagedMaterial = new()
         {
-            DiffuseColor = Color.White,
+            DiffuseColor = ColorF.White,
         };
 
         public DamageableRendererComponent3D(Entity entity) : base(entity) { }

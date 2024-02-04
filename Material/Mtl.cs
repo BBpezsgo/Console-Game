@@ -47,21 +47,21 @@ namespace ConsoleGame
 
                     case "Ka":
                         {
-                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.AmbientColor))
+                            if (!ColorF.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.AmbientColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
                         }
                     case "Kd":
                         {
-                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.DiffuseColor))
+                            if (!ColorF.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.DiffuseColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
                         }
                     case "Ks":
                         {
-                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.SpecularColor))
+                            if (!ColorF.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.SpecularColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;
@@ -99,7 +99,7 @@ namespace ConsoleGame
                     case "Ke":
                     case "map_Ke":
                         {
-                            if (!Color.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.EmissionColor))
+                            if (!ColorF.TryParse(line, CultureInfo.InvariantCulture, out currentMaterial.EmissionColor))
                             { throw new ParsingException($"Failed to parse mtl color (at line {i})"); }
 
                             break;

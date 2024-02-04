@@ -159,7 +159,7 @@ namespace ConsoleGame
             return GenerateImage(imageData);
         }
 
-        Image LoadFileInternal(string file, Color background)
+        Image LoadFileInternal(string file, ColorF background)
         {
             byte[] rawFileData = File.ReadAllBytes(file);
             byte[] imageData = LoadImageData(rawFileData);
@@ -256,9 +256,9 @@ namespace ConsoleGame
             return new TransparentImage(pixels.ToArray(), (int)Informations.width, (int)Informations.height);
         }
 
-        Image GenerateImage(byte[] reconstructed, Color background)
+        Image GenerateImage(byte[] reconstructed, ColorF background)
         {
-            List<Color> pixels = new();
+            List<ColorF> pixels = new();
 
             for (int j = 0; j < reconstructed.Length; j += bytesPerPixel)
             {
@@ -270,8 +270,8 @@ namespace ConsoleGame
                 float alpha = (float)a / (float)byte.MaxValue;
                 alpha = Math.Clamp(alpha, byte.MinValue, byte.MaxValue);
 
-                Color color = new Color24(r, g, b) * alpha;
-                Color backgroundColor_ = background * (1f - alpha);
+                ColorF color = new ColorF(r / 255f, g / 255f, b / 255f) * alpha;
+                ColorF backgroundColor_ = background * (1f - alpha);
                 pixels.Add(color + backgroundColor_);
             }
 
@@ -279,6 +279,6 @@ namespace ConsoleGame
         }
 
         public static TransparentImage LoadFile(string file) => new Png().LoadFileInternal(file);
-        public static Image LoadFile(string file, Color background) => new Png().LoadFileInternal(file, background);
+        public static Image LoadFile(string file, ColorF background) => new Png().LoadFileInternal(file, background);
     }
 }

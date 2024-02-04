@@ -55,7 +55,7 @@ namespace ConsoleGame
 
             effect.AddComponent(new ParticlesRendererComponent3D(effect, new ParticlesConfig()
             {
-                Gradients = new Gradient[1] { new(Color.White, Color.Yellow) },
+                Gradients = new Gradient[1] { new(ColorF.White, ColorF.Yellow) },
                 Characters = new char[] { '○', '°', '⁰', '˚' },
                 ParticleCount = (3, 5),
                 ParticleLifetime = (.2f, .3f),

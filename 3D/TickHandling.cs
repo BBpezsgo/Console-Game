@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Versioning;
 using Win32;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
@@ -38,15 +39,15 @@ namespace ConsoleGame
 
                 if (RendererMode == 0)
                 {
-                    Do3DStuff(renderer, renderer.DepthBuffer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor(v)));
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor((GdiColor)v)));
                 }
                 else if (RendererMode == 1)
                 {
-                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterShaded(v));
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterShaded((GdiColor)v));
                 }
                 else if (RendererMode == 2)
                 {
-                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterColored(v));
+                    Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterColored((GdiColor)v));
                 }
                 else if (RendererMode == 3)
                 {
@@ -65,15 +66,15 @@ namespace ConsoleGame
             {
                 if (RendererMode == 0)
                 {
-                    DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor(v)));
+                    DoColorTest(this.renderer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor((GdiColor)v)));
                 }
                 else if (RendererMode == 1)
                 {
-                    DoColorTest(this.renderer, v => CharColor.ToCharacterShaded(v));
+                    DoColorTest(this.renderer, v => CharColor.ToCharacterShaded((GdiColor)v));
                 }
                 else if (RendererMode == 2)
                 {
-                    DoColorTest(this.renderer, v => CharColor.ToCharacterColored(v));
+                    DoColorTest(this.renderer, v => CharColor.ToCharacterColored((GdiColor)v));
                 }
                 else if (RendererMode == 3)
                 {
@@ -89,7 +90,7 @@ namespace ConsoleGame
         }
 
         [SupportedOSPlatform("windows")]
-        void Do3DStuff<T>(Renderer<T> renderer, Buffer<float>? depth, Func<Color, T> converter)
+        void Do3DStuff<T>(Renderer<T> renderer, Buffer<float>? depth, Func<ColorF, T> converter)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
             camera.DoMath(renderer.Size);
@@ -102,7 +103,7 @@ namespace ConsoleGame
         }
 
         [SupportedOSPlatform("windows")]
-        void Do3DStuff(Renderer<Color> renderer, Buffer<float>? depth)
+        void Do3DStuff(Renderer<ColorF> renderer, Buffer<float>? depth)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
             camera.DoMath(renderer.Size);
@@ -115,7 +116,7 @@ namespace ConsoleGame
         }
 
         float ah2 = .5f;
-        void DoColorTest<T>(Renderer<T> renderer, Func<Color, T> converter)
+        void DoColorTest<T>(Renderer<T> renderer, Func<ColorF, T> converter)
         {
             for (int y = 0; y < renderer.Height; y++)
             {
@@ -123,7 +124,7 @@ namespace ConsoleGame
                 {
                     float vx = (float)x / (float)renderer.Width;
                     float vy = (float)y / (float)renderer.Height;
-                    Color c = Color.FromHSL(vx, vy, ah2);
+                    ColorF c = ColorF.FromHSL(vx, vy, ah2);
                     renderer[x, y] = converter.Invoke(c);
                 }
             }
@@ -137,7 +138,7 @@ namespace ConsoleGame
 
             renderer.Render();
         }
-        void DoColorTest(Renderer<Color> renderer)
+        void DoColorTest(Renderer<ColorF> renderer)
         {
             for (int y = 0; y < renderer.Height; y++)
             {
@@ -145,7 +146,7 @@ namespace ConsoleGame
                 {
                     float vx = (float)x / (float)renderer.Width;
                     float vy = (float)y / (float)renderer.Height;
-                    Color c = Color.FromHSL(vx, vy, ah2);
+                    ColorF c = ColorF.FromHSL(vx, vy, ah2);
                     renderer[x, y] = c;
                 }
             }

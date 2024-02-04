@@ -13,7 +13,7 @@ namespace ConsoleGame
         }
 
         public static void ApplyBloom(
-            this BufferedRenderer<Color> renderer,
+            this BufferedRenderer<ColorF> renderer,
             int radius) => ColorUtils.Bloom(renderer.Buffer, renderer.Width, renderer.Height, radius);
 
         public static void FillTriangle<TPixel>(
@@ -22,7 +22,7 @@ namespace ConsoleGame
             Vector2Int a, Vector3 texA,
             Vector2Int b, Vector3 texB,
             Vector2Int c, Vector3 texC,
-            Image image, Func<Color, TPixel> converter)
+            Image image, Func<ColorF, TPixel> converter)
             => renderer.FillTriangle<TPixel>(
                 depth,
                 a.X, a.Y, texA.X, texA.Y, texA.Z,
@@ -36,7 +36,7 @@ namespace ConsoleGame
             int x1, int y1, float u1, float v1, float w1,
             int x2, int y2, float u2, float v2, float w2,
             int x3, int y3, float u3, float v3, float w3,
-            Image image, Func<Color, TPixel> converter)
+            Image image, Func<ColorF, TPixel> converter)
         {
             // sort the points vertically
             if (y2 < y1)
@@ -138,7 +138,7 @@ namespace ConsoleGame
 
                         if (renderer.IsVisible(j, i) && (depth is null || texW > depth[j, i]))
                         {
-                            Color c = image.NormalizedSample(texU / texW, texV / texW);
+                            ColorF c = image.NormalizedSample(texU / texW, texV / texW);
                             renderer[j, i] = converter.Invoke(c);
                             // BloomBlur[j, i] = c;
                             if (depth is not null) depth[j, i] = texW;
@@ -202,7 +202,7 @@ namespace ConsoleGame
 
                         if (renderer.IsVisible(j, i) && (depth is null || texW > depth[j, i]))
                         {
-                            Color c = image.NormalizedSample(texU / texW, texV / texW);
+                            ColorF c = image.NormalizedSample(texU / texW, texV / texW);
                             renderer[j, i] = converter.Invoke(c);
                             // BloomBlur[j, i] = c;
                             if (depth is not null) depth[j, i] = texW;
@@ -219,7 +219,7 @@ namespace ConsoleGame
             Image? image,
             Vector2Int position,
             bool fixWidth,
-            Func<Color, T> converter)
+            Func<ColorF, T> converter)
         {
             if (!image.HasValue) return;
             DrawImage(renderer, image.Value, position, fixWidth, converter);
@@ -240,7 +240,7 @@ namespace ConsoleGame
             Image image,
             Vector2Int position,
             bool fixWidth,
-            Func<Color, T> converter)
+            Func<ColorF, T> converter)
         {
             int w = image.Width;
             int h = image.Height;
@@ -253,13 +253,13 @@ namespace ConsoleGame
                 {
                     Vector2Int point = new(x_ + position.X, y_ + position.Y);
                     if (!renderer.IsVisible(point.X, point.Y)) continue;
-                    Color c = image[fixWidth ? x_ / 2 : x_, y_];
+                    ColorF c = image[fixWidth ? x_ / 2 : x_, y_];
                     renderer[point.X, point.Y] = converter.Invoke(c); // new ConsoleChar(' ', CharColor.Black, Color.To4bitIRGB(c));
                 }
             }
         }
 
-        public static void DrawImage(this Renderer<Color> renderer, Image image, Vector2Int position)
+        public static void DrawImage(this Renderer<ColorF> renderer, Image image, Vector2Int position)
             => renderer.Put(position.X, position.Y, image.Data, image.Width, image.Height);
 
         public static void DrawImage<T>(

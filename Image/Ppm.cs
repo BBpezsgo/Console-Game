@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Win32.Gdi32;
 
 namespace ConsoleGame
 {
@@ -106,7 +107,7 @@ namespace ConsoleGame
             int height_ = height.Value;
             int maxRgbValue_ = maxRgbValue.Value;
 
-            Color[] result = new Color[width_ * height_];
+            ColorF[] result = new ColorF[width_ * height_];
 
             for (int j = 0; j < result.Length; j++)
             {
@@ -125,7 +126,7 @@ namespace ConsoleGame
                 int g_ = g.Value;
                 int b_ = b.Value;
 
-                result[j] = new Color((float)r_ / (float)maxRgbValue_, (float)g_ / (float)maxRgbValue_, (float)b_ / (float)maxRgbValue_);
+                result[j] = new ColorF((float)r_ / (float)maxRgbValue_, (float)g_ / (float)maxRgbValue_, (float)b_ / (float)maxRgbValue_);
             }
 
             return new Image(result, width_, height_);
@@ -157,7 +158,7 @@ namespace ConsoleGame
             {
                 for (int x = 0; x < image_.Width; x++)
                 {
-                    Color24 color = (Color24)image_[x, y];
+                    GdiColor color = (GdiColor)image_[x, y];
 
                     builder.Append(color.R.ToString(ic));
                     builder.Append(' ');

@@ -10,9 +10,9 @@ namespace ConsoleGame
         TrueColor,
     }
 
-    public class AnsiRenderer : BufferedRenderer<Color>, IRendererWithDepth
+    public class AnsiRenderer : BufferedRenderer<ColorF>, IRendererWithDepth
     {
-        Color[] buffer;
+        ColorF[] buffer;
         int width;
         int height;
         bool shouldResize;
@@ -21,12 +21,12 @@ namespace ConsoleGame
         public bool IsBloomEnabled;
 
         public Buffer<float> DepthBuffer { get; }
-        public override Span<Color> Buffer => buffer;
+        public override Span<ColorF> Buffer => buffer;
 
         public override short Width => (short)width;
         public override short Height => (short)height;
 
-        public override ref Color this[int i] => ref buffer[i];
+        public override ref ColorF this[int i] => ref buffer[i];
 
         public event SimpleEventHandler? OnResized;
 
@@ -34,14 +34,14 @@ namespace ConsoleGame
         {
             this.width = width;
             this.height = height;
-            this.buffer = new Color[width * height];
+            this.buffer = new ColorF[width * height];
             this.DepthBuffer = new Buffer<float>(this);
             this.shouldResize = true;
             this.ColorType = AnsiColorType.TrueColor;
             this.IsBloomEnabled = true;
         }
 
-        public static void RenderExtended(Color[] buffer, int width, int height)
+        public static void RenderExtended(ColorF[] buffer, int width, int height)
         {
             StringBuilder builder = new(width * height);
             byte prevColor = default;
@@ -50,7 +50,7 @@ namespace ConsoleGame
                 for (int x = 0; x < width; x++)
                 {
                     int i = y * width + x;
-                    Color24 color = (Color24)buffer[i];
+                    GdiColor color = (GdiColor)buffer[i];
                     byte bruh = Ansi.ToAnsi256(color.R, color.G, color.B);
 
                     if ((x == 0 && y == 0) || prevColor != bruh)
@@ -66,16 +66,16 @@ namespace ConsoleGame
             Console.SetCursorPosition(0, 0);
         }
 
-        public static void RenderTrueColor(Color[] buffer, int width, int height)
+        public static void RenderTrueColor(ColorF[] buffer, int width, int height)
         {
             StringBuilder builder = new(width * height);
-            Color24 prevColor = default;
+            GdiColor prevColor = default;
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
                     int i = y * width + x;
-                    Color24 color = (Color24)buffer[i];
+                    GdiColor color = (GdiColor)buffer[i];
 
                     if ((x == 0 && y == 0) || prevColor != color)
                     {
@@ -126,7 +126,7 @@ namespace ConsoleGame
             width = Console.WindowWidth;
             height = Console.WindowHeight;
 
-            buffer = new Color[width * height];
+            buffer = new ColorF[width * height];
 
             DepthBuffer.Resize();
 

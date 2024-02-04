@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Win32.Gdi32;
 
 namespace ConsoleGame.Behavior
 {
@@ -26,8 +27,8 @@ namespace ConsoleGame.Behavior
             float lifetime = Time.Now - SpawnedTime;
 
             Matrix4x4.MakeRotationY(ref Rotation, lifetime * 1.1f);
-            Color colorA = new(.7f, .7f, .2f);
-            Color colorB = new(1f, 1f, .95f);
+            GdiColor colorA = new(.7f, .7f, .2f);
+            GdiColor colorB = new(1f, 1f, .95f);
             float t = (MathF.Sin(lifetime * 1.5f) + 1f) * .5f;
             Material.AmbientColor = (colorA * t) + (colorB * (1f - t));
 

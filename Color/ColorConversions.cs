@@ -2,28 +2,25 @@
 
 namespace ConsoleGame
 {
-    public partial struct Color
+    public partial struct ColorF
     {
-        public static explicit operator byte(Color v) => CharColor.From24bitColor(v);
-        public static explicit operator Color(byte v) => CharColor.To24bitColor(v);
+        public static explicit operator Win32.Gdi32.GdiColor(ColorF v) => new(v.R, v.G, v.B);
+        public static implicit operator ColorF(Win32.Gdi32.GdiColor v) => new(v.R / 255f, v.G / 255f, v.B / 255f);
 
-        public static implicit operator System.Drawing.Color(Color v) => (System.Drawing.Color)(Color24)v;
-        public static implicit operator Color(System.Drawing.Color v) => new(v.R / 255f, v.G / 255f, v.B / 255f);
-
-        public static implicit operator Win32.Gdi32.GdiColor(Color v) => (Win32.Gdi32.GdiColor)(Color24)v;
-        public static implicit operator Color(Win32.Gdi32.GdiColor v) => new(v.R / 255f, v.G / 255f, v.B / 255f);
+        public static implicit operator ValueTuple<float, float, float>(ColorF v) => new(v.R, v.G, v.B);
+        public static implicit operator ColorF(ValueTuple<float, float, float> v) => new(v.Item1, v.Item2, v.Item3);
 
         #region HSL
 
         /// <summary>
         /// Source: <see href="https://geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm"/>
         /// </summary>
-        public static Color FromHSL(float h, float sl, float l)
+        public static ColorF FromHSL(float h, float sl, float l)
         {
             float v = (l <= 0.5f) ? (l * (1f + sl)) : (l + sl - (l * sl));
 
             if (v <= 0f)
-            { return new Color(l, l, l); }
+            { return new ColorF(l, l, l); }
 
             float m;
             float sv;
@@ -40,12 +37,12 @@ namespace ConsoleGame
             mid2 = v - vsf;
             return sextant switch
             {
-                0 => new Color(v, mid1, m),
-                1 => new Color(mid2, v, m),
-                2 => new Color(m, v, mid1),
-                3 => new Color(m, mid2, v),
-                4 => new Color(mid1, m, v),
-                5 => new Color(v, m, mid2),
+                0 => new ColorF(v, mid1, m),
+                1 => new ColorF(mid2, v, m),
+                2 => new ColorF(m, v, mid1),
+                3 => new ColorF(m, mid2, v),
+                4 => new ColorF(mid1, m, v),
+                5 => new ColorF(v, m, mid2),
                 _ => default,
             };
         }
@@ -53,7 +50,7 @@ namespace ConsoleGame
         /// <summary>
         /// Source: <see href="https://geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm"/>
         /// </summary>
-        public static (float H, float S, float L) ToHsl(Color color)
+        public static (float H, float S, float L) ToHsl(ColorF color)
         {
             ToHsl(color, out float h, out float s, out float l);
             return (h, s, l);
@@ -62,7 +59,7 @@ namespace ConsoleGame
         /// <summary>
         /// Source: <see href="https://geekymonkey.com/Programming/CSharp/RGB2HSL_HSL2RGB.htm"/>
         /// </summary>
-        public static void ToHsl(Color color, out float h, out float s, out float l)
+        public static void ToHsl(ColorF color, out float h, out float s, out float l)
         {
             float r = color.R;
             float g = color.G;
@@ -104,36 +101,6 @@ namespace ConsoleGame
 
             h /= 6f;
         }
-
-        #endregion
-
-        #region ConsoleColor
-
-        static readonly ConsoleColor[] ConsoleColors = new ConsoleColor[0b_1_0000]
-        {
-            ConsoleColor.Black,         // 0b_0000
-            ConsoleColor.DarkBlue,      // 0b_0001
-            ConsoleColor.DarkGreen,     // 0b_0010
-            ConsoleColor.DarkCyan,      // 0b_0011
-            ConsoleColor.DarkRed,       // 0b_0100
-            ConsoleColor.DarkMagenta,   // 0b_0101
-            ConsoleColor.DarkYellow,    // 0b_0110
-            ConsoleColor.Gray,          // 0b_0111
-            ConsoleColor.DarkGray,      // 0b_1000
-            ConsoleColor.Blue,          // 0b_1001
-            ConsoleColor.Green,         // 0b_1010
-            ConsoleColor.Cyan,          // 0b_1011
-            ConsoleColor.Red,           // 0b_1100
-            ConsoleColor.Magenta,       // 0b_1101
-            ConsoleColor.Yellow,        // 0b_1110
-            ConsoleColor.White,         // 0b_1111
-        };
-
-        public static ConsoleColor ToConsoleColor(Color color) => ConsoleColors[CharColor.From24bitColor(color)];
-
-        public static Color FromConsoleColor(ConsoleColor color) => CharColor.To24bitColor((byte)Array.IndexOf(ConsoleColors, color));
-
-        public static ConsoleColor ToConsoleColor(byte colorIRGB) => ConsoleColors[colorIRGB];
 
         #endregion
     }
