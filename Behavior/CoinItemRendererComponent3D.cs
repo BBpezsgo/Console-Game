@@ -26,7 +26,7 @@ namespace ConsoleGame.Behavior
         {
             float lifetime = Time.Now - SpawnedTime;
 
-            Matrix4x4.MakeRotationY(ref Rotation, lifetime * 1.1f);
+            Rotation = Matrix4x4.CreateRotationY(lifetime * 1.1f);
             GdiColor colorA = new(.7f, .7f, .2f);
             GdiColor colorB = new(1f, 1f, .95f);
             float t = (MathF.Sin(lifetime * 1.5f) + 1f) * .5f;

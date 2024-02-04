@@ -12,8 +12,7 @@ namespace ConsoleGame
         {
             Mesh = Mesh.MakeCube();
             Material = Mesh.Materials[0];
-            Rotation = Matrix4x4.Zero;
-            Matrix4x4.MakeRotationY(ref Rotation, 0f);
+            Rotation = Matrix4x4.CreateRotationY(0f);
         }
 
         public RendererComponent3D(Entity entity, Action<Material>? materializer, Action<Mesh>? meshizer = null) : this(entity)

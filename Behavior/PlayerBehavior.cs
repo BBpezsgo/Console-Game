@@ -74,7 +74,7 @@ namespace ConsoleGame
 
             if (DamageableRenderer is not null)
             {
-                Matrix4x4.MakeRotationY(ref DamageableRenderer.Rotation, Game.Instance.Scene.Camera.Yaw);
+                DamageableRenderer.Rotation = Matrix4x4.CreateRotationY(-Game.Instance.Scene.Camera.Yaw);
             }
 
             if (Keyboard.IsKeyPressed('W'))

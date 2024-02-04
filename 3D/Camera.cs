@@ -24,7 +24,7 @@ namespace ConsoleGame
         public Matrix4x4 ViewMatrix => _viewMatrix;
 
         Vector3 _lookDirection = new(0f, 0f, 1f);
-        
+
         Matrix4x4 _projectionMatrix;
         Matrix4x4 _viewMatrix;
 
@@ -32,16 +32,6 @@ namespace ConsoleGame
         Matrix4x4 _rotX;
         Matrix4x4 _rotY;
         Matrix4x4 _RotationMatrix;
-
-        public Camera()
-        {
-            _projectionMatrix = Matrix4x4.Zero;
-            _viewMatrix = Matrix4x4.Zero;
-            _cameraMatrix = Matrix4x4.Zero;
-            _rotX = Matrix4x4.Zero;
-            _rotY = Matrix4x4.Zero;
-            _RotationMatrix = Matrix4x4.Zero;
-        }
 
         [SupportedOSPlatform("windows")]
         public void HandleInput(bool lockMouse, ref Vector2Int mousePosition)
@@ -94,21 +84,21 @@ namespace ConsoleGame
 
         public void DoMath(SmallSize screenSize)
         {
-            Matrix4x4.MakeProjection(ref _projectionMatrix, (float)screenSize.Height / (float)screenSize.Width, FovRad, Far, Near);
+            Matrix.MakeProjection(ref _projectionMatrix, (float)screenSize.Height / (float)screenSize.Width, FovRad, Far, Near);
 
             Vector3 target = new(0f, 0f, 1f);
 
-            Matrix4x4.MakeRotationY(ref _rotY, Yaw);
-            Matrix4x4.MakeRotationX(ref _rotX, Bruh);
+            _rotY = Matrix4x4.CreateRotationY(-Yaw);
+            _rotX = Matrix4x4.CreateRotationX(Bruh);
 
-            Matrix4x4.Multiply(ref _RotationMatrix, _rotX, _rotY);
+            _RotationMatrix = Matrix4x4.Multiply(_rotX, _rotY);
 
-            _lookDirection = (target.To4() * _RotationMatrix).To3();
+            _lookDirection = Matrix.Multiply(target.To4(), in _RotationMatrix).To3();
             target = Position + _lookDirection;
 
-            Matrix4x4.MakePointAt(ref _cameraMatrix, Position, target, Vector3.UnitY);
+            Matrix.MakePointAt(ref _cameraMatrix, Position, target, Vector3.UnitY);
 
-            Matrix4x4.QuickInverse(ref _viewMatrix, _cameraMatrix);
+            Matrix.QuickInverse(ref _viewMatrix, _cameraMatrix);
         }
     }
 }

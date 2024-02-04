@@ -271,12 +271,13 @@ namespace ConsoleGame
 
             static ConsoleChar ColorConverter(ColorF color)
             {
-                ConsoleChar c = CharColor.ToCharacterColored((GdiColor)color);
+                ConsoleChar c = CharColor.ToCharacterShaded((GdiColor)color);
                 int i = 4;
                 while (i-- > 0 && c.Attributes == 0)
                 {
-                    color *= 1.1f;
-                    c = CharColor.ToCharacterColored((GdiColor)color);
+                    return new ConsoleChar('░', CharColor.Gray);
+                    // color *= 1.1f;
+                    // c = CharColor.ToCharacterColored((GdiColor)color);
                 }
                 return c;
             }

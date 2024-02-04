@@ -132,9 +132,9 @@ namespace ConsoleGame
             tri.PointB -= new Vector3(.5f, 0f, .5f);
             tri.PointC -= new Vector3(.5f, 0f, .5f);
 
-            tri.PointA = (tri.PointA.To4() * transformation.Rotation).To3();
-            tri.PointB = (tri.PointB.To4() * transformation.Rotation).To3();
-            tri.PointC = (tri.PointC.To4() * transformation.Rotation).To3();
+            tri.PointA = Matrix.Multiply(tri.PointA.To4(), in transformation.Rotation).To3();
+            tri.PointB = Matrix.Multiply(tri.PointB.To4(), in transformation.Rotation).To3();
+            tri.PointC = Matrix.Multiply(tri.PointC.To4(), in transformation.Rotation).To3();
 
             tri.PointA += new Vector3(.5f, 0f, .5f);
             tri.PointB += new Vector3(.5f, 0f, .5f);
@@ -188,9 +188,9 @@ namespace ConsoleGame
                 tri.Color = ambientComponent + diffuse + specular;
             }
 
-            tri.PointA = (tri.PointA.To4() * camera.ViewMatrix).To3();
-            tri.PointB = (tri.PointB.To4() * camera.ViewMatrix).To3();
-            tri.PointC = (tri.PointC.To4() * camera.ViewMatrix).To3();
+            tri.PointA = Matrix.Multiply(tri.PointA.To4(), camera.ViewMatrix).To3();
+            tri.PointB = Matrix.Multiply(tri.PointB.To4(), camera.ViewMatrix).To3();
+            tri.PointC = Matrix.Multiply(tri.PointC.To4(), camera.ViewMatrix).To3();
 
             int clippedTriangles = Triangle3Ex.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
 
@@ -198,9 +198,9 @@ namespace ConsoleGame
             {
                 Triangle4Ex clippedTriangle = clipped[n];
 
-                clippedTriangle.PointA *= camera.ProjectionMatrix;
-                clippedTriangle.PointB *= camera.ProjectionMatrix;
-                clippedTriangle.PointC *= camera.ProjectionMatrix;
+                clippedTriangle.PointA = Matrix.Multiply(clippedTriangle.PointA, camera.ProjectionMatrix);
+                clippedTriangle.PointB = Matrix.Multiply(clippedTriangle.PointB, camera.ProjectionMatrix);
+                clippedTriangle.PointC = Matrix.Multiply(clippedTriangle.PointC, camera.ProjectionMatrix);
 
                 clippedTriangle.TexA.X /= clippedTriangle.PointA.W;
                 clippedTriangle.TexB.X /= clippedTriangle.PointB.W;
@@ -245,10 +245,10 @@ namespace ConsoleGame
         {
             point -= camera.Position;
 
-            point = (point.To4() * camera.ViewMatrix).To3();
+            point = Matrix.Multiply(point.To4(), camera.ViewMatrix).To3();
 
             Vector4 p4 = point.To4();
-            p4 *= camera.ProjectionMatrix;
+            p4 = Matrix.Multiply(p4, camera.ProjectionMatrix);
 
             if (p4.W != 0f)
             { p4 /= p4.W; }
