@@ -69,12 +69,12 @@ namespace ConsoleGame
             if (Keyboard.IsKeyPressed(VirtualKeyCode.DOWN))
             { this.Position.Y -= Time.DeltaTime * MaxSpeed; }
 
-            Vector2 lookDir = Vector2.Normalize(new Vector2(Game.Instance.Scene.Camera.CameraLookDirection.X, Game.Instance.Scene.Camera.CameraLookDirection.Z));
-            Vector3 lookDir2 = Vector3.Cross(Vector3.Normalize(Game.Instance.Scene.Camera.CameraLookDirection), new Vector3(0f, 1f, 0f));
+            Vector2 lookDir = Vector2.Normalize(new Vector2(Game.Instance.Scene.Camera.LookDirection.X, Game.Instance.Scene.Camera.LookDirection.Z));
+            Vector3 lookDir2 = Vector3.Cross(Vector3.Normalize(Game.Instance.Scene.Camera.LookDirection), new Vector3(0f, 1f, 0f));
 
             if (DamageableRenderer is not null)
             {
-                Matrix4x4.MakeRotationY(ref DamageableRenderer.Rotation, Game.Instance.Scene.Camera.CameraYaw);
+                Matrix4x4.MakeRotationY(ref DamageableRenderer.Rotation, Game.Instance.Scene.Camera.Yaw);
             }
 
             if (Keyboard.IsKeyPressed('W'))

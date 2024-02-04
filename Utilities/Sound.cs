@@ -1,4 +1,5 @@
 ﻿using System.Media;
+using System.Runtime.Versioning;
 using System.Text;
 using Win32.LowLevel;
 
@@ -28,7 +29,10 @@ namespace ConsoleGame
             }
         }
 
+        [SupportedOSPlatform("windows")]
         static readonly Dictionary<string, SoundPlayer> Players = new();
+
+        [SupportedOSPlatform("windows")]
         static SoundPlayer GetPlayer(string file)
         {
             if (!Players.TryGetValue(file, out SoundPlayer? player))

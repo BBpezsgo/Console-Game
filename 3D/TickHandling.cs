@@ -1,4 +1,5 @@
-﻿using Win32;
+﻿using System.Runtime.Versioning;
+using Win32;
 
 namespace ConsoleGame
 {
@@ -12,6 +13,7 @@ namespace ConsoleGame
 
         bool LockCursor;
 
+        [SupportedOSPlatform("windows")]
         unsafe void Tick()
         {
             if (renderer is null) throw new NullReferenceException($"{nameof(renderer)} is null");
@@ -86,10 +88,11 @@ namespace ConsoleGame
             }
         }
 
+        [SupportedOSPlatform("windows")]
         void Do3DStuff<T>(Renderer<T> renderer, Buffer<float>? depth, Func<Color, T> converter)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Size, out _, out _);
+            camera.DoMath(renderer.Size);
 
             Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender, converter);
 
@@ -97,10 +100,12 @@ namespace ConsoleGame
 
             renderer.Render();
         }
+
+        [SupportedOSPlatform("windows")]
         void Do3DStuff(Renderer<Color> renderer, Buffer<float>? depth)
         {
             camera.HandleInput(LockCursor, ref LastMousePosition);
-            camera.DoMath(renderer.Size, out _, out _);
+            camera.DoMath(renderer.Size);
 
             Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender);
 

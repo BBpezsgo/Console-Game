@@ -140,9 +140,9 @@ namespace ConsoleGame
             tri.PointB += new Vector3(.5f, 0f, .5f);
             tri.PointC += new Vector3(.5f, 0f, .5f);
 
-            tri.PointA -= camera.CameraPosition;
-            tri.PointB -= camera.CameraPosition;
-            tri.PointC -= camera.CameraPosition;
+            tri.PointA -= camera.Position;
+            tri.PointB -= camera.Position;
+            tri.PointC -= camera.Position;
 
             tri.PointA += transformation.Offset;
             tri.PointB += transformation.Offset;
@@ -154,7 +154,7 @@ namespace ConsoleGame
             Vector3 normal = Vector3.Cross(line1, line2);
             normal = Vector3.Normalize(normal);
 
-            Vector3 cameraRay = tri.PointA - camera.CameraPosition;
+            Vector3 cameraRay = tri.PointA - camera.Position;
 
             if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) return;
 
@@ -243,7 +243,7 @@ namespace ConsoleGame
             Camera camera,
             out float depth)
         {
-            point -= camera.CameraPosition;
+            point -= camera.Position;
 
             point = (point.To4() * camera.ViewMatrix).To3();
 

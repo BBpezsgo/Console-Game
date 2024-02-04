@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.Versioning;
 using ConsoleGame.Net;
 using Win32;
 
@@ -56,6 +57,7 @@ namespace ConsoleGame
         }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+        [SupportedOSPlatform("windows")]
         unsafe public void Start()
         {
             Console.Title = $"Game";

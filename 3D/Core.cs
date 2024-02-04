@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Versioning;
 using Win32;
 
 namespace ConsoleGame
@@ -37,6 +38,7 @@ namespace ConsoleGame
             ImageToRender = image;
         }
 
+        [SupportedOSPlatform("windows")]
         unsafe public void Start()
         {
             Console.Title = $"Mesh Renderer";

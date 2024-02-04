@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Win32;
 
 namespace ConsoleGame
@@ -98,6 +99,7 @@ namespace ConsoleGame
             }
         }
 
+        [SupportedOSPlatform("windows")]
         public void Update(bool shouldSync)
         {
             /*
@@ -235,7 +237,7 @@ namespace ConsoleGame
             LastMousePosition = Mouse.ScreenPosition;
 
             const float MouseIntensity = 0.001f;
-            Camera.CameraYaw += mouseDelta.X * MouseIntensity;
+            Camera.Yaw += mouseDelta.X * MouseIntensity;
 
             Vector2Int center = DisplayMetrics.Size / 2;
             Mouse.ScreenPosition = center;
@@ -247,12 +249,12 @@ namespace ConsoleGame
             {
                 Zoom = Math.Clamp(Zoom, MinZoom, MaxZoom);
                 float normalizedZoom = NormalizedZoom;
-                Camera.CameraPosition =
+                Camera.Position =
                     new Vector3(player.Position.X + .25f, .6f + ((1f - NormalizedZoom) * .25f), player.Position.Y + .25f) -
-                    Camera.CameraLookDirection * Zoom;
-                Camera.CameraBruh = (normalizedZoom * .6f) + .3f;
+                    Camera.LookDirection * Zoom;
+                Camera.Bruh = (normalizedZoom * .6f) + .3f;
             }
-            Camera.DoMath(Game.Renderer.Size, out _, out _);
+            Camera.DoMath(Game.Renderer.Size);
 
             MeshBuffer.Clear();
 

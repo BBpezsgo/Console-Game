@@ -1,4 +1,6 @@
-﻿namespace ConsoleGame
+﻿using System.Runtime.Versioning;
+
+namespace ConsoleGame
 {
     internal class Program
     {
@@ -12,6 +14,7 @@
         // 
         // static Image ImgUv => Ppm.LoadFile($"{AssetsRuntime}bruh.ppm");
 
+        [SupportedOSPlatform("windows")]
         static void Main(string[] args)
         {
             /*

@@ -13,7 +13,6 @@ namespace ConsoleGame
 
     public delegate void SimpleEventHandler();
 
-    [SupportedOSPlatform("windows")]
     public class ConsoleRenderer : Win32.ConsoleRenderer, IRendererWithDepth
     {
         bool shouldResize;
@@ -26,6 +25,7 @@ namespace ConsoleGame
 
         public event SimpleEventHandler? OnResized;
 
+        [SupportedOSPlatform("windows")]
         public ConsoleRenderer(short width, short height) : base(width, height)
         {
             DepthBuffer = new Buffer<float>(this);
@@ -272,9 +272,10 @@ namespace ConsoleGame
 
         public void ShouldResize() => shouldResize = true;
 
-        public bool Resize()
+        [SupportedOSPlatform("windows")]
+        public override void RefreshBufferSize()
         {
-            if (!shouldResize) return false;
+            if (!shouldResize) return;
             shouldResize = false;
 
             Console.Clear();
@@ -284,8 +285,6 @@ namespace ConsoleGame
             DepthBuffer.Resize();
 
             OnResized?.Invoke();
-
-            return true;
         }
     }
 }
