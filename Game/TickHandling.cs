@@ -415,15 +415,15 @@ namespace ConsoleGame
             item = null;
             if (Scene == null) return false;
             Entity entity = new("Item");
-            entity.AddComponent(new RendererComponent(entity)
-            {
-                Character = 'P',
-                Color = CharColor.BrightGreen,
-            });
             entity.AddComponent(item = new ItemBehavior(entity)
             {
                 Kind = kind,
                 Amount = amount,
+            });
+            entity.AddComponent(new ItemRendererComponent3D(entity)
+            {
+                // Character = 'P',
+                Color = CharColor.To24bitColor(CharColor.BrightGreen),
             });
             entity.Position = Random.Point(Scene.SizeR);
             Scene.AddEntity(entity);
