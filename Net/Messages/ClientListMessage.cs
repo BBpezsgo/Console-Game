@@ -1,22 +1,20 @@
 ﻿using ConsoleGame.Net;
-using DataUtilities.Serializer;
 
-namespace ConsoleGame
+namespace ConsoleGame;
+
+public class ClientListMessage : Message
 {
-    public class ClientListMessage : Message, ISerializable<ClientListMessage>
+    public Socket[] Clients = Array.Empty<Socket>();
+
+    public override void Serialize(BinaryWriter writer)
     {
-        public Socket[] Clients = Array.Empty<Socket>();
+        base.Serialize(writer);
+        writer.Write(Clients, BitWidth._8);
+    }
 
-        public override void Deserialize(Deserializer deserializer)
-        {
-            base.Deserialize(deserializer);
-            Clients = deserializer.DeserializeObjectArray<Socket>(INTEGER_TYPE.INT8);
-        }
-
-        public override void Serialize(Serializer serializer)
-        {
-            base.Serialize(serializer);
-            serializer.Serialize(Clients, (s, item) => s.Serialize(item), INTEGER_TYPE.INT8);
-        }
+    public override void Deserialize(BinaryReader reader)
+    {
+        base.Deserialize(reader);
+        Clients = reader.ReadArray<Socket>(BitWidth._8);
     }
 }

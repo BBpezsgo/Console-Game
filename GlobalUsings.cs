@@ -1,0 +1,11 @@
+﻿global using System;
+global using System.Collections.Immutable;
+global using System.Diagnostics;
+global using System.Numerics;
+global using Maths;
+global using Win32;
+global using Win32.Console;
+global using GdiColor = Win32.Gdi32.GdiColor;
+global using Random = Maths.Random;
+global using Range = Maths.Range;
+global using Vector = Maths.Vector;

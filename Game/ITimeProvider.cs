@@ -1,7 +1,6 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame;
+
+public interface ITimeProvider
 {
-    public interface ITimeProvider
-    {
-        public float DeltaTime { get; }
-    }
+    public float DeltaTime { get; }
 }

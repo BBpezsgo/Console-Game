@@ -1,24 +1,18 @@
-﻿using System.Numerics;
-using DataUtilities.Serializer;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+internal class ObjectPositionMessage : ComponentMessage
 {
-    internal class ObjectPositionMessage : ComponentMessage, ISerializable<ObjectPositionMessage>
+    public Vector2 Position;
+
+    public override void Serialize(BinaryWriter serializer)
     {
-        public Vector2 Position;
+        base.Serialize(serializer);
+        serializer.Write(Position);
+    }
 
-        public ObjectPositionMessage() : base() { }
-
-        public override void Deserialize(Deserializer deserializer)
-        {
-            base.Deserialize(deserializer);
-            Position = deserializer.DeserializeVector2();
-        }
-
-        public override void Serialize(Serializer serializer)
-        {
-            base.Serialize(serializer);
-            serializer.Serialize(Position);
-        }
+    public override void Deserialize(BinaryReader deserializer)
+    {
+        base.Deserialize(deserializer);
+        Position = deserializer.ReadVector2();
     }
 }

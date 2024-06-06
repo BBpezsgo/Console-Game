@@ -1,69 +1,65 @@
-﻿using System.Numerics;
+﻿namespace ConsoleGame.Behavior;
 
-namespace ConsoleGame
+public class CoinItemBehavior : Component
 {
-    public class CoinItemBehavior : Component
+    public int Amount;
+    public const float MagnetRange = 5f;
+    public const float MaxSpeed = 5f;
+
+    public CoinItemBehavior(Entity entity) : base(entity)
     {
-        public int Amount;
-        public const float MagnetRange = 5f;
-        public const float MaxSpeed = 5f;
+        Entity.Tags |= Tags.Item;
+    }
 
-        public CoinItemBehavior(Entity entity) : base(entity)
+    public override void Update()
+    {
+        ReadOnlySpan<Entity> otherItems = Game.Instance.Scene.ObjectsAt(Position, Tags.Item | Tags.Player, MagnetRange);
+
+        for (int i = 0; i < otherItems.Length; i++)
         {
-            Entity.Tags |= Tags.Item;
-        }
+            if (otherItems[i] == Entity) continue;
 
-        public override void Update()
-        {
-            ReadOnlySpan<Entity> otherItems = Game.Instance.Scene.ObjectsAt(Position, Tags.Item | Tags.Player, MagnetRange);
+            if (!otherItems[i].TryGetComponent(out CoinItemBehavior? otherCoin)&&
+                !otherItems[i].TryGetComponent<PlayerBehavior>(out _))
+            { continue; }
 
-            for (int i = 0; i < otherItems.Length; i++)
+            Vector2 diff = otherItems[i].Position - Position;
+            float distance = diff.LengthSquared();
+
+            if (otherCoin != null && distance <= 1f)
             {
-                if (otherItems[i] == Entity) continue;
-
-                if (!otherItems[i].TryGetComponent(out CoinItemBehavior? otherCoin)&&
-                    !otherItems[i].TryGetComponent<PlayerBehavior>(out _))
-                { continue; }
-
-                Vector2 diff = otherItems[i].Position - Position;
-                float distance = diff.LengthSquared();
-
-                if (otherCoin != null && distance <= 1f)
-                {
-                    otherCoin.Amount += this.Amount;
-                    this.IsDestroyed = true;
-                    continue;
-                }
-
-                Position += Vector2.Normalize(diff) * (1f - (MathF.Sqrt(distance) / MagnetRange)) * Time.DeltaTime;
-
+                otherCoin.Amount += Amount;
+                IsDestroyed = true;
+                continue;
             }
 
-            WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
+            Position += Vector2.Normalize(diff) * (1f - (MathF.Sqrt(distance) / MagnetRange)) * Time.DeltaTime;
         }
 
-        public void PickUp(ICanPickUpItem by)
+        WorldBorders.Clamp(Game.Instance.Scene.SizeR, ref Position);
+    }
+
+    public void PickUp(ICanPickUpItem by)
+    {
+        if (IsDestroyed) return;
+
+        Sound.Play(Assets.GetAsset("pickupCoin.wav"));
+
+        by.OnItemPickedUp(ItemBehavior.ItemKind.Coin, Amount);
+        IsDestroyed = true;
+
+        Entity effect = new("Coin Pickup Effect");
+
+        effect.AddComponent(new ParticlesRendererComponent3D(effect, new ParticlesConfig()
         {
-            if (IsDestroyed) return;
+            Gradients = ImmutableArray.Create(new Gradient(ColorF.White, ColorF.Yellow)),
+            Characters = Ascii.CircleOutlineReversed,
+            ParticleCount = (3, 5),
+            ParticleLifetime = (.2f, .3f),
+            ParticleSpeed = (3f, 6f),
+        }));
+        effect.Position = Position;
 
-            Sound.Play(Assets.GetAsset("pickupCoin.wav"));
-
-            by.OnItemPickedUp(ItemBehavior.ItemKind.Coin, Amount);
-            IsDestroyed = true;
-
-            Entity effect = new("Coin Pickup Effect");
-
-            effect.AddComponent(new ParticlesRendererComponent3D(effect, new ParticlesConfig()
-            {
-                Gradients = new Gradient[1] { new(ColorF.White, ColorF.Yellow) },
-                Characters = new char[] { '○', '°', '⁰', '˚' },
-                ParticleCount = (3, 5),
-                ParticleLifetime = (.2f, .3f),
-                ParticleSpeed = (3f, 6f),
-            }));
-            effect.Position = Position;
-
-            Game.Instance.Scene.AddEntity(effect);
-        }
+        Game.Instance.Scene.AddEntity(effect);
     }
 }

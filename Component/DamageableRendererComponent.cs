@@ -1,38 +1,36 @@
-﻿using Win32;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+internal class DamageableRendererComponent : RendererComponent
 {
-    internal class DamageableRendererComponent : RendererComponent
+    float LastDamaged;
+
+    const float BlinkPerSec = 4f * 2;
+    const float BlinkingDuration = 1f;
+
+    public DamageableRendererComponent(Entity entity) : base(entity) { }
+
+    public override void Render()
     {
-        float LastDamaged;
+        if (!Game.IsVisible(Position)) return;
 
-        const float BlinkPerSec = 4f * 2;
-        const float BlinkingDuration = 1f;
+        Vector2Int p = Game.WorldToConsole(Position);
 
-        public DamageableRendererComponent(Entity entity) : base(entity) { }
+        ref float depth = ref Game.DepthBuffer[p];
 
-        public override void Render()
+        if (depth > Priority) return;
+
+        depth = Priority;
+
+        float lastDamagedInterval = Time.Now - LastDamaged;
+        if (lastDamagedInterval < BlinkingDuration && (int)(lastDamagedInterval * BlinkPerSec) % 2 == 0)
         {
-            if (!Game.IsVisible(Position)) return;
-
-            Vector2Int p = Game.WorldToConsole(Position);
-
-            ref float depth = ref Game.DepthBuffer[p];
-
-            if (depth > Priority) return;
-
-            depth = Priority;
-
-            ref ConsoleChar pixel = ref Game.Renderer[p];
-            pixel.Char = Character;
-
-            float lastDamagedInterval = Time.Now - LastDamaged;
-            if (lastDamagedInterval < BlinkingDuration && (int)(lastDamagedInterval * BlinkPerSec) % 2 == 0)
-            { pixel.Attributes = CharColor.White; }
-            else
-            { pixel.Attributes = Color; }
+            Game.Renderer.Set(p.X, p.Y, new ConsoleChar(Character, CharColor.White));
         }
-
-        public void OnDamage() => LastDamaged = Time.Now;
+        else
+        {
+            Game.Renderer.Set(p.X, p.Y, new ConsoleChar(Character, Color));
+        }
     }
+
+    public void OnDamage() => LastDamaged = Time.Now;
 }

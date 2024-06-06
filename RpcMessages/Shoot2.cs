@@ -1,35 +1,31 @@
-﻿using System.Numerics;
-using DataUtilities.Serializer;
+﻿namespace ConsoleGame.RpcMessages;
 
-namespace ConsoleGame.RpcMessages
+public struct Shoot : ISerializable
 {
-    public struct Shoot : ISerializable<Shoot>
+    public Vector2 Origin;
+    public Vector2 Direction;
+
+    public Shoot()
     {
-        public Vector2 Origin;
-        public Vector2 Direction;
+        Origin = Vector2.Zero;
+        Direction = Vector2.Zero;
+    }
 
-        public Shoot()
-        {
-            Origin = Vector2.Zero;
-            Direction = Vector2.Zero;
-        }
+    public Shoot(Vector2 origin, Vector2 direction)
+    {
+        Origin = origin;
+        Direction = direction;
+    }
 
-        public Shoot(Vector2 origin, Vector2 direction)
-        {
-            Origin = origin;
-            Direction = direction;
-        }
+    public readonly void Serialize(BinaryWriter writer)
+    {
+        writer.Write(Origin);
+        writer.WriteDirection(Direction);
+    }
 
-        public void Deserialize(Deserializer deserializer)
-        {
-            Origin = deserializer.DeserializeVector2();
-            Direction = deserializer.DeserializeDirection();
-        }
-
-        public readonly void Serialize(Serializer serializer)
-        {
-            serializer.Serialize(Origin);
-            serializer.SerializeDirection(Direction);
-        }
+    public void Deserialize(BinaryReader reader)
+    {
+        Origin = reader.ReadVector2();
+        Direction = reader.ReadDirection();
     }
 }

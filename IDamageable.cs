@@ -1,7 +1,6 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame;
+
+public interface IDamageable
 {
-    public interface IDamageable
-    {
-        public void Damage(float amount, Component? by);
-    }
+    public void Damage(float amount, Component? by);
 }

@@ -1,31 +1,26 @@
-﻿using Win32;
-using Win32.LowLevel;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public partial class MeshRenderer
 {
-    public partial class MeshRenderer
+    void OnBufferSize(WindowBufferSizeEvent e)
     {
-        void OnBufferSize(WindowBufferSizeEvent e)
+        if (renderer is ConsoleRenderer consoleRenderer)
+        { consoleRenderer.ShouldResize(); }
+    }
+
+    void OnMouse(MouseEvent e)
+    {
+        ConsoleMouse.Feed(e);
+    }
+
+    void OnKey(KeyEvent e)
+    {
+        ConsoleKeyboard.Feed(e);
+
+        if (e.VirtualKeyCode == VirtualKeyCode.Escape)
         {
-            if (renderer is ConsoleRenderer consoleRenderer)
-            { consoleRenderer.ShouldResize(); }
+            Exit();
+            return;
         }
-
-        void OnMouse(MouseEvent e)
-        {
-            Mouse.Feed(e);
-        }
-
-        void OnKey(KeyEvent e)
-        {
-            Keyboard.Feed(e);
-
-            if (e.VirtualKeyCode == VirtualKeyCode.ESCAPE)
-            {
-                Exit();
-                return;
-            }
-        }
-
     }
 }

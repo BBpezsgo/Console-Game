@@ -1,38 +1,35 @@
-﻿using System.Numerics;
+﻿namespace ConsoleGame.Behavior;
 
-namespace ConsoleGame
+internal class EnemyFactoryBehavior : FactoryComponent<int>
 {
-    internal class EnemyFactoryBehavior : FactoryComponent<int>
+    public EnemyFactoryBehavior(Entity entity) : base(entity) { }
+
+    public override void Destroy()
     {
-        public EnemyFactoryBehavior(Entity entity) : base(entity) { }
+        base.Destroy();
 
-        public override void Destroy()
+        Sound.Play(Assets.GetAsset("explosion.wav"));
+
+        Entity newEntity = new("Explosion Particles")
+        { Position = Position };
+        newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.LargeExplosion) { Priority = Depths.EFFECT });
+        Game.Instance.Scene.AddEntity(newEntity);
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if (Queue.Count == 0)
         {
-            base.Destroy();
-
-            Sound.Play(Assets.GetAsset("explosion.wav"));
-
-            Entity newEntity = new("Explosion Particles")
-            { Position = Position };
-            newEntity.SetComponents(new ParticlesRendererComponent(newEntity, PredefinedEffects.LargeExplosion) { Priority = Depths.EFFECT });
-            Game.Instance.Scene.AddEntity(newEntity);
+            Enqueue(GameObjectPrototype.ENEMY, 10f);
         }
+    }
 
-        public override void Update()
-        {
-            base.Update();
-
-            if (Queue.Count == 0)
-            {
-                base.Enqueue(GameObjectPrototype.ENEMY, 10f);
-            }
-        }
-
-        protected override void OnProductDone(int product)
-        {
-            Entity newEntity = EntityPrototypes.Builders[product].Invoke(Game.Instance.Scene.GenerateNetworkId(), Owner);
-            newEntity.Position = Position + new Vector2(1f, 2f) + Random.Point(-.01f, .01f);
-            Game.Instance.Scene.AddEntity(newEntity);
-        }
+    protected override void OnProductDone(int product)
+    {
+        Entity newEntity = EntityPrototypes.Builders[product].Invoke(Game.Instance.Scene.GenerateNetworkId(), Owner);
+        newEntity.Position = Position + new Vector2(1f, 2f) + Random.Point(-.01f, .01f);
+        Game.Instance.Scene.AddEntity(newEntity);
     }
 }

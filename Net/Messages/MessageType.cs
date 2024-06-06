@@ -1,16 +1,15 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame;
+
+public enum MessageType : byte
 {
-    public enum MessageType : byte
-	{
-        OBJ_POSITION,
-        OBJ_REQUEST,
-        OBJ_DETAILS,
-        OBJ_SPAWN,
-        OBJ_RPC,
-        CONTROL,
-        CLIENT_LIST_REQUEST,
-        CLIENT_LIST,
-        OBJ_DESTROY,
-        REQ_RESPAWN,
-    }
+    OBJ_POSITION,
+    OBJ_REQUEST,
+    OBJ_DETAILS,
+    OBJ_SPAWN,
+    OBJ_RPC,
+    CONTROL,
+    CLIENT_LIST_REQUEST,
+    CLIENT_LIST,
+    OBJ_DESTROY,
+    REQ_RESPAWN,
 }

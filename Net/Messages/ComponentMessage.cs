@@ -1,31 +1,28 @@
-﻿using DataUtilities.Serializer;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class ComponentMessage : ObjectMessage
 {
-    public class ComponentMessage : ObjectMessage, ISerializable<ComponentMessage>
+    public int ComponentIndex;
+
+    public ComponentMessage()
     {
-        public int ComponentIndex;
+        ComponentIndex = -1;
+    }
 
-        public ComponentMessage() : base()
-        {
-            ComponentIndex = -1;
-        }
+    public ComponentMessage(NetworkComponent sender) : base(sender.Entity.GetComponent<NetworkEntityComponent>())
+    {
+        ComponentIndex = sender.ComponentIndex;
+    }
 
-        public ComponentMessage(NetworkComponent sender) : base(sender.Entity.GetComponent<NetworkEntityComponent>())
-        {
-            ComponentIndex = sender.ComponentIndex;
-        }
+    public override void Serialize(BinaryWriter writer)
+    {
+        base.Serialize(writer);
+        writer.Write((byte)ComponentIndex);
+    }
 
-        public override void Deserialize(Deserializer deserializer)
-        {
-            base.Deserialize(deserializer);
-            ComponentIndex = deserializer.DeserializeByte();
-        }
-
-        public override void Serialize(Serializer serializer)
-        {
-            base.Serialize(serializer);
-            serializer.Serialize((byte)ComponentIndex);
-        }
+    public override void Deserialize(BinaryReader reader)
+    {
+        base.Deserialize(reader);
+        ComponentIndex = reader.ReadByte();
     }
 }

@@ -1,60 +1,57 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame.Behavior;
+
+public class SimpleDestroyableThing : NetworkComponent, IDamageable
 {
-    public class SimpleDestroyableThing : NetworkComponent, IDamageable
+    public float Health;
+    public readonly float MaxHealth;
+    readonly DamageableRendererComponent3D? DamageableRenderer;
+
+    public SimpleDestroyableThing(Entity entity, float maxHealth) : base(entity)
     {
-        public float Health;
-        public readonly float MaxHealth;
-        readonly DamageableRendererComponent3D? DamageableRenderer;
+        MaxHealth = maxHealth;
+        Health = maxHealth;
+        DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent3D>();
+    }
 
-        public SimpleDestroyableThing(Entity entity, float maxHealth) : base(entity)
+    public void Damage(float amount, Component? by)
+    {
+        DamageableRenderer?.OnDamage();
+
+        if (Game.NetworkMode == NetworkMode.Client) return;
+
+        Health -= amount;
+
+        if (Health <= 0f)
         {
-            MaxHealth = maxHealth;
-            Health = maxHealth;
-            DamageableRenderer = Entity.TryGetComponent<DamageableRendererComponent3D>();
+            IsDestroyed = true;
+            return;
         }
 
-        public void Damage(float amount, Component? by)
+        SendRpc(RpcMessages.Kind.Damage, new RpcMessages.Damaged(amount, by));
+    }
+
+    public override void Update()
+    {
+        if (Game.NetworkMode == NetworkMode.Client)
+        { return; }
+
+        if (Health <= 0f)
         {
-            DamageableRenderer?.OnDamage();
-
-            if (Game.NetworkMode == NetworkMode.Client) return;
-
-            Health -= amount;
-
-            if (Health <= 0f)
-            {
-                IsDestroyed = true;
-                return;
-            }
-
-            SendRpc(RpcMessages.Kind.Damage, new RpcMessages.Damaged(amount, by));
+            IsDestroyed = true;
+            return;
         }
+    }
 
-        public override void Update()
+    public override void OnRpc(MessageRpc message)
+    {
+        switch (message.RpcKind)
         {
-            if (Game.NetworkMode == NetworkMode.Client)
-            { return; }
-
-            if (Health <= 0f)
-            {
-                IsDestroyed = true;
-                return;
-            }
-        }
-
-        public override void OnRpc(MessageRpc message)
-        {
-            switch (message.RpcKind)
-            {
-                case RpcMessages.Kind.Damage:
-                    {
-                        RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
-                        Damage(data.Amount, data.By);
-                        break;
-                    }
-                default:
+            case RpcMessages.Kind.Damage:
+                {
+                    RpcMessages.Damaged data = message.GetObjectData<RpcMessages.Damaged>();
+                    Damage(data.Amount, data.By);
                     break;
-            }
+                }
         }
     }
 }

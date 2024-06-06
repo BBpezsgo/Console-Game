@@ -23,6 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DataUtilities\DataUtilities.csproj" />
+    <ProjectReference Include="..\Math\Math.csproj" />
     <ProjectReference Include="..\Win32-Stuff\Win32.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -1,65 +1,62 @@
-﻿using System.Numerics;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class IncomingProjectileCounter : Component
 {
-    public class IncomingProjectileCounter : Component
+    public readonly struct IncomingProjectile
     {
-        public readonly struct IncomingProjectile
+        public readonly Entity Entity;
+        public readonly Vector2 ShotPoint;
+        public readonly float ShotTime;
+        public readonly float Damage;
+        public readonly float ProjectileSpeed;
+
+        public readonly float TimeUntilImpact(Vector2 end)
         {
-            public readonly Entity Entity;
-            public readonly Vector2 ShotPoint;
-            public readonly float ShotTime;
-            public readonly float Damage;
-            public readonly float ProjectileSpeed;
-
-            public readonly float TimeUntilImpact(Vector2 end)
-            {
-                float distance = (end - ShotPoint).Length();
-                distance -= (Time.Now - ShotTime) * ProjectileSpeed;
-                if (distance <= 0f) return 0f;
-                return distance / ProjectileSpeed;
-            }
-
-            public IncomingProjectile(Entity entity, Vector2 shotPoint, float shotTime, float damage, float projectileSpeed)
-            {
-                Entity = entity;
-                ShotPoint = shotPoint;
-                ShotTime = shotTime;
-                Damage = damage;
-                ProjectileSpeed = projectileSpeed;
-            }
+            float distance = (end - ShotPoint).Length();
+            distance -= (Time.Now - ShotTime) * ProjectileSpeed;
+            if (distance <= 0f) return 0f;
+            return distance / ProjectileSpeed;
         }
 
-        public readonly List<IncomingProjectile> IncomingProjectiles;
-
-        public float EstimatedDamage
+        public IncomingProjectile(Entity entity, Vector2 shotPoint, float shotTime, float damage, float projectileSpeed)
         {
-            get
-            {
-                float result = 0f;
+            Entity = entity;
+            ShotPoint = shotPoint;
+            ShotTime = shotTime;
+            Damage = damage;
+            ProjectileSpeed = projectileSpeed;
+        }
+    }
 
-                for (int i = IncomingProjectiles.Count - 1; i >= 0; i--)
+    public readonly List<IncomingProjectile> IncomingProjectiles;
+
+    public float EstimatedDamage
+    {
+        get
+        {
+            float result = 0f;
+
+            for (int i = IncomingProjectiles.Count - 1; i >= 0; i--)
+            {
+                if (IncomingProjectiles[i].Entity.IsDestroyed)
                 {
-                    if (IncomingProjectiles[i].Entity.IsDestroyed)
-                    {
-                        IncomingProjectiles.RemoveAt(i);
-                        continue;
-                    }
-                    result += IncomingProjectiles[i].Damage;
+                    IncomingProjectiles.RemoveAt(i);
+                    continue;
                 }
-
-                return result;
+                result += IncomingProjectiles[i].Damage;
             }
-        }
 
-        public IncomingProjectileCounter(Entity entity) : base(entity)
-        {
-            IncomingProjectiles = new List<IncomingProjectile>();
+            return result;
         }
+    }
 
-        public void OnShot(IncomingProjectile projectile)
-        {
-            IncomingProjectiles.Add(projectile);
-        }
+    public IncomingProjectileCounter(Entity entity) : base(entity)
+    {
+        IncomingProjectiles = new List<IncomingProjectile>();
+    }
+
+    public void OnShot(IncomingProjectile projectile)
+    {
+        IncomingProjectiles.Add(projectile);
     }
 }

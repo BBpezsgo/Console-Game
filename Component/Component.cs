@@ -1,33 +1,30 @@
-﻿using System.Numerics;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class Component
 {
-    public class Component
+    public int SystemIndex;
+    public readonly Entity Entity;
+    public int ComponentIndex;
+
+    public ref bool IsDestroyed => ref Entity.IsDestroyed;
+
+    public ref Vector2 Position => ref Entity.Position;
+
+    public Component(Entity entity)
     {
-        public int SystemIndex;
-        public readonly Entity Entity;
-        public int ComponentIndex;
+        SystemIndex = -1;
+        Entity = entity;
+    }
 
-        public ref bool IsDestroyed => ref Entity.IsDestroyed;
+    public virtual void Make()
+    {
+        Game.Instance.Scene.AllComponents.Register(this);
+    }
 
-        public ref Vector2 Position => ref Entity.Position;
+    public virtual void Update() { }
 
-        public Component(Entity entity)
-        {
-            SystemIndex = -1;
-            Entity = entity;
-        }
-
-        public virtual void Make()
-        {
-            Game.Instance.Scene.AllComponents.Register(this);
-        }
-
-        public virtual void Update() { }
-
-        public virtual void Destroy()
-        {
-            Game.Instance.Scene.AllComponents.Deregister(SystemIndex);
-        }
+    public virtual void Destroy()
+    {
+        Game.Instance.Scene.AllComponents.Deregister(SystemIndex);
     }
 }

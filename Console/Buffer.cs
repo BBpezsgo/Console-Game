@@ -1,62 +1,59 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using Win32;
 
-namespace ConsoleGame
+namespace ConsoleGame;
+
+public class Buffer<T>
 {
-    public partial class Buffer<T>
+    readonly IRenderer Renderer;
+
+    public int Width => Renderer.Width;
+    public int Height => Renderer.Height;
+
+    public int Size => Renderer.Width * Renderer.Height;
+
+    T[] buffer;
+
+    public ref T this[int i] => ref buffer[i];
+    public ref T this[int x, int y] => ref buffer[(y * Width) + x];
+
+    public ref T this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
+    public ref T this[Vector2 position] => ref this[position.X, position.Y];
+    public ref T this[Vector2Int position] => ref this[position.X, position.Y];
+
+    public Buffer(IRenderer renderer)
     {
-        readonly Renderer Renderer;
+        Renderer = renderer;
+        buffer = new T[Renderer.Width * Renderer.Height];
+    }
 
-        public short Width => Renderer.Width;
-        public short Height => Renderer.Height;
+    public void Clear() => Array.Clear(buffer);
 
-        public int Size => Renderer.Size.Width * Renderer.Size.Height;
+    public void Resize() => buffer = new T[Renderer.Width * Renderer.Height];
 
-        T[] buffer;
-
-        public ref T this[int i] => ref buffer[i];
-        public ref T this[int x, int y] => ref buffer[(y * Width) + x];
-
-        public ref T this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
-        public ref T this[Vector2 position] => ref this[position.X, position.Y];
-        public ref T this[Vector2Int position] => ref this[position.X, position.Y];
-
-        public Buffer(Renderer renderer)
+    public void SetRect(RectInt rect, T value)
+    {
+        int top = rect.Top;
+        int left = rect.Left;
+        int bottom = rect.Bottom;
+        int right = rect.Right;
+        for (int y = top; y < bottom; y++)
         {
-            Renderer = renderer;
-            buffer = new T[Renderer.Size.Width * Renderer.Size.Height];
+            Array.Fill(buffer, value, (y * Width) + left, right - left);
         }
+    }
 
-        public void Clear() => Array.Clear(buffer);
+    [return: NotNullIfNotNull(nameof(v))]
+    public static explicit operator T[]?(Buffer<T>? v) => v?.buffer;
 
-        public void Resize() => buffer = new T[Renderer.Size.Width * Renderer.Size.Height];
+    public static explicit operator Span<T>(Buffer<T>? v) => v?.buffer ?? Span<T>.Empty;
 
-        public void SetRect(RectInt rect, T value)
+    public void Copy(ConsoleRenderer destination, Func<T, ConsoleChar> converter)
+    {
+        for (int y = 0; y < this.Height; y++)
         {
-            int top = rect.Top;
-            int left = rect.Left;
-            int bottom = rect.Bottom;
-            int right = rect.Right;
-            for (int y = top; y < bottom; y++)
+            for (int x = 0; x < this.Width; x++)
             {
-                Array.Fill(buffer, value, y * Width + left, right - left);
-            }
-        }
-
-        [return: NotNullIfNotNull(nameof(v))]
-        public static explicit operator T[]?(Buffer<T>? v) => v?.buffer;
-
-        public static explicit operator Span<T>(Buffer<T>? v) => v?.buffer ?? Span<T>.Empty;
-
-        public void Copy(ConsoleRenderer destination, Func<T, ConsoleChar> converter)
-        {
-            for (int y = 0; y < this.Height; y++)
-            {
-                for (int x = 0; x < this.Width; x++)
-                {
-                    destination[x, y] = converter.Invoke(this[x, y]);
-                }
+                destination[x, y] = converter.Invoke(this[x, y]);
             }
         }
     }

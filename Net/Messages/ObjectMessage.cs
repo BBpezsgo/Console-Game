@@ -1,31 +1,28 @@
-﻿using DataUtilities.Serializer;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class ObjectMessage : Message
 {
-    public class ObjectMessage : Message, ISerializable<ObjectMessage>
+    public int NetworkId;
+
+    public ObjectMessage()
     {
-        public int NetworkId;
+        NetworkId = -1;
+    }
 
-        public ObjectMessage() : base()
-        {
-            NetworkId = -1;
-        }
+    public ObjectMessage(NetworkEntityComponent sender)
+    {
+        NetworkId = sender.NetworkId;
+    }
 
-        public ObjectMessage(NetworkEntityComponent sender) : base()
-        {
-            NetworkId = sender.NetworkId;
-        }
+    public override void Serialize(BinaryWriter writer)
+    {
+        base.Serialize(writer);
+        writer.Write(NetworkId);
+    }
 
-        public override void Deserialize(Deserializer deserializer)
-        {
-            base.Deserialize(deserializer);
-            NetworkId = deserializer.DeserializeInt32();
-        }
-
-        public override void Serialize(Serializer serializer)
-        {
-            base.Serialize(serializer);
-            serializer.Serialize(NetworkId);
-        }
+    public override void Deserialize(BinaryReader reader)
+    {
+        base.Deserialize(reader);
+        NetworkId = reader.ReadInt32();
     }
 }

@@ -1,38 +1,37 @@
-﻿namespace ConsoleGame.Behavior
+﻿namespace ConsoleGame.Behavior;
+
+public class CoinItemRendererComponent : RendererComponent
 {
-    public class CoinItemRendererComponent : RendererComponent
+    readonly CoinItemBehavior Item;
+    float SpawnedTime;
+
+    public CoinItemRendererComponent(Entity entity) : base(entity)
     {
-        readonly CoinItemBehavior Item;
-        float SpawnedTime;
+        Entity.Tags |= Tags.Item;
+        Item = Entity.GetComponent<CoinItemBehavior>();
+    }
 
-        public CoinItemRendererComponent(Entity entity) : base(entity)
-        {
-            Entity.Tags |= Tags.Item;
-            Item = Entity.GetComponent<CoinItemBehavior>();
-        }
+    public override void Make()
+    {
+        base.Make();
+        SpawnedTime = Time.Now;
+    }
 
-        public override void Make()
-        {
-            base.Make();
-            SpawnedTime = Time.Now;
-        }
+    public override void Render()
+    {
+        if (!Game.IsVisible(Position)) return;
 
-        public override void Render()
-        {
-            if (!Game.IsVisible(Position)) return;
+        Vector2Int p = Game.WorldToConsole(Position);
 
-            Vector2Int p = Game.WorldToConsole(Position);
+        ref float depth = ref Game.DepthBuffer[p];
 
-            ref float depth = ref Game.DepthBuffer[p];
+        if (depth > Priority) return;
 
-            if (depth > Priority) return;
+        depth = Priority;
 
-            depth = Priority;
+        int i1 = (int)((Time.Now - SpawnedTime) * 3f) % 2;
+        int i2 = Math.Clamp(Item.Amount, 0, 20);
 
-            int i1 = (int)((Time.Now - SpawnedTime) * 3f) % 2;
-            int i2 = Math.Clamp(Item.Amount, 0, 20);
-
-            Game.Renderer[p] = new Win32.ConsoleChar((i1 == 0) ? Ascii.CircleNumbersFilled[i2] : Ascii.CircleNumbersOutline[i2], Color);
-        }
+        Game.Renderer.Set(p, new ConsoleChar((i1 == 0) ? Ascii.CircleNumbersFilled[i2] : Ascii.CircleNumbersOutline[i2], Color));
     }
 }

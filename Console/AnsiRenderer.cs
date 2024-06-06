@@ -1,136 +1,133 @@
 ﻿using System.Text;
-using Win32;
-using Win32.Gdi32;
 
-namespace ConsoleGame
+namespace ConsoleGame;
+
+public enum AnsiColorType
 {
-    public enum AnsiColorType
+    Extended,
+    TrueColor,
+}
+
+public class AnsiRenderer : BufferedRenderer<ColorF>
+{
+    ColorF[] buffer;
+    int width;
+    int height;
+    bool shouldResize;
+
+    public AnsiColorType ColorType;
+    public bool IsBloomEnabled;
+
+    public Buffer<float> DepthBuffer { get; }
+    public override Span<ColorF> Buffer => buffer;
+
+    public override int Width => width;
+    public override int Height => height;
+
+    public override ref ColorF this[int i] => ref buffer[i];
+
+    public event SimpleEventHandler? OnResized;
+
+    public AnsiRenderer(int width, int height)
     {
-        Extended,
-        TrueColor,
+        this.width = width;
+        this.height = height;
+        this.buffer = new ColorF[width * height];
+        this.DepthBuffer = new Buffer<float>(this);
+        this.shouldResize = true;
+        this.ColorType = AnsiColorType.TrueColor;
+        this.IsBloomEnabled = true;
     }
 
-    public class AnsiRenderer : BufferedRenderer<ColorF>, IRendererWithDepth
+    public static void RenderExtended(ColorF[] buffer, int width, int height)
     {
-        ColorF[] buffer;
-        int width;
-        int height;
-        bool shouldResize;
-
-        public AnsiColorType ColorType;
-        public bool IsBloomEnabled;
-
-        public Buffer<float> DepthBuffer { get; }
-        public override Span<ColorF> Buffer => buffer;
-
-        public override short Width => (short)width;
-        public override short Height => (short)height;
-
-        public override ref ColorF this[int i] => ref buffer[i];
-
-        public event SimpleEventHandler? OnResized;
-
-        public AnsiRenderer(int width, int height)
+        StringBuilder builder = new(width * height);
+        byte prevColor = default;
+        for (int y = 0; y < height; y++)
         {
-            this.width = width;
-            this.height = height;
-            this.buffer = new ColorF[width * height];
-            this.DepthBuffer = new Buffer<float>(this);
-            this.shouldResize = true;
-            this.ColorType = AnsiColorType.TrueColor;
-            this.IsBloomEnabled = true;
-        }
-
-        public static void RenderExtended(ColorF[] buffer, int width, int height)
-        {
-            StringBuilder builder = new(width * height);
-            byte prevColor = default;
-            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
             {
-                for (int x = 0; x < width; x++)
+                int i = (y * width) + x;
+                GdiColor color = (GdiColor)buffer[i];
+                byte bruh = Ansi.ToAnsi256(color.R, color.G, color.B);
+
+                if ((x == 0 && y == 0) || prevColor != bruh)
                 {
-                    int i = y * width + x;
-                    GdiColor color = (GdiColor)buffer[i];
-                    byte bruh = Ansi.ToAnsi256(color.R, color.G, color.B);
-
-                    if ((x == 0 && y == 0) || prevColor != bruh)
-                    {
-                        Ansi.SetBackgroundColor(builder, bruh);
-                        prevColor = bruh;
-                    }
-
-                    builder.Append(' ');
+                    Ansi.SetBackgroundColor(builder, bruh);
+                    prevColor = bruh;
                 }
-            }
-            Console.Out.Write(builder);
-            Console.SetCursorPosition(0, 0);
-        }
 
-        public static void RenderTrueColor(ColorF[] buffer, int width, int height)
+                builder.Append(' ');
+            }
+        }
+        Console.Out.Write(builder);
+        Console.SetCursorPosition(0, 0);
+    }
+
+    public static void RenderTrueColor(ColorF[] buffer, int width, int height)
+    {
+        StringBuilder builder = new(width * height);
+        GdiColor prevColor = default;
+        for (int y = 0; y < height; y++)
         {
-            StringBuilder builder = new(width * height);
-            GdiColor prevColor = default;
-            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
             {
-                for (int x = 0; x < width; x++)
+                int i = (y * width) + x;
+                GdiColor color = (GdiColor)buffer[i];
+
+                if ((x == 0 && y == 0) || prevColor != color)
                 {
-                    int i = y * width + x;
-                    GdiColor color = (GdiColor)buffer[i];
-
-                    if ((x == 0 && y == 0) || prevColor != color)
-                    {
-                        Ansi.SetBackgroundColor(builder, color.R, color.G, color.B);
-                        prevColor = color;
-                    }
-
-                    builder.Append(' ');
+                    Ansi.SetBackgroundColor(builder, color.R, color.G, color.B);
+                    prevColor = color;
                 }
-            }
-            Console.Out.Write(builder);
-            Console.SetCursorPosition(0, 0);
-        }
 
-        public override void Clear()
-        {
-            Array.Clear(buffer);
-            DepthBuffer.Clear();
-        }
-
-        public override void Render()
-        {
-            if (IsBloomEnabled)
-            { ColorUtils.Bloom(buffer, width, height, 5); }
-
-            switch (ColorType)
-            {
-                case AnsiColorType.Extended:
-                    RenderExtended(buffer, width, height);
-                    break;
-                case AnsiColorType.TrueColor:
-                    RenderTrueColor(buffer, width, height);
-                    break;
-                default:
-                    throw new NotImplementedException();
+                builder.Append(' ');
             }
         }
+        Console.Out.Write(builder);
+        Console.SetCursorPosition(0, 0);
+    }
 
-        public void ShouldResize() => shouldResize = true;
+    public override void Clear()
+    {
+        Array.Clear(buffer);
+        DepthBuffer.Clear();
+    }
 
-        public override void RefreshBufferSize()
+    public override void Render()
+    {
+        if (IsBloomEnabled)
+        { ColorUtils.Bloom(buffer, width, height, 5); }
+
+        switch (ColorType)
         {
-            if (!shouldResize) return;
-            shouldResize = false;
-
-            Console.Clear();
-
-            width = Console.WindowWidth;
-            height = Console.WindowHeight;
-
-            buffer = new ColorF[width * height];
-
-            DepthBuffer.Resize();
-
-            OnResized?.Invoke();
+            case AnsiColorType.Extended:
+                RenderExtended(buffer, width, height);
+                break;
+            case AnsiColorType.TrueColor:
+                RenderTrueColor(buffer, width, height);
+                break;
+            default:
+                throw new NotImplementedException();
         }
+    }
+
+    public void ShouldResize() => shouldResize = true;
+
+    public override void RefreshBufferSize()
+    {
+        if (!shouldResize) return;
+        shouldResize = false;
+
+        Console.Clear();
+
+        width = Console.WindowWidth;
+        height = Console.WindowHeight;
+
+        buffer = new ColorF[width * height];
+
+        DepthBuffer.Resize();
+
+        OnResized?.Invoke();
     }
 }

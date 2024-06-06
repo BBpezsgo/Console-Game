@@ -1,46 +1,42 @@
-﻿using System.Numerics;
-using DataUtilities.Serializer;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class ObjectSpawnMessage : Message
 {
-    public class ObjectSpawnMessage : Message, ISerializable<ObjectSpawnMessage>
+    public int NetworkId;
+    public Vector2 Position;
+    public int ObjectId;
+    public ulong OwnerId;
+
+    public ObjectSpawnMessage()
     {
-        public int NetworkId;
-        public Vector2 Position;
-        public int ObjectId;
-        public ulong OwnerId;
+        Type = MessageType.OBJ_SPAWN;
+    }
 
-        public ObjectSpawnMessage() : base()
-        {
-            Type = MessageType.OBJ_SPAWN;
-        }
+    public ObjectSpawnMessage(NetworkEntityComponent networkEntity)
+    {
+        Type = MessageType.OBJ_SPAWN;
 
-        public ObjectSpawnMessage(NetworkEntityComponent networkEntity) : base()
-        {
-            Type = MessageType.OBJ_SPAWN;
+        NetworkId = networkEntity.NetworkId;
+        OwnerId = (ulong)networkEntity.Owner;
+        ObjectId = networkEntity.ObjectId;
+        Position = networkEntity.Position;
+    }
 
-            NetworkId = networkEntity.NetworkId;
-            OwnerId = (ulong)networkEntity.Owner;
-            ObjectId = networkEntity.ObjectId;
-            Position = networkEntity.Position;
-        }
+    public override void Serialize(BinaryWriter serializer)
+    {
+        base.Serialize(serializer);
+        serializer.Write(NetworkId);
+        serializer.Write(Position);
+        serializer.Write(ObjectId);
+        serializer.Write(OwnerId);
+    }
 
-        public override void Deserialize(Deserializer deserializer)
-        {
-            base.Deserialize(deserializer);
-            NetworkId = deserializer.DeserializeInt32();
-            Position = deserializer.DeserializeVector2();
-            ObjectId = deserializer.DeserializeInt32();
-            OwnerId = deserializer.DeserializeUInt64();
-        }
-
-        public override void Serialize(Serializer serializer)
-        {
-            base.Serialize(serializer);
-            serializer.Serialize(NetworkId);
-            serializer.Serialize(Position);
-            serializer.Serialize(ObjectId);
-            serializer.Serialize(OwnerId);
-        }
+    public override void Deserialize(BinaryReader deserializer)
+    {
+        base.Deserialize(deserializer);
+        NetworkId = deserializer.ReadInt32();
+        Position = deserializer.ReadVector2();
+        ObjectId = deserializer.ReadInt32();
+        OwnerId = deserializer.ReadUInt64();
     }
 }

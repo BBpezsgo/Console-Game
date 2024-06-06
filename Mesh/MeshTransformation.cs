@@ -1,10 +1,7 @@
-﻿using System.Numerics;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public struct MeshTransformation
 {
-    public struct MeshTransformation
-    {
-        public Vector3 Offset;
-        public Matrix4x4 Rotation;
-    }
+    public Vector3 Offset;
+    public Maths.Matrix4x4 Rotation;
 }

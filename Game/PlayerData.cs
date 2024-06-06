@@ -1,34 +1,32 @@
 ﻿using DataUtilities.ReadableFileFormat;
-using DataUtilities.Serializer;
 
-namespace ConsoleGame
+namespace ConsoleGame;
+
+public struct PlayerData : ISerializable, IFullySerializableText
 {
-    public struct PlayerData : ISerializable<PlayerData>, IFullySerializableText
+    public int Coins;
+
+    public readonly void Serialize(BinaryWriter serializer)
     {
-        public int Coins;
+        serializer.Write(Coins);
+    }
 
-        public void Deserialize(Deserializer deserializer)
-        {
-            Coins = deserializer.DeserializeInt32();
-        }
+    public void Deserialize(BinaryReader deserializer)
+    {
+        Coins = deserializer.ReadInt32();
+    }
 
-        public readonly void Serialize(Serializer serializer)
-        {
-            serializer.Serialize(Coins);
-        }
+    void IDeserializableText.DeserializeText(Value data)
+    {
+        Coins = data["Score"].Int ?? 0;
+    }
 
-        void IDeserializableText.DeserializeText(Value data)
-        {
-            Coins = data["Score"].Int ?? 0;
-        }
+    readonly Value ISerializableText.SerializeText()
+    {
+        Value result = Value.Object();
 
-        readonly Value ISerializableText.SerializeText()
-        {
-            Value result = Value.Object();
+        result["Score"] = Coins;
 
-            result["Score"] = Coins;
-
-            return result;
-        }
+        return result;
     }
 }

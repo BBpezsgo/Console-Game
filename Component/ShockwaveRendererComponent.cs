@@ -1,57 +1,49 @@
-﻿using System.Numerics;
-using Win32;
+﻿namespace ConsoleGame;
 
-namespace ConsoleGame
+public class ShockwaveRendererComponent : RendererComponent
 {
-    public class ShockwaveRendererComponent : RendererComponent
-    {
-        public float Radius;
-        public float Lifetime;
-        public readonly float BornTime;
+    public float Radius;
+    public float Lifetime;
+    public readonly float BornTime;
 
-        public ShockwaveRendererComponent(Entity entity) : base(entity)
+    public ShockwaveRendererComponent(Entity entity) : base(entity)
+    {
+        BornTime = Time.Now;
+    }
+
+    public override void Render()
+    {
+        float life = (Time.Now - BornTime) / Lifetime;
+        if (life >= 1f)
         {
-            BornTime = Time.Now;
+            Entity.IsDestroyed = true;
+            return;
         }
 
-        public override void Render()
+        float radius = Radius * MathF.Sqrt(life);
+        int points = (int)radius * 8;
+
+        for (int i = 0; i < points; i++)
         {
-            float life = (Time.Now - BornTime) / Lifetime;
-            if (life >= 1f)
-            {
-                Entity.IsDestroyed = true;
-                return;
-            }
+            Vector2 direction = Rotation.FromDeg((float)i / (float)points);
 
-            float radius = Radius * MathF.Sqrt(life);
-            int points = (int)radius * 8;
+            Vector2 p = (direction * radius) + Position;
 
-            for (int i = 0; i < points; i++)
-            {
-                Vector2 direction = Rotation.FromDeg((float)i / (float)points);
+            p += direction * ((Noise.Simplex(p.X, p.Y) * .5f) + .5f) * 1.5f;
 
-                Vector2 p = (direction * radius) + Position;
+            if (!Game.IsVisible(p)) continue;
 
-                p += direction * (Noise.Simplex(p.X, p.Y) * .5f + .5f) * 1.5f;
+            Vector2Int conPos = Game.WorldToConsole(p);
 
-                if (!Game.IsVisible(p)) continue;
+            if (Game.IsOnGui(conPos)) continue;
 
-                Vector2Int conPos = Game.WorldToConsole(p);
+            ref float depth = ref Game.DepthBuffer[conPos];
 
-                if (Game.IsOnGui(conPos)) continue;
+            if (depth > Priority) continue;
 
-                ref float depth = ref Game.DepthBuffer[conPos];
+            depth = Priority;
 
-                if (depth > Priority) continue;
-
-                depth = Priority;
-
-                ref ConsoleChar pixel = ref Game.Renderer[conPos];
-
-                pixel.Background = CharColor.Black;
-                pixel.Foreground = CharColor.Silver;
-                pixel.Char = Ascii.BlockShade[0];
-            }
+            Game.Renderer.Set(conPos, new ConsoleChar(Ascii.BlockShade[0], CharColor.Silver));
         }
     }
 }

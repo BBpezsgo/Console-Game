@@ -1,38 +1,37 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame;
+
+public class RendererComponent : Component
 {
-    public class RendererComponent : Component
+    public byte Color;
+    public char Character;
+    public byte Priority;
+
+    public RendererComponent(Entity entity) : base(entity) { }
+
+    public override void Make()
     {
-        public byte Color;
-        public char Character;
-        public byte Priority;
+        base.Make();
+        Game.Instance.Scene.RendererComponents.Register(this);
+    }
 
-        public RendererComponent(Entity entity) : base(entity) { }
+    public override void Destroy()
+    {
+        base.Destroy();
+        Game.Instance.Scene.RendererComponents.Deregister(this);
+    }
 
-        public override void Make()
-        {
-            base.Make();
-            Game.Instance.Scene.RendererComponents.Register(this);
-        }
+    public virtual void Render()
+    {
+        if (!Game.IsVisible(Position)) return;
 
-        public override void Destroy()
-        {
-            base.Destroy();
-            Game.Instance.Scene.RendererComponents.Deregister(this);
-        }
+        Vector2Int p = Game.WorldToConsole(Position);
 
-        public virtual void Render()
-        {
-            if (!Game.IsVisible(Position)) return;
+        ref float depth = ref Game.DepthBuffer[p];
 
-            Vector2Int p = Game.WorldToConsole(Position);
+        if (depth > Priority) return;
 
-            ref float depth = ref Game.DepthBuffer[p];
+        depth = Priority;
 
-            if (depth > Priority) return;
-
-            depth = Priority;
-
-            Game.Renderer[p] = new Win32.ConsoleChar(Character, Color);
-        }
+        Game.Renderer.Set(p, new ConsoleChar(Character, Color));
     }
 }

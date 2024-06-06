@@ -1,7 +1,6 @@
-﻿namespace ConsoleGame
+﻿namespace ConsoleGame;
+
+public class ParsingException : Exception
 {
-	public class ParsingException : Exception
-	{
-		public ParsingException(string message) : base(message) { }
-	}
+    public ParsingException(string message) : base(message) { }
 }
