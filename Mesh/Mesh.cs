@@ -27,9 +27,9 @@ public partial struct Mesh
     {
         for (int i = 0; i < Triangles.Length; i++)
         {
-            Triangles[i].PointA *= scale;
-            Triangles[i].PointB *= scale;
-            Triangles[i].PointC *= scale;
+            Triangles[i].A *= scale;
+            Triangles[i].B *= scale;
+            Triangles[i].C *= scale;
         }
         return this;
     }
@@ -38,9 +38,9 @@ public partial struct Mesh
     {
         for (int i = 0; i < Triangles.Length; i++)
         {
-            Triangles[i].PointA *= scale;
-            Triangles[i].PointB *= scale;
-            Triangles[i].PointC *= scale;
+            Triangles[i].A *= scale;
+            Triangles[i].B *= scale;
+            Triangles[i].C *= scale;
         }
         return this;
     }

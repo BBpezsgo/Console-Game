@@ -22,15 +22,19 @@ public partial class Game
 
         switch (renderer)
         {
-            case IBufferedRenderer<ConsoleChar> buffered: buffered.Clear(); break;
-            case IBufferedRenderer<AnsiChar> buffered: buffered.Clear(); break;
-            case IBufferedRenderer<GdiColor> buffered: buffered.Clear(); break;
-            case IBufferedRenderer<ColoredChar> buffered: buffered.Clear(); break;
+            case BufferedRenderer<ConsoleChar> buffered: buffered.Clear(); break;
+            case BufferedRenderer<AnsiChar> buffered: buffered.Clear(); break;
+            case BufferedRenderer<GdiColor> buffered: buffered.Clear(); break;
+            case BufferedRenderer<ColoredChar> buffered: buffered.Clear(); break;
+            case Buffer<ConsoleChar> buffered: buffered.Clear(); break;
+            case Buffer<AnsiChar> buffered: buffered.Clear(); break;
+            case Buffer<GdiColor> buffered: buffered.Clear(); break;
+            case Buffer<ColoredChar> buffered: buffered.Clear(); break;
         }
 
         depthBuffer.Clear();
         renderer.RefreshBufferSize();
-        depthBuffer.Resize();
+        depthBuffer.RefreshBufferSize();
 
         FpsCounter.Sample((int)MathF.Round(1f / deltaTime));
 

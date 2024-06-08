@@ -2,19 +2,16 @@
 
 namespace ConsoleGame;
 
-public class Buffer<T>
+public class Buffer<T> : IRenderer<T>
 {
-    readonly IRenderer Renderer;
+    readonly IRenderer _renderer;
+    T[] _buffer;
 
-    public int Width => Renderer.Width;
-    public int Height => Renderer.Height;
+    public int Width => _renderer.Width;
+    public int Height => _renderer.Height;
 
-    public int Size => Renderer.Width * Renderer.Height;
-
-    T[] buffer;
-
-    public ref T this[int i] => ref buffer[i];
-    public ref T this[int x, int y] => ref buffer[(y * Width) + x];
+    public ref T this[int i] => ref _buffer[i];
+    public ref T this[int x, int y] => ref _buffer[(y * Width) + x];
 
     public ref T this[float x, float y] => ref this[(int)MathF.Round(x), (int)MathF.Round(y)];
     public ref T this[Vector2 position] => ref this[position.X, position.Y];
@@ -22,39 +19,19 @@ public class Buffer<T>
 
     public Buffer(IRenderer renderer)
     {
-        Renderer = renderer;
-        buffer = new T[Renderer.Width * Renderer.Height];
+        this._renderer = renderer;
+        _buffer = new T[this._renderer.Width * this._renderer.Height];
     }
 
-    public void Clear() => Array.Clear(buffer);
-
-    public void Resize() => buffer = new T[Renderer.Width * Renderer.Height];
-
-    public void SetRect(RectInt rect, T value)
-    {
-        int top = rect.Top;
-        int left = rect.Left;
-        int bottom = rect.Bottom;
-        int right = rect.Right;
-        for (int y = top; y < bottom; y++)
-        {
-            Array.Fill(buffer, value, (y * Width) + left, right - left);
-        }
-    }
+    public void RefreshBufferSize() => _buffer = new T[_renderer.Width * _renderer.Height];
 
     [return: NotNullIfNotNull(nameof(v))]
-    public static explicit operator T[]?(Buffer<T>? v) => v?.buffer;
+    public static explicit operator T[]?(Buffer<T>? v) => v?._buffer;
 
-    public static explicit operator Span<T>(Buffer<T>? v) => v?.buffer ?? Span<T>.Empty;
+    public static explicit operator Span<T>(Buffer<T>? v) => v?._buffer ?? Span<T>.Empty;
 
-    public void Copy(ConsoleRenderer destination, Func<T, ConsoleChar> converter)
-    {
-        for (int y = 0; y < this.Height; y++)
-        {
-            for (int x = 0; x < this.Width; x++)
-            {
-                destination[x, y] = converter.Invoke(this[x, y]);
-            }
-        }
-    }
+    public void Set(int i, T pixel) => _buffer[i] = pixel;
+    public void Render() => _renderer.Render();
+
+    public void Clear() => Array.Clear(_buffer);
 }

@@ -2,10 +2,11 @@
 
 public partial class MeshRenderer
 {
+    bool shouldResizeRenderer;
+
     void OnBufferSize(WindowBufferSizeEvent e)
     {
-        if (renderer is ConsoleRenderer consoleRenderer)
-        { consoleRenderer.ShouldResize(); }
+        shouldResizeRenderer = true;
     }
 
     void OnMouse(MouseEvent e)

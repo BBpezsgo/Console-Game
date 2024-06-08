@@ -279,7 +279,7 @@ public static class Obj
                 vb = vertices[b - 1];
                 vc = vertices[c - 1];
 
-                newTri = new Triangle3(va, vb, vc);
+                newTri = new Triangle3Ex(va, vb, vc);
             }
             else
             { continue; }

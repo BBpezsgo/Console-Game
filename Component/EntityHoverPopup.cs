@@ -31,7 +31,7 @@ public class EntityHoverPopup : RendererComponent
         if (box.Right >= Game.Renderer.Width) box.X += Game.Renderer.Width - 1 - box.Right;
         if (box.Bottom >= Game.Renderer.Height) box.X += Game.Renderer.Height - 1 - box.Bottom;
 
-        Game.DepthBuffer.SetRect(box, Depths.GUI);
+        Game.DepthBuffer.Fill(box, Depths.GUI);
 
         Game.Renderer.Box(box, CharColor.Black, CharColor.White, SideCharacters.BoxSides);
         box.Expand(-1);

@@ -125,33 +125,33 @@ public static class Renderer3D
     {
         Span<Triangle3Ex> clipped = stackalloc Triangle3Ex[2];
 
-        tri.PointA -= new Vector3(.5f, 0f, .5f);
-        tri.PointB -= new Vector3(.5f, 0f, .5f);
-        tri.PointC -= new Vector3(.5f, 0f, .5f);
+        tri.A -= new Vector3(.5f, 0f, .5f);
+        tri.B -= new Vector3(.5f, 0f, .5f);
+        tri.C -= new Vector3(.5f, 0f, .5f);
 
-        tri.PointA = Matrix.Multiply(tri.PointA.To4(), in transformation.Rotation).To3();
-        tri.PointB = Matrix.Multiply(tri.PointB.To4(), in transformation.Rotation).To3();
-        tri.PointC = Matrix.Multiply(tri.PointC.To4(), in transformation.Rotation).To3();
+        tri.A = Matrix.Multiply(tri.A.To4(), in transformation.Rotation).To3();
+        tri.B = Matrix.Multiply(tri.B.To4(), in transformation.Rotation).To3();
+        tri.C = Matrix.Multiply(tri.C.To4(), in transformation.Rotation).To3();
 
-        tri.PointA += new Vector3(.5f, 0f, .5f);
-        tri.PointB += new Vector3(.5f, 0f, .5f);
-        tri.PointC += new Vector3(.5f, 0f, .5f);
+        tri.A += new Vector3(.5f, 0f, .5f);
+        tri.B += new Vector3(.5f, 0f, .5f);
+        tri.C += new Vector3(.5f, 0f, .5f);
 
-        tri.PointA -= camera.Position;
-        tri.PointB -= camera.Position;
-        tri.PointC -= camera.Position;
+        tri.A -= camera.Position;
+        tri.B -= camera.Position;
+        tri.C -= camera.Position;
 
-        tri.PointA += transformation.Offset;
-        tri.PointB += transformation.Offset;
-        tri.PointC += transformation.Offset;
+        tri.A += transformation.Offset;
+        tri.B += transformation.Offset;
+        tri.C += transformation.Offset;
 
-        Vector3 line1 = tri.PointB - tri.PointA;
-        Vector3 line2 = tri.PointC - tri.PointA;
+        Vector3 line1 = tri.B - tri.A;
+        Vector3 line2 = tri.C - tri.A;
 
         Vector3 normal = Vector3.Cross(line1, line2);
         normal = Vector3.Normalize(normal);
 
-        Vector3 cameraRay = tri.PointA - camera.Position;
+        Vector3 cameraRay = tri.A - camera.Position;
 
         if (Vector3.Dot(normal, cameraRay) >= float.Epsilon) return;
 
@@ -185,50 +185,50 @@ public static class Renderer3D
             tri.Color = (ambientComponent + diffuse + specular) * 1.4f;
         }
 
-        tri.PointA = Matrix.Multiply(tri.PointA.To4(), in camera.ViewMatrix).To3();
-        tri.PointB = Matrix.Multiply(tri.PointB.To4(), in camera.ViewMatrix).To3();
-        tri.PointC = Matrix.Multiply(tri.PointC.To4(), in camera.ViewMatrix).To3();
+        tri.A = Matrix.Multiply(tri.A.To4(), in camera.ViewMatrix).To3();
+        tri.B = Matrix.Multiply(tri.B.To4(), in camera.ViewMatrix).To3();
+        tri.C = Matrix.Multiply(tri.C.To4(), in camera.ViewMatrix).To3();
 
         int clippedTriangles = Triangle3Ex.ClipAgainstPlane(new Vector3(0f, 0f, 1f), new Vector3(0f, 0f, 1f), tri, out clipped[0], out clipped[1]);
 
         for (int n = 0; n < clippedTriangles; n++)
         {
-            Triangle4Ex clippedTriangle = clipped[n];
+            Triangle4Ex clippedTriangle = (Triangle4Ex)clipped[n];
 
-            clippedTriangle.PointA = Matrix.Multiply(clippedTriangle.PointA, in camera.ProjectionMatrix);
-            clippedTriangle.PointB = Matrix.Multiply(clippedTriangle.PointB, in camera.ProjectionMatrix);
-            clippedTriangle.PointC = Matrix.Multiply(clippedTriangle.PointC, in camera.ProjectionMatrix);
+            clippedTriangle.A = Matrix.Multiply(clippedTriangle.A, in camera.ProjectionMatrix);
+            clippedTriangle.B = Matrix.Multiply(clippedTriangle.B, in camera.ProjectionMatrix);
+            clippedTriangle.C = Matrix.Multiply(clippedTriangle.C, in camera.ProjectionMatrix);
 
-            clippedTriangle.TexA.X /= clippedTriangle.PointA.W;
-            clippedTriangle.TexB.X /= clippedTriangle.PointB.W;
-            clippedTriangle.TexC.X /= clippedTriangle.PointC.W;
+            clippedTriangle.TexA.X /= clippedTriangle.A.W;
+            clippedTriangle.TexB.X /= clippedTriangle.B.W;
+            clippedTriangle.TexC.X /= clippedTriangle.C.W;
 
-            clippedTriangle.TexA.Y /= clippedTriangle.PointA.W;
-            clippedTriangle.TexB.Y /= clippedTriangle.PointB.W;
-            clippedTriangle.TexC.Y /= clippedTriangle.PointC.W;
+            clippedTriangle.TexA.Y /= clippedTriangle.A.W;
+            clippedTriangle.TexB.Y /= clippedTriangle.B.W;
+            clippedTriangle.TexC.Y /= clippedTriangle.C.W;
 
-            clippedTriangle.TexA.Z = 1f / clippedTriangle.PointA.W;
-            clippedTriangle.TexB.Z = 1f / clippedTriangle.PointB.W;
-            clippedTriangle.TexC.Z = 1f / clippedTriangle.PointC.W;
+            clippedTriangle.TexA.Z = 1f / clippedTriangle.A.W;
+            clippedTriangle.TexB.Z = 1f / clippedTriangle.B.W;
+            clippedTriangle.TexC.Z = 1f / clippedTriangle.C.W;
 
-            if (clippedTriangle.PointA.W != 0f)
-            { clippedTriangle.PointA /= clippedTriangle.PointA.W; }
+            if (clippedTriangle.A.W != 0f)
+            { clippedTriangle.A /= clippedTriangle.A.W; }
 
-            if (clippedTriangle.PointB.W != 0f)
-            { clippedTriangle.PointB /= clippedTriangle.PointB.W; }
+            if (clippedTriangle.B.W != 0f)
+            { clippedTriangle.B /= clippedTriangle.B.W; }
 
-            if (clippedTriangle.PointC.W != 0f)
-            { clippedTriangle.PointC /= clippedTriangle.PointC.W; }
+            if (clippedTriangle.C.W != 0f)
+            { clippedTriangle.C /= clippedTriangle.C.W; }
 
             Vector4 viewOffset = new(1f, 1f, 0f, 1f);
 
-            clippedTriangle.PointA += viewOffset;
-            clippedTriangle.PointB += viewOffset;
-            clippedTriangle.PointC += viewOffset;
+            clippedTriangle.A += viewOffset;
+            clippedTriangle.B += viewOffset;
+            clippedTriangle.C += viewOffset;
 
-            clippedTriangle.PointA *= 0.5f;
-            clippedTriangle.PointB *= 0.5f;
-            clippedTriangle.PointC *= 0.5f;
+            clippedTriangle.A *= 0.5f;
+            clippedTriangle.B *= 0.5f;
+            clippedTriangle.C *= 0.5f;
 
             projected.Add(clippedTriangle);
         }
@@ -363,9 +363,9 @@ public static class Renderer3D
         {
             renderer.FillTriangle<TPixel, ColorF>(
                 (Span<float>)depth,
-                (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
-                (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
-                (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
+                (Coord)((Vector2.One - triangles[i].A.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
+                (Coord)((Vector2.One - triangles[i].B.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
+                (Coord)((Vector2.One - triangles[i].C.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
                 new ReadOnlySpan2D<ColorF>(image.Data.AsSpan(), image.Width, image.Height), converter);
         }
     }
@@ -378,9 +378,9 @@ public static class Renderer3D
             TPixel pixel = converter.Invoke(triangles[i].Color);
             renderer.Triangle(
                 (Span<float>)depth,
-                (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
-                (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
-                (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                (Coord)((Vector2.One - triangles[i].A.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                (Coord)((Vector2.One - triangles[i].B.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                (Coord)((Vector2.One - triangles[i].C.To2()) * screenSize).Round(), triangles[i].TexC.Z,
                 pixel);
         }
     }
@@ -400,9 +400,9 @@ public static class Renderer3D
         {
             renderer.FillTriangle(
                 (Span<float>)depth,
-                (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
-                (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
-                (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
+                (Coord)((Vector2.One - triangles[i].A.To2()) * screenSize).Round(), triangles[i].TexA.To3(),
+                (Coord)((Vector2.One - triangles[i].B.To2()) * screenSize).Round(), triangles[i].TexB.To3(),
+                (Coord)((Vector2.One - triangles[i].C.To2()) * screenSize).Round(), triangles[i].TexC.To3(),
                 new ReadOnlySpan2D<ColorF>(image.Data.AsSpan(), image.Width, image.Height), v => v);
         }
     }
@@ -414,9 +414,9 @@ public static class Renderer3D
         {
             renderer.Triangle(
                 (Span<float>)depth,
-                (Coord)((Vector2.One - triangles[i].PointA.To2()) * screenSize).Round(), triangles[i].TexA.Z,
-                (Coord)((Vector2.One - triangles[i].PointB.To2()) * screenSize).Round(), triangles[i].TexB.Z,
-                (Coord)((Vector2.One - triangles[i].PointC.To2()) * screenSize).Round(), triangles[i].TexC.Z,
+                (Coord)((Vector2.One - triangles[i].A.To2()) * screenSize).Round(), triangles[i].TexA.Z,
+                (Coord)((Vector2.One - triangles[i].B.To2()) * screenSize).Round(), triangles[i].TexB.Z,
+                (Coord)((Vector2.One - triangles[i].C.To2()) * screenSize).Round(), triangles[i].TexC.Z,
                 triangles[i].Color);
         }
     }

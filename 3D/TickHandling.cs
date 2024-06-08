@@ -37,27 +37,25 @@ public partial class MeshRenderer
 
             if (RendererMode == 0)
             {
-                Do3DStuff(renderer, renderer.DepthBuffer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor((GdiColor)v)));
+                Do3DStuff(renderer, depthBuffer, v => new ConsoleChar(' ', 0, CharColor.From24bitColor((GdiColor)v)));
             }
             else if (RendererMode == 1)
             {
-                Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterShaded((GdiColor)v));
+                Do3DStuff(renderer, depthBuffer, v => CharColor.ToCharacterShaded((GdiColor)v));
             }
             else if (RendererMode == 2)
             {
-                Do3DStuff(renderer, renderer.DepthBuffer, v => CharColor.ToCharacterColored((GdiColor)v));
+                Do3DStuff(renderer, depthBuffer, v => CharColor.ToCharacterColored((GdiColor)v));
             }
             else if (RendererMode == 3)
             {
-                AnsiRenderer renderer = new(Console.WindowWidth, Console.WindowHeight)
-                { ColorType = AnsiColorType.Extended };
-                Do3DStuff(renderer, renderer.DepthBuffer);
+                AnsiRenderer renderer = new();
+                Do3DStuff(renderer, depthBuffer, v => new AnsiChar(' ', 0, Ansi.ToAnsi256((GdiColor)v)));
             }
             else
             {
-                AnsiRenderer renderer = new(Console.WindowWidth, Console.WindowHeight)
-                { ColorType = AnsiColorType.TrueColor };
-                Do3DStuff(renderer, renderer.DepthBuffer);
+                AnsiRendererTrueColor renderer = new();
+                Do3DStuff(renderer, depthBuffer, v => new ColoredChar(' ', 0, (GdiColor)v));
             }
         }
         else
@@ -76,22 +74,20 @@ public partial class MeshRenderer
             }
             else if (RendererMode == 3)
             {
-                DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                { ColorType = AnsiColorType.Extended });
+                DoColorTest(new AnsiRenderer(), v => new AnsiChar(' ', 0, Ansi.ToAnsi256((GdiColor)v)));
             }
             else
             {
-                DoColorTest(new AnsiRenderer(Console.WindowWidth, Console.WindowHeight)
-                { ColorType = AnsiColorType.TrueColor });
+                DoColorTest(new AnsiRendererTrueColor(), v => new ColoredChar(' ', 0, (GdiColor)v));
             }
         }
     }
 
     [SupportedOSPlatform("windows")]
-    void Do3DStuff<T>(Renderer<T> renderer, Buffer<float>? depth, Func<ColorF, T> converter)
+    void Do3DStuff<T>(IRenderer<T> renderer, Buffer<float>? depth, Func<ColorF, T> converter)
     {
         camera.HandleInput(LockCursor, ref LastMousePosition);
-        camera.DoMath(renderer.Size);
+        camera.DoMath(new Size(renderer.Width, renderer.Height));
 
         Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender, converter);
 
@@ -101,10 +97,10 @@ public partial class MeshRenderer
     }
 
     [SupportedOSPlatform("windows")]
-    void Do3DStuff(Renderer<ColorF> renderer, Buffer<float>? depth)
+    void Do3DStuff(IRenderer<ColorF> renderer, Buffer<float>? depth)
     {
         camera.HandleInput(LockCursor, ref LastMousePosition);
-        camera.DoMath(renderer.Size);
+        camera.DoMath(new Size(renderer.Width, renderer.Height));
 
         Renderer3D.Render(renderer, depth, MeshToRender, camera, ImageToRender);
 
@@ -114,7 +110,7 @@ public partial class MeshRenderer
     }
 
     float ah2 = .5f;
-    void DoColorTest<T>(Renderer<T> renderer, Func<ColorF, T> converter)
+    void DoColorTest<T>(IRenderer<T> renderer, Func<ColorF, T> converter)
     {
         for (int y = 0; y < renderer.Height; y++)
         {
@@ -136,7 +132,7 @@ public partial class MeshRenderer
 
         renderer.Render();
     }
-    void DoColorTest(Renderer<ColorF> renderer)
+    void DoColorTest(IRenderer<ColorF> renderer)
     {
         for (int y = 0; y < renderer.Height; y++)
         {

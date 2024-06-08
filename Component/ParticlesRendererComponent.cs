@@ -153,7 +153,7 @@ internal class ParticlesRendererComponent : RendererComponent
             };
             if (charIndex < 0 || charIndex >= Characters.Length) return;
 
-            Game.Renderer.Set(p, new ConsoleChar(Characters[charIndex], CharColor.From24bitColor(Gradients[particles[i].Kind].Get(v))));
+            Game.Renderer.Set(p, new ConsoleChar(Characters[charIndex], CharColor.From24bitColor(Gradients[particles[i].Kind].Sample(v))));
         }
     }
 }

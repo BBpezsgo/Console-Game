@@ -5,7 +5,8 @@ namespace ConsoleGame;
 
 public partial class MeshRenderer : ITimeProvider
 {
-    ConsoleRenderer? renderer;
+    Win32.Console.ConsoleRenderer? renderer;
+    Buffer<float>? depthBuffer;
     FpsCounter FpsCounter;
     bool isRunning;
 
@@ -22,12 +23,19 @@ public partial class MeshRenderer : ITimeProvider
         FpsCounter = new FpsCounter(8);
         Time.Provider = this;
         renderer = null;
+        depthBuffer = null;
     }
 
     public MeshRenderer(string objFile, string? imgFile) : this()
     {
         MeshToRender = Obj.LoadFile(objFile).Scale(3);
-        ImageToRender = Image.LoadFile(imgFile, ColorF.Black);
+        if (imgFile is not null)
+        {
+            if (imgFile.EndsWith(".png"))
+            { ImageToRender = Png.LoadFile(imgFile, ColorF.Black); }
+            else if (imgFile.EndsWith(".ppm"))
+            { ImageToRender = Ppm.LoadFile(imgFile); }
+        }
     }
 
     public MeshRenderer(Mesh mesh, Image? image) : this()
@@ -52,7 +60,8 @@ public partial class MeshRenderer : ITimeProvider
 
         ConsoleListener.Start();
 
-        renderer = new ConsoleRenderer((short)Console.WindowWidth, (short)Console.WindowHeight);
+        renderer = new Win32.Console.ConsoleRenderer();
+        depthBuffer = new Buffer<float>(renderer);
         GUI.Renderer = renderer;
 
         double last = DateTime.Now.TimeOfDay.TotalSeconds;
@@ -64,6 +73,12 @@ public partial class MeshRenderer : ITimeProvider
             now = DateTime.Now.TimeOfDay.TotalSeconds;
             DeltaTime = (float)(now - last);
             last = now;
+
+            if (shouldResizeRenderer)
+            {
+                renderer.RefreshBufferSize();
+                depthBuffer.RefreshBufferSize();
+            }
 
             Tick();
 
