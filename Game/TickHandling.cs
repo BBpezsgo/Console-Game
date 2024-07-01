@@ -145,7 +145,6 @@ public partial class Game
         int stateBarX = 1;
 
         stateBarX += renderer.Text(stateBarX, 0, $"FPS: {FpsCounter.Value,4}", CharColor.Gray);
-
         stateBarX += renderer.Text(stateBarX, 0, " | ", CharColor.Gray);
 
         /*
@@ -250,6 +249,7 @@ public partial class Game
                 renderer.Set(18, 1, new ConsoleChar(':', CharColor.Silver));
 
                 renderer.Text(20, 1, PlayerData.Coins.ToString(), CharColor.BrightYellow);
+
             }
 
             if (players.Length > 0 &&

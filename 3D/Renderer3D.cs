@@ -9,6 +9,22 @@ public static class Renderer3D
     public static void Render<TPixel>(IOnlySetterRenderer<TPixel> renderer, Buffer<float>? depth, ReadOnlySpan<TransformedMesh> meshes, Camera camera, Image? image, Func<ColorF, TPixel> converter)
     {
         List<Triangle4Ex> trianglesToDraw = new();
+        float cameraBruh = Math.Clamp(camera.Bruh, -MathF.PI / 2f, MathF.PI / 2f) / (MathF.PI / 2f);
+
+        for (int y = 0; y < renderer.Height; y++)
+        {
+            for (int x = 0; x < renderer.Width; x++)
+            {
+                float ah = ((float)y / (float)renderer.Height);
+                float v = (ah - cameraBruh);
+                ColorF c = new(v);
+                if (v > .5f)
+                {
+                    c = new ColorF(.5f);
+                }
+                renderer.Set(x, y, converter.Invoke(c));
+            }
+        }
 
         for (int i = 0; i < meshes.Length; i++)
         {

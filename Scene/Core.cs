@@ -202,6 +202,8 @@ public partial class Scene
         }
         */
 
+        Debug.WriteLine(Camera.Bruh);
+
         for (int i = Entities.Count - 1; i >= 0; i--)
         {
             if (Entities[i].IsDestroyed)
@@ -257,7 +259,7 @@ public partial class Scene
             }
         }
 
-        Camera.DoMath(new Size(Game.Renderer.Width, Game.Renderer.Height));
+        Camera.DoMath(new Size(Game.Renderer.Width / 2, Game.Renderer.Height));
 
         MeshBuffer.Clear();
 
